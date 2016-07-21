@@ -1,0 +1,15 @@
+/*
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ *
+ */
+
+var ex = regexp("[a-zA-Z]+");
+var string = "123 Test; strlen(str);";
+var res = ex.search(string);
+print(string.slice(res.begin,res.end)); //prints "Test"
+print("\n");
+ex = regexp(@"\m()");
+string = "123 Test; doSomething(str, getTemp(), (a+(b/c)));";
+res = ex.search(string);
+print(string.slice(res.begin,res.end)); //prints "(...)"
+print("\n");
