@@ -1,5 +1,3 @@
-/*  see copyright notice in squirrel.h */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,6 +64,11 @@ void errorfunc(HSQUIRRELVM SQ_UNUSED_ARG(v), const SQChar *s, ...)
 void PrintVersionInfos()
 {
     scfprintf(stdout, _SC("%s %s (%d bits)\n"), SQUIRREL_VERSION, SQUIRREL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
+}
+
+void PrintInteractiveConsoleInfo()
+{
+    scfprintf(stdout, _SC("Enter 'quit()' to exit\n"));
 }
 
 void PrintUsage()
@@ -168,8 +171,7 @@ int getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
                     if (SQ_SUCCEEDED(sqstd_writeclosuretofile(v, outfile)))
                         return _DONE;
                 }
-            }
-            else {
+            } else {
                 //if(SQ_SUCCEEDED(sqstd_dofile(v,filename,SQFalse,SQTrue))) {
                 //return _DONE;
                 //}
@@ -232,6 +234,7 @@ void Interactive(HSQUIRRELVM v)
     SQInteger retval = 0;
     SQInteger done = 0;
     PrintVersionInfos();
+    PrintInteractiveConsoleInfo();
 
     sq_pushroottable(v);
     sq_pushstring(v, _SC("quit"), -1);
@@ -247,33 +250,35 @@ void Interactive(HSQUIRRELVM v)
         scprintf(_SC("\nlv> "));
         for (;;) {
             int c;
-            if (done)return;
+
+            if (done)
+                return;
+
             c = getchar();
             if (c == _SC('\n')) {
-                if (i > 0 && buffer[i - 1] == _SC('\\'))
-                {
+                if (i > 0 && buffer[i - 1] == _SC('\\')) {
                     buffer[i - 1] = _SC('\n');
+                } else if (blocks == 0) {
+                    break;
                 }
-                else if (blocks == 0)break;
                 buffer[i++] = _SC('\n');
-            }
-            else if (c == _SC('}')) {blocks--; buffer[i++] = (SQChar)c;}
-            else if (c == _SC('{') && !string) {
+            } else if (c == _SC('}')) {
+                blocks--;
+                buffer[i++] = (SQChar)c;
+            } else if (c == _SC('{') && !string) {
                 blocks++;
                 buffer[i++] = (SQChar)c;
-            }
-            else if (c == _SC('"') || c == _SC('\'')) {
+            } else if (c == _SC('"') || c == _SC('\'')) {
                 string = !string;
                 buffer[i++] = (SQChar)c;
-            }
-            else if (i >= MAXINPUT - 1) {
-                scfprintf(stderr, _SC("sq : input line too long\n"));
+            } else if (i >= MAXINPUT - 1) {
+                scfprintf(stderr, _SC("lv : input line too long\n"));
                 break;
-            }
-            else {
+            } else {
                 buffer[i++] = (SQChar)c;
             }
         }
+
         buffer[i] = _SC('\0');
 
         if (buffer[0] == _SC('=')) {
@@ -281,6 +286,7 @@ void Interactive(HSQUIRRELVM v)
             memcpy(buffer, sq_getscratchpad(v, -1), (scstrlen(sq_getscratchpad(v, -1)) + 1)*sizeof(SQChar));
             retval = 1;
         }
+
         i = scstrlen(buffer);
         if (i > 0) {
             SQInteger oldtop = sq_gettop(v);
