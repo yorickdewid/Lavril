@@ -1,22 +1,23 @@
+MAKE = make
+SRC = squirrel
+LIB = sqstdlib
+CLI = lv
 
-SQUIRREL=.
-MAKE=make
+la64: folders
+	$(MAKE) -C $(SRC)
+	$(MAKE) -C $(LIB)
+	$(MAKE) -C $(CLI)
 
-sq32: folders
-	cd squirrel; $(MAKE)
-	cd sqstdlib; $(MAKE)
-	cd sq; $(MAKE)
+clean:
+	$(MAKE) -C $(SRC) clean
+	$(MAKE) -C $(LIB) clean
+	$(MAKE) -C $(CLI) clean
 
 sqprof: folders
 	cd squirrel; $(MAKE) sqprof
 	cd sqstdlib; $(MAKE) sqprof
 	cd sq; $(MAKE) sqprof
 
-sq64: folders
-	cd squirrel; $(MAKE) sq64
-	cd sqstdlib; $(MAKE) sq64
-	cd sq; $(MAKE) sq64
-
 folders:
-	mkdir -p lib
-	mkdir -p bin
+	@mkdir -p lib
+	@mkdir -p bin

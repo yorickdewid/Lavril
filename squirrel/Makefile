@@ -1,10 +1,11 @@
-SQUIRREL= ..
-
-
-OUT= $(SQUIRREL)/lib/libsquirrel.a
-INCZ= -I$(SQUIRREL)/include -I. -Iinclude
-DEFS=
-LIB=
+CC = g++
+BIN = ../lib/libsquirrel.a
+DEBUG = -g -O0
+LIBS =
+DEFINE = -D_DEBUG_DUMP -D_SQ64
+INCLUDE = -I../include -I. -Iinclude
+CXXFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
+LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 OBJS= \
 	sqapi.o \
@@ -20,33 +21,25 @@ OBJS= \
 	sqvm.o \
 	sqclass.o
 
-SRCS= \
-	sqapi.cpp \
-	sqbaselib.cpp \
-	sqfuncstate.cpp \
-	sqdebug.cpp \
-	sqlexer.cpp \
-	sqobject.cpp \
-	sqcompiler.cpp \
-	sqstate.cpp \
-	sqtable.cpp \
-	sqmem.cpp \
-	sqvm.cpp \
-	sqclass.cpp
+all: $(OBJS)
+	$(AR) rc $(BIN) $(OBJS)
 
+clean:
+	$(RM) *.o
 
+# OLD
+#sq64:
+#	gcc -O2 -m64 -D_SQ64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
+#	ar rc $(OUT) *.o
+#	rm *.o
 
-sq32:
-	gcc -O2 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
-	ar rc $(OUT) *.o
-	rm *.o
+#sq32:
+#	gcc -O2 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
+#	ar rc $(OUT) *.o
+#	rm *.o
 
-sqprof:
-	gcc -O2 -pg -fno-exceptions -fno-rtti -pie -gstabs -g3 -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
-	ar rc $(OUT) *.o
-	rm *.o
+#sqprof:
+#	gcc -O2 -pg -fno-exceptions -fno-rtti -pie -gstabs -g3 -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
+#	ar rc $(OUT) *.o
+#	rm *.o
 
-sq64:
-	gcc -O2 -m64 -D_SQ64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
-	ar rc $(OUT) *.o
-	rm *.o
