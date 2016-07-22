@@ -2,7 +2,7 @@ CC = g++
 BIN = ../bin/lv
 LIBDIR = -L../lib
 DEBUG = -g -O0
-LIBS = -lsquirrel -lsqstdlib
+LIBS = -llvcore -llvstdlib
 DEFINE =
 INCLUDE = -I../include -I. -Iinclude
 CXXFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
@@ -17,6 +17,7 @@ all: $(OBJS)
 
 clean:
 	$(RM) *.o
+	$(RM) $(BIN)
 
 #sq64:
 #	g++ -O2 -m64 -fno-exceptions -fno-rtti -D_SQ64 -o $(OUT) $(SRCS) $(INCZ) $(LIBZ) $(LIB)

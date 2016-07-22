@@ -383,14 +383,13 @@ SQUIRREL_API void sq_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook);
 #define sq_isweakref(o) ((o)._type==OT_WEAKREF)
 #define sq_type(o) ((o)._type)
 
-/* deprecated */
-#define sq_createslot(v,n) sq_newslot(v,n,SQFalse)
-
 #define SQ_OK (0)
 #define SQ_ERROR (-1)
 
 #define SQ_FAILED(res) (res<0)
 #define SQ_SUCCEEDED(res) (res>=0)
+
+#define LV_UNUSED(v) ((void)(v))
 
 #ifdef __GNUC__
 # define SQ_UNUSED_ARG(x) __attribute__((unused)) x

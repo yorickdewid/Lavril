@@ -1,5 +1,5 @@
 CC = g++
-BIN = ../lib/libsqstdlib.a
+BIN = ../lib/liblvstdlib.a
 DEBUG = -g -O0
 LIBS =
 DEFINE = -D_SQ64
@@ -22,6 +22,7 @@ all: $(OBJS)
 
 clean:
 	$(RM) *.o
+	$(RM) $(BIN)
 
 #sq64:
 #	gcc -O2 -m64 -fno-exceptions -D_SQ64 -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ)

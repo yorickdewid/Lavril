@@ -1,7 +1,7 @@
 MAKE = make
-SRC = squirrel
-LIB = sqstdlib
-CLI = lv
+SRC = src
+LIB = stdlib
+CLI = cli
 
 la64: folders
 	$(MAKE) -C $(SRC)
