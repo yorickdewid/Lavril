@@ -30,7 +30,6 @@ void PrintVersionInfos();
 int MemAllocHook( int allocType, void *userData, size_t size, int blockType,
                   long requestNumber, const unsigned char *filename, int lineNumber)
 {
-    //if(requestNumber==769)_asm int 3;
     return 1;
 }
 #endif
@@ -107,7 +106,7 @@ int getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
             {
                 switch (argv[arg][1])
                 {
-                case 'd': //DEBUG(debug infos)
+                case 'd':
                     sq_enabledebuginfo(v, 1);
                     break;
                 case 'c':
@@ -224,9 +223,7 @@ int getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
     return _INTERACTIVE;
 }
 
-void Interactive(HSQUIRRELVM v)
-{
-
+void Interactive(HSQUIRRELVM v) {
 #define MAXINPUT 1024
     SQChar buffer[MAXINPUT];
     SQInteger blocks = 0;
@@ -244,8 +241,7 @@ void Interactive(HSQUIRRELVM v)
     sq_newslot(v, -3, SQFalse);
     sq_pop(v, 1);
 
-    while (!done)
-    {
+    while (!done) {
         SQInteger i = 0;
         scprintf(_SC("\nlv> "));
         for (;;) {
@@ -258,6 +254,9 @@ void Interactive(HSQUIRRELVM v)
             if (c == _SC('\n')) {
                 if (i > 0 && buffer[i - 1] == _SC('\\')) {
                     buffer[i - 1] = _SC('\n');
+                } else if (i > 0 && buffer[i - 1] == _SC('q') && buffer[i - 2] == _SC('\\')) {
+                    done = 1;
+                    continue;
                 } else if (blocks == 0) {
                     break;
                 }

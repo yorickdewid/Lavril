@@ -19,8 +19,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-#ifndef _SQUIRREL_H_
-#define _SQUIRREL_H_
+#ifndef _LAVRIL_H_
+#define _LAVRIL_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,7 +64,7 @@ struct SQOuter;
 #define SQUIRREL_VERSION    _SC("Lavril 1.0-beta")
 #define SQUIRREL_COPYRIGHT  _SC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
 #define SQUIRREL_AUTHOR     _SC("Yorick de Wid")
-#define SQUIRREL_VERSION_NUMBER 310
+#define SQUIRREL_VERSION_NUMBER 100
 
 #define SQ_VMSTATE_IDLE         0
 #define SQ_VMSTATE_RUNNING      1
@@ -402,4 +402,4 @@ SQUIRREL_API void sq_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook);
 } /*extern "C"*/
 #endif
 
-#endif /*_SQUIRREL_H_*/
+#endif /*_LAVRIL_H_*/
