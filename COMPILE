@@ -11,13 +11,10 @@ sqstdlib
 sq
     stand alone interpreter
 
-doc
-    The manual
-
 etc
     a minimalistic embedding sample
 
-samples
+examples
     samples programs
 
 

@@ -1,4 +1,3 @@
-/*  see copyright notice in squirrel.h */
 #ifndef _SQLEXER_H_
 #define _SQLEXER_H_
 
@@ -12,13 +11,13 @@ struct SQLexer
 {
     SQLexer();
     ~SQLexer();
-    void Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
+    void Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up, CompilerErrorFunc efunc, void *ed);
     void Error(const SQChar *err);
     SQInteger Lex();
     const SQChar *Tok2Str(SQInteger tok);
 private:
-    SQInteger GetIDType(const SQChar *s,SQInteger len);
-    SQInteger ReadString(SQInteger ndelim,bool verbatim);
+    SQInteger GetIDType(const SQChar *s, SQInteger len);
+    SQInteger ReadString(SQInteger ndelim, bool verbatim);
     SQInteger ReadNumber();
     void LexBlockComment();
     void LexLineComment();
