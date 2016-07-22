@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-SQUIRREL_API void sqstd_seterrorhandlers(HSQUIRRELVM v);
-SQUIRREL_API void sqstd_printcallstack(HSQUIRRELVM v);
+LAVRIL_API void sqstd_seterrorhandlers(HSQUIRRELVM v);
+LAVRIL_API void sqstd_printcallstack(HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/

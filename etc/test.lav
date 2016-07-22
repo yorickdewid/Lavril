@@ -2,8 +2,11 @@ function theAnswer() {
 	print("Answer to The Ultimate Question of Life, the Universe, and Everything: " + universe() + "\n");
 }
 
-function main(i, f, s) {
-    print("Called main(), i=" + i + ", f=" + f + ", s='" + s+ "'\n");
+function test(i, f, s) {
+    print("Called test(), i=" + i + ", f=" + f + ", s='" + s+ "'\n");
 
     theAnswer();
 }
+
+print("Some text\n")
+

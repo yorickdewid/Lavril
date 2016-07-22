@@ -39,9 +39,9 @@ void call_main(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 
 	/* Push the global table */
 	sq_pushroottable(v);
-	sq_pushstring(v, _SC("main"), -1);
+	sq_pushstring(v, _SC("test"), -1);
 
-	/* Get the routine 'main' from the global table */
+	/* Get the routine 'test' from the global table */
 	if (SQ_SUCCEEDED(sq_get(v, -2))) {
 		sq_pushroottable(v);
 		sq_pushinteger(v, n);
@@ -60,14 +60,16 @@ int main(int argc, char *argv[]) {
 	/* Creates a VM with initial stack size 1024 */
 	v = sq_open(1024);
 
-	/* Push the global table to store std */
-	sq_pushroottable(v);
+	{
+		/* Push the global table to store std */
+		sq_pushroottable(v);
 
-	/* Register library */
-	sqstd_register_mathlib(v);
+		/* Register library */
+		sqstd_register_mathlib(v);
 
-	/* Pop the root table */
-	sq_pop(v, 1);
+		/* Pop the root table */
+		sq_pop(v, 1);
+	}
 
 	/* Registers the default error handlers */
 	sqstd_seterrorhandlers(v);
@@ -79,7 +81,7 @@ int main(int argc, char *argv[]) {
 	sq_pushroottable(v);
 
 	/* Print syntax errors if any */
-	if (SQ_SUCCEEDED(sqstd_dofile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
+	if (SQ_SUCCEEDED(sqstd_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
 		call_main(v, 1, 2.5, _SC("teststring"));
 	}
 

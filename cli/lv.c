@@ -75,7 +75,7 @@ void print_interactive_console_info()
 void print_usage() {
 	scfprintf(stderr, _SC("usage: lv [options] <file> [--] [args...]\n\n")
 	          _SC("  -a              Run interactively\n")
-	          _SC("  -c <file>       Compile file (default output 'out.cnut')\n")
+	          _SC("  -c <file>       Compile file (default output 'out.lavc')\n")
 	          _SC("  -o <file>       Specifies output file for the -c option\n")
 	          _SC("  -d              Enable debug info\n")
 	          _SC("  -v              Version\n")
@@ -148,7 +148,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
 
 			if (compiles_only) {
 				if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
-					const SQChar *outfile = _SC("out.cnut");
+					const SQChar *outfile = _SC("out.lavc");
 					if (output) {
 #ifdef SQUNICODE
 						int len = (int)(strlen(output) + 1);
@@ -166,6 +166,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
 				if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
 					int callargs = 1;
 					sq_pushroottable(v);
+
 					for (i = arg; i < argc; ++i) {
 						const SQChar *a;
 #ifdef SQUNICODE

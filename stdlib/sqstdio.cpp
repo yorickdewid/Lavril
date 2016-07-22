@@ -356,14 +356,17 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror
 				sqstd_fclose(file);
 				return SQ_OK;
 			}
-		}
-		else { //SCRIPT
+		} else { //SCRIPT
 
 			switch (us)
 			{
 			//gotta swap the next 2 lines on BIG endian machines
-			case 0xFFFE: func = _io_file_lexfeed_UCS2_BE; break;//UTF-16 little endian;
-			case 0xFEFF: func = _io_file_lexfeed_UCS2_LE; break;//UTF-16 big endian;
+			case 0xFFFE:
+				func = _io_file_lexfeed_UCS2_BE;
+				break;//UTF-16 little endian;
+			case 0xFEFF:
+				func = _io_file_lexfeed_UCS2_LE;
+				break;//UTF-16 big endian;
 			case 0xBBEF:
 				if (sqstd_fread(&uc, 1, sizeof(uc), file) == 0) {
 					sqstd_fclose(file);
@@ -379,8 +382,11 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror
 				func = _io_file_lexfeed_PLAIN;
 #endif
 				break;//UTF-8 ;
-			default: sqstd_fseek(file, 0, SQ_SEEK_SET); break; // ascii
+			default:
+				sqstd_fseek(file, 0, SQ_SEEK_SET);
+				break; // ascii
 			}
+
 			IOBuffer buffer;
 			buffer.ptr = 0;
 			buffer.size = 0;
@@ -396,7 +402,7 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror
 	return sq_throwerror(v, _SC("cannot open the file"));
 }
 
-SQRESULT sqstd_dofile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror)
+SQRESULT sqstd_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror)
 {
 	if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, printerror))) {
 		sq_push(v, -2);
@@ -443,7 +449,7 @@ SQInteger _g_io_writeclosuretofile(HSQUIRRELVM v)
 	return SQ_ERROR; //propagates the error
 }
 
-SQInteger _g_io_dofile(HSQUIRRELVM v)
+SQInteger _g_io_execfile(HSQUIRRELVM v)
 {
 	const SQChar *filename;
 	SQBool printerror = SQFalse;
@@ -452,7 +458,7 @@ SQInteger _g_io_dofile(HSQUIRRELVM v)
 		sq_getbool(v, 3, &printerror);
 	}
 	sq_push(v, 1); //repush the this
-	if (SQ_SUCCEEDED(sqstd_dofile(v, filename, SQTrue, printerror)))
+	if (SQ_SUCCEEDED(sqstd_execfile(v, filename, SQTrue, printerror)))
 		return 1;
 	return SQ_ERROR; //propagates the error
 }
@@ -460,7 +466,7 @@ SQInteger _g_io_dofile(HSQUIRRELVM v)
 #define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck}
 static const SQRegFunction iolib_funcs[] = {
 	_DECL_GLOBALIO_FUNC(loadfile, -2, _SC(".sb")),
-	_DECL_GLOBALIO_FUNC(dofile, -2, _SC(".sb")),
+	_DECL_GLOBALIO_FUNC(execfile, -2, _SC(".sb")),
 	_DECL_GLOBALIO_FUNC(writeclosuretofile, 3, _SC(".sc")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };

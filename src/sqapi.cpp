@@ -10,8 +10,7 @@
 #include "sqfuncstate.h"
 #include "sqclass.h"
 
-static bool sq_aux_gettypedarg(HSQUIRRELVM v, SQInteger idx, SQObjectType type, SQObjectPtr **o)
-{
+static bool sq_aux_gettypedarg(HSQUIRRELVM v, SQInteger idx, SQObjectType type, SQObjectPtr **o) {
     *o = &stack_get(v, idx);
     if (type(**o) != type) {
         SQObjectPtr oval = v->PrintObjVal(**o);
@@ -38,8 +37,8 @@ SQInteger sq_aux_invalidtype(HSQUIRRELVM v, SQObjectType type)
 
 HSQUIRRELVM sq_open(SQInteger initialstacksize)
 {
-    SQSharedState *ss;
-    SQVM *v;
+    SQSharedState *ss = NULL;
+    SQVM *v = NULL;
     sq_new(ss, SQSharedState);
     ss->Init();
     v = (SQVM *)SQ_MALLOC(sizeof(SQVM));
@@ -56,8 +55,8 @@ HSQUIRRELVM sq_open(SQInteger initialstacksize)
 
 HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize)
 {
-    SQSharedState *ss;
-    SQVM *v;
+    SQSharedState *ss = NULL;
+    SQVM *v = NULL;
     ss = _ss(friendvm);
 
     v = (SQVM *)SQ_MALLOC(sizeof(SQVM));
@@ -125,7 +124,7 @@ SQRESULT sq_compile(HSQUIRRELVM v, SQLEXREADFUNC read, SQUserPointer p, const SQ
 {
     SQObjectPtr o;
 #ifndef NO_COMPILER
-    if (Compile(v, read, p, sourcename, o, raiseerror ? true : false, _ss(v)->_debuginfo)) {
+    if (RunCompiler(v, read, p, sourcename, o, raiseerror ? true : false, _ss(v)->_debuginfo)) {
         v->Push(SQClosure::Create(_ss(v), _funcproto(o), _table(v->_roottable)->GetWeakRef(OT_TABLE)));
         return SQ_OK;
     }
@@ -1141,34 +1140,41 @@ SQRESULT sq_resume(HSQUIRRELVM v, SQBool retval, SQBool raiseerror)
     if (type(v->GetUp(-1)) == OT_GENERATOR)
     {
         v->PushNull(); //retval
-        if (!v->Execute(v->GetUp(-2), 0, v->_top, v->GetUp(-1), raiseerror, SQVM::ET_RESUME_GENERATOR))
-        {v->Raise_Error(v->_lasterror); return SQ_ERROR;}
+        if (!v->Execute(v->GetUp(-2), 0, v->_top, v->GetUp(-1), raiseerror, SQVM::ET_RESUME_GENERATOR)) {
+            v->Raise_Error(v->_lasterror); return SQ_ERROR;
+        }
+
         if (!retval)
             v->Pop();
+
         return SQ_OK;
     }
+
     return sq_throwerror(v, _SC("only generators can be resumed"));
 }
 
 SQRESULT sq_call(HSQUIRRELVM v, SQInteger params, SQBool retval, SQBool raiseerror)
 {
     SQObjectPtr res;
-    if (v->Call(v->GetUp(-(params + 1)), params, v->_top - params, res, raiseerror ? true : false)) {
 
+    if (v->Call(v->GetUp(-(params + 1)), params, v->_top - params, res, raiseerror ? true : false)) {
         if (!v->_suspended) {
             v->Pop(params);//pop closure and args
         }
+
         if (retval) {
             v->Push(res); return SQ_OK;
         }
+
         return SQ_OK;
-    }
-    else {
+    } else {
         v->Pop(params);
         return SQ_ERROR;
     }
+
     if (!v->_suspended)
         v->Pop(params);
+
     return sq_throwerror(v, _SC("call failed"));
 }
 

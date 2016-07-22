@@ -14,8 +14,8 @@ void sq_vm_free(void *p, SQUnsignedInteger size);
 #define sq_aligning(v) (((size_t)(v) + (SQ_ALIGNMENT-1)) & (~(SQ_ALIGNMENT-1)))
 
 //sqvector mini vector class, supports objects by value
-template<typename T> class sqvector
-{
+template<typename T>
+class sqvector {
 public:
     sqvector()
     {
