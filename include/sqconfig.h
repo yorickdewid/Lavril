@@ -8,6 +8,8 @@ typedef unsigned __int64 SQHash; /*should be the same size of a pointer*/
 typedef long long SQInteger;
 typedef unsigned long long SQUnsignedInteger;
 typedef unsigned long long SQHash; /*should be the same size of a pointer*/
+#define LVFORMATINT "%lld"
+#define LVFORMATINT3 "%03lld"
 #endif
 typedef int SQInt32;
 typedef unsigned int SQUnsignedInteger32;
@@ -17,6 +19,8 @@ typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
 typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
 typedef unsigned int SQUnsignedInteger;
 typedef unsigned int SQHash; /*should be the same size of a pointer*/
+#define LVFORMATINT "%d"
+#define LVFORMATINT3 "%03d"
 #endif
 
 

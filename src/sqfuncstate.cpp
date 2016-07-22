@@ -114,8 +114,8 @@ void SQFuncState::Dump(SQFunctionProto *func)
 {
     SQUnsignedInteger n = 0, i;
     SQInteger si;
-    scprintf(_SC("SQInstruction sizeof %d\n"), sizeof(SQInstruction));
-    scprintf(_SC("SQObject sizeof %d\n"), sizeof(SQObject));
+    scprintf(_SC("SQInstruction sizeof %zu\n"), sizeof(SQInstruction));
+    scprintf(_SC("SQObject sizeof %zu\n"), sizeof(SQObject));
     scprintf(_SC("--------------------------------------------------------------------\n"));
     scprintf(_SC("*****FUNCTION [%s]\n"), type(func->_name) == OT_STRING ? _stringval(func->_name) : _SC("unknown"));
     scprintf(_SC("-----LITERALS\n"));
@@ -128,7 +128,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
         templiterals[_integer(val)] = key;
     }
     for (i = 0; i < templiterals.size(); i++) {
-        scprintf(_SC("[%d] "), n);
+        scprintf(_SC("[" LVFORMATINT "] "), n);
         DumpLiteral(templiterals[i]);
         scprintf(_SC("\n"));
         n++;
@@ -138,7 +138,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
         scprintf(_SC("<<VARPARAMS>>\n"));
     n = 0;
     for (i = 0; i < _parameters.size(); i++) {
-        scprintf(_SC("[%d] "), n);
+        scprintf(_SC("[" LVFORMATINT "] "), n);
         DumpLiteral(_parameters[i]);
         scprintf(_SC("\n"));
         n++;
@@ -146,13 +146,13 @@ void SQFuncState::Dump(SQFunctionProto *func)
     scprintf(_SC("-----LOCALS\n"));
     for (si = 0; si < func->_nlocalvarinfos; si++) {
         SQLocalVarInfo lvi = func->_localvarinfos[si];
-        scprintf(_SC("[%d] %s \t%d %d\n"), lvi._pos, _stringval(lvi._name), lvi._start_op, lvi._end_op);
+        scprintf(_SC("[" LVFORMATINT "] %s \t" LVFORMATINT LVFORMATINT "\n"), lvi._pos, _stringval(lvi._name), lvi._start_op, lvi._end_op);
         n++;
     }
     scprintf(_SC("-----LINE INFO\n"));
     for (i = 0; i < _lineinfos.size(); i++) {
         SQLineInfo li = _lineinfos[i];
-        scprintf(_SC("op [%d] line [%d] \n"), li._op, li._line);
+        scprintf(_SC("op [" LVFORMATINT "] line [" LVFORMATINT "] \n"), li._op, li._line);
         n++;
     }
     scprintf(_SC("-----dump\n"));
@@ -162,7 +162,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
         if (inst.op == _OP_LOAD || inst.op == _OP_DLOAD || inst.op == _OP_PREPCALLK || inst.op == _OP_GETK ) {
 
             SQInteger lidx = inst._arg1;
-            scprintf(_SC("[%03d] %15s %d "), n, g_InstrDesc[inst.op].name, inst._arg0);
+            scprintf(_SC("[" LVFORMATINT3 "] %15s %d "), n, g_InstrDesc[inst.op].name, inst._arg0);
             if (lidx >= 0xFFFFFFFF)
                 scprintf(_SC("null"));
             else {
@@ -193,18 +193,18 @@ void SQFuncState::Dump(SQFunctionProto *func)
             }
         }
         else if (inst.op == _OP_LOADFLOAT) {
-            scprintf(_SC("[%03d] %15s %d %f %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, *((SQFloat*)&inst._arg1), inst._arg2, inst._arg3);
+            scprintf(_SC("[" LVFORMATINT3 "] %15s %d %f %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, *((SQFloat*)&inst._arg1), inst._arg2, inst._arg3);
         }
         /*  else if(inst.op==_OP_ARITH){
                 scprintf(_SC("[%03d] %15s %d %d %d %c\n"),n,g_InstrDesc[inst.op].name,inst._arg0,inst._arg1,inst._arg2,inst._arg3);
             }*/
         else {
-            scprintf(_SC("[%03d] %15s %d %d %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+            scprintf(_SC("[" LVFORMATINT3 "] %15s %d %d %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
         }
         n++;
     }
     scprintf(_SC("-----\n"));
-    scprintf(_SC("stack size[%d]\n"), func->_stacksize);
+    scprintf(_SC("stack size[" LVFORMATINT "]\n"), func->_stacksize);
     scprintf(_SC("--------------------------------------------------------------------\n\n"));
 }
 #endif
