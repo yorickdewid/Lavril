@@ -1,5 +1,5 @@
 CC = g++
-BIN = ../lib/libsquirrel.a
+BIN = ../lib/liblvcore.a
 DEBUG = -g -O0
 LIBS =
 DEFINE = -D_DEBUG_DUMP -D_SQ64

@@ -103,24 +103,24 @@ struct SQOuter;
 #define _RT_OUTER           0x00020000
 
 typedef enum tagSQObjectType {
-    OT_NULL =           (_RT_NULL | SQOBJECT_CANBEFALSE),
-    OT_INTEGER =        (_RT_INTEGER | SQOBJECT_NUMERIC | SQOBJECT_CANBEFALSE),
-    OT_FLOAT =          (_RT_FLOAT | SQOBJECT_NUMERIC | SQOBJECT_CANBEFALSE),
-    OT_BOOL =           (_RT_BOOL | SQOBJECT_CANBEFALSE),
-    OT_STRING =         (_RT_STRING | SQOBJECT_REF_COUNTED),
-    OT_TABLE =          (_RT_TABLE | SQOBJECT_REF_COUNTED | SQOBJECT_DELEGABLE),
-    OT_ARRAY =          (_RT_ARRAY | SQOBJECT_REF_COUNTED),
-    OT_USERDATA =       (_RT_USERDATA | SQOBJECT_REF_COUNTED | SQOBJECT_DELEGABLE),
-    OT_CLOSURE =        (_RT_CLOSURE | SQOBJECT_REF_COUNTED),
-    OT_NATIVECLOSURE =  (_RT_NATIVECLOSURE | SQOBJECT_REF_COUNTED),
-    OT_GENERATOR =      (_RT_GENERATOR | SQOBJECT_REF_COUNTED),
-    OT_USERPOINTER =    _RT_USERPOINTER,
-    OT_THREAD =         (_RT_THREAD | SQOBJECT_REF_COUNTED) ,
-    OT_FUNCPROTO =      (_RT_FUNCPROTO | SQOBJECT_REF_COUNTED), //internal usage only
-    OT_CLASS =          (_RT_CLASS | SQOBJECT_REF_COUNTED),
-    OT_INSTANCE =       (_RT_INSTANCE | SQOBJECT_REF_COUNTED | SQOBJECT_DELEGABLE),
-    OT_WEAKREF =        (_RT_WEAKREF | SQOBJECT_REF_COUNTED),
-    OT_OUTER =          (_RT_OUTER | SQOBJECT_REF_COUNTED) //internal usage only
+	OT_NULL =           (_RT_NULL | SQOBJECT_CANBEFALSE),
+	OT_INTEGER =        (_RT_INTEGER | SQOBJECT_NUMERIC | SQOBJECT_CANBEFALSE),
+	OT_FLOAT =          (_RT_FLOAT | SQOBJECT_NUMERIC | SQOBJECT_CANBEFALSE),
+	OT_BOOL =           (_RT_BOOL | SQOBJECT_CANBEFALSE),
+	OT_STRING =         (_RT_STRING | SQOBJECT_REF_COUNTED),
+	OT_TABLE =          (_RT_TABLE | SQOBJECT_REF_COUNTED | SQOBJECT_DELEGABLE),
+	OT_ARRAY =          (_RT_ARRAY | SQOBJECT_REF_COUNTED),
+	OT_USERDATA =       (_RT_USERDATA | SQOBJECT_REF_COUNTED | SQOBJECT_DELEGABLE),
+	OT_CLOSURE =        (_RT_CLOSURE | SQOBJECT_REF_COUNTED),
+	OT_NATIVECLOSURE =  (_RT_NATIVECLOSURE | SQOBJECT_REF_COUNTED),
+	OT_GENERATOR =      (_RT_GENERATOR | SQOBJECT_REF_COUNTED),
+	OT_USERPOINTER =    _RT_USERPOINTER,
+	OT_THREAD =         (_RT_THREAD | SQOBJECT_REF_COUNTED) ,
+	OT_FUNCPROTO =      (_RT_FUNCPROTO | SQOBJECT_REF_COUNTED), //internal usage only
+	OT_CLASS =          (_RT_CLASS | SQOBJECT_REF_COUNTED),
+	OT_INSTANCE =       (_RT_INSTANCE | SQOBJECT_REF_COUNTED | SQOBJECT_DELEGABLE),
+	OT_WEAKREF =        (_RT_WEAKREF | SQOBJECT_REF_COUNTED),
+	OT_OUTER =          (_RT_OUTER | SQOBJECT_REF_COUNTED) //internal usage only
 } SQObjectType;
 
 #define ISREFCOUNTED(t) (t&SQOBJECT_REF_COUNTED)
@@ -128,43 +128,43 @@ typedef enum tagSQObjectType {
 
 typedef union tagSQObjectValue
 {
-    struct SQTable *pTable;
-    struct SQArray *pArray;
-    struct SQClosure *pClosure;
-    struct SQOuter *pOuter;
-    struct SQGenerator *pGenerator;
-    struct SQNativeClosure *pNativeClosure;
-    struct SQString *pString;
-    struct SQUserData *pUserData;
-    SQInteger nInteger;
-    SQFloat fFloat;
-    SQUserPointer pUserPointer;
-    struct SQFunctionProto *pFunctionProto;
-    struct SQRefCounted *pRefCounted;
-    struct SQDelegable *pDelegable;
-    struct SQVM *pThread;
-    struct SQClass *pClass;
-    struct SQInstance *pInstance;
-    struct SQWeakRef *pWeakRef;
-    SQRawObjectVal raw;
+	struct SQTable *pTable;
+	struct SQArray *pArray;
+	struct SQClosure *pClosure;
+	struct SQOuter *pOuter;
+	struct SQGenerator *pGenerator;
+	struct SQNativeClosure *pNativeClosure;
+	struct SQString *pString;
+	struct SQUserData *pUserData;
+	SQInteger nInteger;
+	SQFloat fFloat;
+	SQUserPointer pUserPointer;
+	struct SQFunctionProto *pFunctionProto;
+	struct SQRefCounted *pRefCounted;
+	struct SQDelegable *pDelegable;
+	struct SQVM *pThread;
+	struct SQClass *pClass;
+	struct SQInstance *pInstance;
+	struct SQWeakRef *pWeakRef;
+	SQRawObjectVal raw;
 } SQObjectValue;
 
 
 typedef struct tagSQObject
 {
-    SQObjectType _type;
-    SQObjectValue _unVal;
+	SQObjectType _type;
+	SQObjectValue _unVal;
 } SQObject;
 
 typedef struct  tagSQMemberHandle {
-    SQBool _static;
-    SQInteger _index;
+	SQBool _static;
+	SQInteger _index;
 } SQMemberHandle;
 
 typedef struct tagSQStackInfos {
-    const SQChar* funcname;
-    const SQChar* source;
-    SQInteger line;
+	const SQChar* funcname;
+	const SQChar* source;
+	SQInteger line;
 } SQStackInfos;
 
 typedef struct SQVM* HSQUIRRELVM;
@@ -181,17 +181,17 @@ typedef SQInteger (*SQREADFUNC)(SQUserPointer, SQUserPointer, SQInteger);
 typedef SQInteger (*SQLEXREADFUNC)(SQUserPointer);
 
 typedef struct tagSQRegFunction {
-    const SQChar *name;
-    SQFUNCTION f;
-    SQInteger nparamscheck;
-    const SQChar *typemask;
+	const SQChar *name;
+	SQFUNCTION f;
+	SQInteger nparamscheck;
+	const SQChar *typemask;
 } SQRegFunction;
 
 typedef struct tagSQFunctionInfo {
-    SQUserPointer funcid;
-    const SQChar *name;
-    const SQChar *source;
-    SQInteger line;
+	SQUserPointer funcid;
+	const SQChar *name;
+	const SQChar *source;
+	SQInteger line;
 } SQFunctionInfo;
 
 /*vm*/
