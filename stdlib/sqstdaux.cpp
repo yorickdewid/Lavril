@@ -100,10 +100,10 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v) {
 		const SQChar *sErr = 0;
 		if (sq_gettop(v) >= 1) {
 			if (SQ_SUCCEEDED(sq_getstring(v, 2, &sErr)))   {
-				pf(v, _SC("\nAN ERROR HAS OCCURED [%s]\n"), sErr);
+				pf(v, _SC("runtime error: %s\n"), sErr);
 			}
 			else {
-				pf(v, _SC("\nAN ERROR HAS OCCURED [unknown]\n"));
+				pf(v, _SC("runtime error: [unknown]\n"));
 			}
 			sqstd_printcallstack(v);
 		}
@@ -114,7 +114,7 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v) {
 void _sqstd_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const SQChar *sSource, SQInteger line, SQInteger column) {
 	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
 	if (pf) {
-		pf(v, _SC("%s line = (%d) column = (%d) : error %s\n"), sSource, line, column, sErr);
+		pf(v, _SC("%s:%d:%d: error %s\n"), sSource, line, column, sErr);
 	}
 }
 

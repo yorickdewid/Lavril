@@ -69,10 +69,9 @@ struct SQScope {
 					if(__nbreaks__>0)ResolveBreaks(_fs,__nbreaks__); \
 					_fs->_breaktargets.pop_back();_fs->_continuetargets.pop_back();}
 
-class SQCompiler {
+class LVCompiler {
 public:
-	SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename, bool raiseerror, bool lineinfo)
-	{
+	LVCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename, bool raiseerror, bool lineinfo) {
 		_vm = v;
 		_lex.Init(_ss(v), rg, up, ThrowError, this);
 		_sourcename = SQString::Create(_ss(v), sourcename);
@@ -82,21 +81,25 @@ public:
 		_scope.stacksize = 0;
 		_compilererror[0] = _SC('\0');
 	}
+
 	static void ThrowError(void *ud, const SQChar *s) {
-		SQCompiler *c = (SQCompiler *)ud;
+		LVCompiler *c = (LVCompiler *)ud;
 		c->Error(s);
 	}
-	void Error(const SQChar *s, ...)
-	{
+
+	void Error(const SQChar *s, ...) {
 		va_list vl;
 		va_start(vl, s);
 		scvsprintf(_compilererror, MAX_COMPILER_ERROR_LEN, s, vl);
 		va_end(vl);
 		longjmp(_errorjmp, 1);
 	}
-	void Lex() { _token = _lex.Lex();}
-	SQObject Expect(SQInteger tok)
-	{
+
+	void Lex() {
+		_token = _lex.Lex();
+	}
+
+	SQObject Expect(SQInteger tok) {
 
 		if (_token != tok) {
 			if (_token == TK_CONSTRUCTOR && tok == TK_IDENTIFIER) {
@@ -477,7 +480,7 @@ public:
 				_fs->AddInstruction(_OP_OR, trg, 0, first_exp, 0);
 				SQInteger jpos = _fs->GetCurrentPos();
 				if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-				Lex(); INVOKE_EXP(&SQCompiler::LogicalOrExp);
+				Lex(); INVOKE_EXP(&LVCompiler::LogicalOrExp);
 				_fs->SnoozeOpt();
 				SQInteger second_exp = _fs->PopTarget();
 				if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
@@ -496,7 +499,7 @@ public:
 				_fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
 				SQInteger jpos = _fs->GetCurrentPos();
 				if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-				Lex(); INVOKE_EXP(&SQCompiler::LogicalAndExp);
+				Lex(); INVOKE_EXP(&LVCompiler::LogicalAndExp);
 				_fs->SnoozeOpt();
 				SQInteger second_exp = _fs->PopTarget();
 				if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
@@ -513,30 +516,30 @@ public:
 	{
 		BitwiseXorExp();
 		for (;;) if (_token == _SC('|'))
-			{	BIN_EXP(_OP_BITW, &SQCompiler::BitwiseXorExp, BW_OR);
+			{	BIN_EXP(_OP_BITW, &LVCompiler::BitwiseXorExp, BW_OR);
 			} else return;
 	}
 	void BitwiseXorExp()
 	{
 		BitwiseAndExp();
 		for (;;) if (_token == _SC('^'))
-			{	BIN_EXP(_OP_BITW, &SQCompiler::BitwiseAndExp, BW_XOR);
+			{	BIN_EXP(_OP_BITW, &LVCompiler::BitwiseAndExp, BW_XOR);
 			} else return;
 	}
 	void BitwiseAndExp()
 	{
 		EqExp();
 		for (;;) if (_token == _SC('&'))
-			{	BIN_EXP(_OP_BITW, &SQCompiler::EqExp, BW_AND);
+			{	BIN_EXP(_OP_BITW, &LVCompiler::EqExp, BW_AND);
 			} else return;
 	}
 	void EqExp()
 	{
 		CompExp();
 		for (;;) switch (_token) {
-			case TK_EQ: BIN_EXP(_OP_EQ, &SQCompiler::CompExp); break;
-			case TK_NE: BIN_EXP(_OP_NE, &SQCompiler::CompExp); break;
-			case TK_3WAYSCMP: BIN_EXP(_OP_CMP, &SQCompiler::CompExp, CMP_3W); break;
+			case TK_EQ: BIN_EXP(_OP_EQ, &LVCompiler::CompExp); break;
+			case TK_NE: BIN_EXP(_OP_NE, &LVCompiler::CompExp); break;
+			case TK_3WAYSCMP: BIN_EXP(_OP_CMP, &LVCompiler::CompExp, CMP_3W); break;
 			default: return;
 			}
 	}
@@ -544,12 +547,12 @@ public:
 	{
 		ShiftExp();
 		for (;;) switch (_token) {
-			case _SC('>'): BIN_EXP(_OP_CMP, &SQCompiler::ShiftExp, CMP_G); break;
-			case _SC('<'): BIN_EXP(_OP_CMP, &SQCompiler::ShiftExp, CMP_L); break;
-			case TK_GE: BIN_EXP(_OP_CMP, &SQCompiler::ShiftExp, CMP_GE); break;
-			case TK_LE: BIN_EXP(_OP_CMP, &SQCompiler::ShiftExp, CMP_LE); break;
-			case TK_IN: BIN_EXP(_OP_EXISTS, &SQCompiler::ShiftExp); break;
-			case TK_INSTANCEOF: BIN_EXP(_OP_INSTANCEOF, &SQCompiler::ShiftExp); break;
+			case _SC('>'): BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_G); break;
+			case _SC('<'): BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_L); break;
+			case TK_GE: BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_GE); break;
+			case TK_LE: BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_LE); break;
+			case TK_IN: BIN_EXP(_OP_EXISTS, &LVCompiler::ShiftExp); break;
+			case TK_INSTANCEOF: BIN_EXP(_OP_INSTANCEOF, &LVCompiler::ShiftExp); break;
 			default: return;
 			}
 	}
@@ -557,9 +560,9 @@ public:
 	{
 		PlusExp();
 		for (;;) switch (_token) {
-			case TK_USHIFTR: BIN_EXP(_OP_BITW, &SQCompiler::PlusExp, BW_USHIFTR); break;
-			case TK_SHIFTL: BIN_EXP(_OP_BITW, &SQCompiler::PlusExp, BW_SHIFTL); break;
-			case TK_SHIFTR: BIN_EXP(_OP_BITW, &SQCompiler::PlusExp, BW_SHIFTR); break;
+			case TK_USHIFTR: BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_USHIFTR); break;
+			case TK_SHIFTL: BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_SHIFTL); break;
+			case TK_SHIFTR: BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_SHIFTR); break;
 			default: return;
 			}
 	}
@@ -594,7 +597,7 @@ public:
 		MultExp();
 		for (;;) switch (_token) {
 			case _SC('+'): case _SC('-'):
-				BIN_EXP(ChooseArithOpByToken(_token), &SQCompiler::MultExp); break;
+				BIN_EXP(ChooseArithOpByToken(_token), &LVCompiler::MultExp); break;
 			default: return;
 			}
 	}
@@ -604,7 +607,7 @@ public:
 		PrefixedExpr();
 		for (;;) switch (_token) {
 			case _SC('*'): case _SC('/'): case _SC('%'):
-				BIN_EXP(ChooseArithOpByToken(_token), &SQCompiler::PrefixedExpr); break;
+				BIN_EXP(ChooseArithOpByToken(_token), &LVCompiler::PrefixedExpr); break;
 			default: return;
 			}
 	}
@@ -1555,16 +1558,17 @@ public:
 			ntoresolve--;
 		}
 	}
+
 private:
 	SQInteger _token;
 	SQFuncState *_fs;
 	SQObjectPtr _sourcename;
-	SQLexer _lex;
+	LVLexer _lex;
 	bool _lineinfo;
 	bool _raiseerror;
 	SQInteger _debugline;
 	SQInteger _debugop;
-	SQExpState   _es;
+	SQExpState _es;
 	SQScope _scope;
 	SQChar _compilererror[MAX_COMPILER_ERROR_LEN];
 	jmp_buf _errorjmp;
@@ -1572,7 +1576,7 @@ private:
 };
 
 bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo) {
-	SQCompiler compiler(vm, rg, up, sourcename, raiseerror, lineinfo);
+	LVCompiler compiler(vm, rg, up, sourcename, raiseerror, lineinfo);
 	return compiler.StartCompiler(out);
 }
 

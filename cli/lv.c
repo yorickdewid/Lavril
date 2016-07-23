@@ -62,13 +62,11 @@ void error_func(HSQUIRRELVM SQ_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_end(vl);
 }
 
-void print_version_info()
-{
+void print_version_info() {
 	scfprintf(stdout, _SC("%s %s (%d bits)\n"), SQUIRREL_VERSION, SQUIRREL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
 }
 
-void print_interactive_console_info()
-{
+void print_interactive_console_info() {
 	scfprintf(stdout, _SC("Enter 'quit()' to exit\n"));
 }
 
@@ -231,18 +229,14 @@ void interactive(HSQUIRRELVM v) {
 	while (!done) {
 		SQInteger i = 0;
 		scprintf(_SC("\nlv> "));
-		for (;;) {
-			int c;
-
-			if (done)
-				return;
-
-			c = getchar();
+		while (!done) {
+			int c = getchar();
 			if (c == _SC('\n')) {
 				if (i > 0 && buffer[i - 1] == _SC('\\')) {
 					buffer[i - 1] = _SC('\n');
 				} else if (i > 0 && buffer[i - 1] == _SC('q') && buffer[i - 2] == _SC('\\')) {
 					done = 1;
+					i = 0;
 					continue;
 				} else if (blocks == 0) {
 					break;
@@ -277,7 +271,7 @@ void interactive(HSQUIRRELVM v) {
 		i = scstrlen(buffer);
 		if (i > 0) {
 			SQInteger oldtop = sq_gettop(v);
-			if (SQ_SUCCEEDED(sq_compilebuffer(v, buffer, i, _SC("interactive console"), SQTrue))) {
+			if (SQ_SUCCEEDED(sq_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
 				sq_pushroottable(v);
 				if (SQ_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) &&  retval) {
 					scprintf(_SC("\n"));

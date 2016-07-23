@@ -69,6 +69,7 @@ struct SQVM;
 #define TK_STATIC 322
 #define TK_ENUM 323
 #define TK_CONST 324
+#define TK_INCLUDE 325
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);
 bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo);
