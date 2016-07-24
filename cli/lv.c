@@ -73,6 +73,7 @@ void print_interactive_console_info() {
 void print_usage() {
 	scfprintf(stderr, _SC("usage: lv [options] <file> [--] [args...]\n\n")
 	          _SC("  -a              Run interactively\n")
+	          _SC("  -r <statement>  Run statement and exit\n")
 	          _SC("  -c <file>       Compile file (default output 'out.lavc')\n")
 	          _SC("  -o <file>       Specifies output file for the -c option\n")
 	          _SC("  -d              Enable debug info\n")
@@ -84,10 +85,12 @@ enum result getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
 {
 	int i;
 	int compiles_only = 0;
+	int run_statement_only = 0;
 #ifdef SQUNICODE
 	static SQChar temp[512];
 #endif
-	char * output = NULL;
+	char *output = NULL;
+	char *statement = NULL;
 	*retval = 0;
 	if (argc > 1) {
 		int arg = 1, exitloop = 0;
@@ -102,13 +105,19 @@ enum result getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
 				case 'c':
 					compiles_only = 1;
 					break;
+				case 'r':
+					if (arg < argc) {
+						arg++;
+						statement = argv[arg];
+						run_statement_only = 1;
+					}
+					break;
 				case 'a':
 					return INTERACTIVE;
 				case 'o':
 					if (arg < argc) {
 						arg++;
 						output = argv[arg];
-						puts("woei");
 					}
 					break;
 				case 'v':
@@ -131,6 +140,33 @@ enum result getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
 			}
 
 			arg++;
+		}
+
+		if (run_statement_only) {
+			SQInteger _retval = 0;
+
+			int i = scstrlen(statement);
+			if (i > 0) {
+				SQInteger oldtop = sq_gettop(v);
+				if (SQ_SUCCEEDED(sq_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
+					sq_pushroottable(v);
+					if (SQ_SUCCEEDED(sq_call(v, 1, _retval, SQTrue)) && _retval) {
+						scprintf(_SC("\n"));
+						sq_pushroottable(v);
+						sq_pushstring(v, _SC("print"), -1);
+						sq_get(v, -2);
+						sq_pushroottable(v);
+						sq_push(v, -4);
+						sq_call(v, 2, SQFalse, SQTrue);
+						_retval = 0;
+						scprintf(_SC("\n"));
+					}
+				}
+
+				sq_settop(v, oldtop);
+			}
+
+			return DONE;
 		}
 
 		if (arg < argc) {
