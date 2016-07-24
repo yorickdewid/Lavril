@@ -125,9 +125,7 @@ typedef enum tagSQObjectType {
 
 #define ISREFCOUNTED(t) (t&SQOBJECT_REF_COUNTED)
 
-
-typedef union tagSQObjectValue
-{
+typedef union tagSQObjectValue {
 	struct SQTable *pTable;
 	struct SQArray *pArray;
 	struct SQClosure *pClosure;
@@ -149,9 +147,7 @@ typedef union tagSQObjectValue
 	SQRawObjectVal raw;
 } SQObjectValue;
 
-
-typedef struct tagSQObject
-{
+typedef struct tagSQObject {
 	SQObjectType _type;
 	SQObjectValue _unVal;
 } SQObject;
@@ -162,18 +158,18 @@ typedef struct  tagSQMemberHandle {
 } SQMemberHandle;
 
 typedef struct tagSQStackInfos {
-	const SQChar* funcname;
-	const SQChar* source;
+	const SQChar *funcname;
+	const SQChar *source;
 	SQInteger line;
 } SQStackInfos;
 
-typedef struct SQVM* HSQUIRRELVM;
+typedef struct SQVM *HSQUIRRELVM;
 typedef SQObject HSQOBJECT;
 typedef SQMemberHandle HSQMEMBERHANDLE;
 typedef SQInteger (*SQFUNCTION)(HSQUIRRELVM);
 typedef SQInteger (*SQRELEASEHOOK)(SQUserPointer, SQInteger size);
 typedef void (*SQCOMPILERERROR)(HSQUIRRELVM, const SQChar * /*desc*/, const SQChar * /*source*/, SQInteger /*line*/, SQInteger /*column*/);
-typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM, const SQChar * , ...);
+typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM, const SQChar *, ...);
 typedef void (*SQDEBUGHOOK)(HSQUIRRELVM /*v*/, SQInteger /*type*/, const SQChar * /*sourcename*/, SQInteger /*line*/, const SQChar * /*funcname*/);
 typedef SQInteger (*SQWRITEFUNC)(SQUserPointer, SQUserPointer, SQInteger);
 typedef SQInteger (*SQREADFUNC)(SQUserPointer, SQUserPointer, SQInteger);
@@ -340,7 +336,7 @@ LAVRIL_API SQBool sq_objtobool(const HSQOBJECT *o);
 LAVRIL_API SQInteger sq_objtointeger(const HSQOBJECT *o);
 LAVRIL_API SQFloat sq_objtofloat(const HSQOBJECT *o);
 LAVRIL_API SQUserPointer sq_objtouserpointer(const HSQOBJECT *o);
-LAVRIL_API SQRESULT sq_getobjtypetag(const HSQOBJECT *o, SQUserPointer * typetag);
+LAVRIL_API SQRESULT sq_getobjtypetag(const HSQOBJECT *o, SQUserPointer *typetag);
 LAVRIL_API SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM v, const HSQOBJECT *po);
 
 
@@ -354,7 +350,7 @@ LAVRIL_API SQRESULT sq_readclosure(HSQUIRRELVM vm, SQREADFUNC readf, SQUserPoint
 
 /*mem allocation*/
 LAVRIL_API void *sq_malloc(SQUnsignedInteger size);
-LAVRIL_API void *sq_realloc(void* p, SQUnsignedInteger oldsize, SQUnsignedInteger newsize);
+LAVRIL_API void *sq_realloc(void *p, SQUnsignedInteger oldsize, SQUnsignedInteger newsize);
 LAVRIL_API void sq_free(void *p, SQUnsignedInteger size);
 
 /*debug*/

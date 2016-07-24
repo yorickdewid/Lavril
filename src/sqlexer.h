@@ -15,7 +15,7 @@ struct LVLexer {
 	SQInteger Lex();
 	const SQChar *Tok2Str(SQInteger tok);
 
-private:
+  private:
 	SQInteger GetIDType(const SQChar *s, SQInteger len);
 	SQInteger ReadString(SQInteger ndelim, bool verbatim);
 	SQInteger ReadNumber();
@@ -35,7 +35,7 @@ private:
 	SQTable *_keywords;
 	SQBool _reached_eof;
 
-public:
+  public:
 	SQInteger _prevtoken;
 	SQInteger _currentline;
 	SQInteger _lasttokenline;

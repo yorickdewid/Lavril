@@ -51,8 +51,7 @@ struct SQBlob : public SQStream {
 		}
 		return true;
 	}
-	bool GrowBufOf(SQInteger n)
-	{
+	bool GrowBufOf(SQInteger n) {
 		bool ret = true;
 		if (_size + n > _allocated) {
 			if (_size + n > _size * 2)
@@ -69,19 +68,20 @@ struct SQBlob : public SQStream {
 	}
 	SQInteger Seek(SQInteger offset, SQInteger origin) {
 		switch (origin) {
-		case SQ_SEEK_SET:
-			if (offset > _size || offset < 0) return -1;
-			_ptr = offset;
-			break;
-		case SQ_SEEK_CUR:
-			if (_ptr + offset > _size || _ptr + offset < 0) return -1;
-			_ptr += offset;
-			break;
-		case SQ_SEEK_END:
-			if (_size + offset > _size || _size + offset < 0) return -1;
-			_ptr = _size + offset;
-			break;
-		default: return -1;
+			case SQ_SEEK_SET:
+				if (offset > _size || offset < 0) return -1;
+				_ptr = offset;
+				break;
+			case SQ_SEEK_CUR:
+				if (_ptr + offset > _size || _ptr + offset < 0) return -1;
+				_ptr += offset;
+				break;
+			case SQ_SEEK_END:
+				if (_size + offset > _size || _size + offset < 0) return -1;
+				_ptr = _size + offset;
+				break;
+			default:
+				return -1;
 		}
 		return 0;
 	}
@@ -91,11 +91,19 @@ struct SQBlob : public SQStream {
 	bool EOS() {
 		return _ptr == _size;
 	}
-	SQInteger Flush() { return 0; }
-	SQInteger Tell() { return _ptr; }
-	SQInteger Len() { return _size; }
-	SQUserPointer GetBuf() { return _buf; }
-private:
+	SQInteger Flush() {
+		return 0;
+	}
+	SQInteger Tell() {
+		return _ptr;
+	}
+	SQInteger Len() {
+		return _size;
+	}
+	SQUserPointer GetBuf() {
+		return _buf;
+	}
+  private:
 	SQInteger _size;
 	SQInteger _allocated;
 	SQInteger _ptr;

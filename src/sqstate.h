@@ -10,12 +10,12 @@ struct SQTable;
 #define NUMBER_MAX_CHAR 50
 
 struct SQStringTable {
-	SQStringTable(SQSharedState*ss);
+	SQStringTable(SQSharedState *ss);
 	~SQStringTable();
 	SQString *Add(const SQChar *, SQInteger len);
 	void Remove(SQString *);
 
-private:
+  private:
 	void Resize(SQInteger size);
 	void AllocNodes(SQInteger size);
 	SQString **_strings;
@@ -32,16 +32,16 @@ struct RefTable {
 	};
 	RefTable();
 	~RefTable();
-	void AddRef(SQObject &obj);
-	SQBool Release(SQObject &obj);
-	SQUnsignedInteger GetRefCount(SQObject &obj);
+	void AddRef(SQObject& obj);
+	SQBool Release(SQObject& obj);
+	SQUnsignedInteger GetRefCount(SQObject& obj);
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
 #endif
 	void Finalize();
-private:
-	RefNode *Get(SQObject &obj, SQHash &mainpos, RefNode **prev, bool add);
-	RefNode *Add(SQHash mainpos, SQObject &obj);
+  private:
+	RefNode *Get(SQObject& obj, SQHash& mainpos, RefNode **prev, bool add);
+	RefNode *Add(SQHash mainpos, SQObject& obj);
 	void Resize(SQUnsignedInteger size);
 	void AllocNodes(SQUnsignedInteger size);
 	SQUnsignedInteger _numofslots;
@@ -61,14 +61,14 @@ struct SQSharedState {
 	~SQSharedState();
 	void Init();
 
-public:
-	SQChar* GetScratchPad(SQInteger size);
-	SQInteger GetMetaMethodIdxByName(const SQObjectPtr &name);
+  public:
+	SQChar *GetScratchPad(SQInteger size);
+	SQInteger GetMetaMethodIdxByName(const SQObjectPtr& name);
 #ifndef NO_GARBAGE_COLLECTOR
 	SQInteger CollectGarbage(SQVM *vm);
 	void RunMark(SQVM *vm, SQCollectable **tchain);
 	SQInteger ResurrectUnreachable(SQVM *vm);
-	static void MarkObject(SQObjectPtr &o, SQCollectable **chain);
+	static void MarkObject(SQObjectPtr& o, SQCollectable **chain);
 #endif
 	SQObjectPtrVec *_metamethods;
 	SQObjectPtr _metamethodsmap;
@@ -112,7 +112,7 @@ public:
 	SQUserPointer _foreignptr;
 	SQRELEASEHOOK _releasehook;
 
-private:
+  private:
 	SQChar *_scratchpad;
 	SQInteger _scratchpadsize;
 };
@@ -131,6 +131,6 @@ private:
 #define _instance_ddel  _table(_sharedstate->_instance_default_delegate)
 #define _weakref_ddel   _table(_sharedstate->_weakref_default_delegate)
 
-bool CompileTypemask(SQIntVec &res, const SQChar *typemask);
+bool CompileTypemask(SQIntVec& res, const SQChar *typemask);
 
 #endif //_SQSTATE_H_

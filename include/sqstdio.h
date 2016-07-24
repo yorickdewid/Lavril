@@ -23,7 +23,7 @@ extern "C" {
 #define SQ_SEEK_END 1
 #define SQ_SEEK_SET 2
 
-typedef void* SQFILE;
+typedef void *SQFILE;
 
 LAVRIL_API SQFILE sqstd_fopen(const SQChar *, const SQChar *);
 LAVRIL_API SQInteger sqstd_fread(SQUserPointer, SQInteger, SQInteger, SQFILE);

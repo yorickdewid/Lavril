@@ -92,8 +92,7 @@ void LVLexer::Next() {
 	_reached_eof = SQTrue;
 }
 
-const SQChar *LVLexer::Tok2Str(SQInteger tok)
-{
+const SQChar *LVLexer::Tok2Str(SQInteger tok) {
 	SQObjectPtr itr, key, val;
 	SQInteger nitr;
 	while ((nitr = _keywords->Next(false, itr, key, val)) != -1) {
@@ -104,226 +103,278 @@ const SQChar *LVLexer::Tok2Str(SQInteger tok)
 	return NULL;
 }
 
-void LVLexer::LexBlockComment()
-{
+void LVLexer::LexBlockComment() {
 	bool done = false;
 	while (!done) {
 		switch (CUR_CHAR) {
-		case _SC('*'): { NEXT(); if (CUR_CHAR == _SC('/')) { done = true; NEXT(); }}; continue;
-		case _SC('\n'): _currentline++; NEXT(); continue;
-		case SQUIRREL_EOB: Error(_SC("missing \"*/\" in comment"));
-		default: NEXT();
+			case _SC('*'): {
+				NEXT();
+				if (CUR_CHAR == _SC('/')) {
+					done = true;
+					NEXT();
+				}
+			};
+			continue;
+			case _SC('\n'):
+				_currentline++;
+				NEXT();
+				continue;
+			case SQUIRREL_EOB:
+				Error(_SC("missing \"*/\" in comment"));
+			default:
+				NEXT();
 		}
 	}
 }
-void LVLexer::LexLineComment()
-{
-	do { NEXT(); } while (CUR_CHAR != _SC('\n') && (!IS_EOB()));
+void LVLexer::LexLineComment() {
+	do {
+		NEXT();
+	} while (CUR_CHAR != _SC('\n') && (!IS_EOB()));
 }
 
-SQInteger LVLexer::Lex()
-{
+SQInteger LVLexer::Lex() {
 	_lasttokenline = _currentline;
 	while (CUR_CHAR != SQUIRREL_EOB) {
 		switch (CUR_CHAR) {
-		case _SC('\t'):
-		case _SC('\r'):
-		case _SC(' '):
-			NEXT();
-			continue;
-		case _SC('\n'):
-			_currentline++;
-			_prevtoken = _curtoken;
-			_curtoken = _SC('\n');
-			NEXT();
-			_currentcolumn = 1;
-			continue;
-		case _SC('#'):
-			LexLineComment();
-			continue;
-		case _SC('/'):
-			NEXT();
-			switch (CUR_CHAR) {
-			case _SC('*'):
+			case _SC('\t'):
+			case _SC('\r'):
+			case _SC(' '):
 				NEXT();
-				LexBlockComment();
 				continue;
-			case _SC('/'):
+			case _SC('\n'):
+				_currentline++;
+				_prevtoken = _curtoken;
+				_curtoken = _SC('\n');
+				NEXT();
+				_currentcolumn = 1;
+				continue;
+			case _SC('#'):
 				LexLineComment();
 				continue;
-			case _SC('='):
-				NEXT();
-				RETURN_TOKEN(TK_DIVEQ);
-				continue;
-			case _SC('>'):
-				NEXT();
-				RETURN_TOKEN(TK_ATTR_CLOSE);
-				continue;
-			default:
-				RETURN_TOKEN('/');
-			}
-		case _SC('='):
-			NEXT();
-			if (CUR_CHAR != _SC('=')) { RETURN_TOKEN('=') }
-			else { NEXT(); RETURN_TOKEN(TK_EQ); }
-		case _SC('<'):
-			NEXT();
-			switch (CUR_CHAR) {
-			case _SC('='):
-				NEXT();
-				if (CUR_CHAR == _SC('>')) {
-					NEXT();
-					RETURN_TOKEN(TK_3WAYSCMP);
-				}
-				RETURN_TOKEN(TK_LE)
-				break;
-			case _SC('-'):
-				NEXT();
-				RETURN_TOKEN(TK_NEWSLOT);
-				break;
-			case _SC('<'):
-				NEXT();
-				RETURN_TOKEN(TK_SHIFTL);
-				break;
 			case _SC('/'):
 				NEXT();
-				RETURN_TOKEN(TK_ATTR_OPEN);
-				break;
-			}
-			RETURN_TOKEN('<');
-		case _SC('>'):
-			NEXT();
-			if (CUR_CHAR == _SC('=')) {
-				NEXT();
-				RETURN_TOKEN(TK_GE);
-			} else if (CUR_CHAR == _SC('>')) {
-				NEXT();
-				if (CUR_CHAR == _SC('>')) {
-					NEXT();
-					RETURN_TOKEN(TK_USHIFTR);
+				switch (CUR_CHAR) {
+					case _SC('*'):
+						NEXT();
+						LexBlockComment();
+						continue;
+					case _SC('/'):
+						LexLineComment();
+						continue;
+					case _SC('='):
+						NEXT();
+						RETURN_TOKEN(TK_DIVEQ);
+						continue;
+					case _SC('>'):
+						NEXT();
+						RETURN_TOKEN(TK_ATTR_CLOSE);
+						continue;
+					default:
+						RETURN_TOKEN('/');
 				}
-				RETURN_TOKEN(TK_SHIFTR);
-			} else {
-				RETURN_TOKEN('>')
+			case _SC('='):
+				NEXT();
+				if (CUR_CHAR != _SC('=')) {
+					RETURN_TOKEN('=')
+				} else {
+					NEXT();
+					RETURN_TOKEN(TK_EQ);
+				}
+			case _SC('<'):
+				NEXT();
+				switch (CUR_CHAR) {
+					case _SC('='):
+						NEXT();
+						if (CUR_CHAR == _SC('>')) {
+							NEXT();
+							RETURN_TOKEN(TK_3WAYSCMP);
+						}
+						RETURN_TOKEN(TK_LE)
+						break;
+					case _SC('-'):
+						NEXT();
+						RETURN_TOKEN(TK_NEWSLOT);
+						break;
+					case _SC('<'):
+						NEXT();
+						RETURN_TOKEN(TK_SHIFTL);
+						break;
+					case _SC('/'):
+						NEXT();
+						RETURN_TOKEN(TK_ATTR_OPEN);
+						break;
+				}
+				RETURN_TOKEN('<');
+			case _SC('>'):
+				NEXT();
+				if (CUR_CHAR == _SC('=')) {
+					NEXT();
+					RETURN_TOKEN(TK_GE);
+				} else if (CUR_CHAR == _SC('>')) {
+					NEXT();
+					if (CUR_CHAR == _SC('>')) {
+						NEXT();
+						RETURN_TOKEN(TK_USHIFTR);
+					}
+					RETURN_TOKEN(TK_SHIFTR);
+				} else {
+					RETURN_TOKEN('>')
+				}
+			case _SC('!'):
+				NEXT();
+				if (CUR_CHAR != _SC('=')) {
+					RETURN_TOKEN('!')
+				} else {
+					NEXT();
+					RETURN_TOKEN(TK_NE);
+				}
+			case _SC('@'): {
+				SQInteger stype;
+				NEXT();
+				if (CUR_CHAR != _SC('"')) {
+					RETURN_TOKEN('@');
+				}
+				if ((stype = ReadString('"', true)) != -1) {
+					RETURN_TOKEN(stype);
+				}
+				Error(_SC("error parsing the string"));
 			}
-		case _SC('!'):
-			NEXT();
-			if (CUR_CHAR != _SC('=')) { RETURN_TOKEN('!')}
-			else { NEXT(); RETURN_TOKEN(TK_NE); }
-		case _SC('@'): {
-			SQInteger stype;
-			NEXT();
-			if (CUR_CHAR != _SC('"')) {
-				RETURN_TOKEN('@');
+			case _SC('"'):
+			case _SC('\''): {
+				SQInteger stype;
+				if ((stype = ReadString(CUR_CHAR, false)) != -1) {
+					RETURN_TOKEN(stype);
+				}
+				Error(_SC("error parsing the string"));
 			}
-			if ((stype = ReadString('"', true)) != -1) {
-				RETURN_TOKEN(stype);
-			}
-			Error(_SC("error parsing the string"));
-		}
-		case _SC('"'):
-		case _SC('\''): {
-			SQInteger stype;
-			if ((stype = ReadString(CUR_CHAR, false)) != -1) {
-				RETURN_TOKEN(stype);
-			}
-			Error(_SC("error parsing the string"));
-		}
-		case _SC('{'): case _SC('}'): case _SC('('): case _SC(')'): case _SC('['): case _SC(']'):
-		case _SC(';'): case _SC(','): case _SC('?'): case _SC('^'): case _SC('~'):
-		{	SQInteger ret = CUR_CHAR;
-			NEXT(); RETURN_TOKEN(ret);
-		}
-		case _SC('.'):
-			NEXT();
-			if (CUR_CHAR != _SC('.')) { RETURN_TOKEN('.') }
-			NEXT();
-			if (CUR_CHAR != _SC('.')) { Error(_SC("invalid token '..'")); }
-			NEXT();
-			RETURN_TOKEN(TK_VARPARAMS);
-		case _SC('&'):
-			NEXT();
-			if (CUR_CHAR != _SC('&')) { RETURN_TOKEN('&') }
-			else { NEXT(); RETURN_TOKEN(TK_AND); }
-		case _SC('|'):
-			NEXT();
-			if (CUR_CHAR != _SC('|')) { RETURN_TOKEN('|') }
-			else { NEXT(); RETURN_TOKEN(TK_OR); }
-		case _SC(':'):
-			NEXT();
-			if (CUR_CHAR != _SC(':')) { RETURN_TOKEN(':') }
-			else { NEXT(); RETURN_TOKEN(TK_DOUBLE_COLON); }
-		case _SC('*'):
-			NEXT();
-			if (CUR_CHAR == _SC('=')) { NEXT(); RETURN_TOKEN(TK_MULEQ);}
-			else RETURN_TOKEN('*');
-		case _SC('%'):
-			NEXT();
-			if (CUR_CHAR == _SC('=')) { NEXT(); RETURN_TOKEN(TK_MODEQ);}
-			else RETURN_TOKEN('%');
-		case _SC('-'):
-			NEXT();
-			if (CUR_CHAR == _SC('=')) { NEXT(); RETURN_TOKEN(TK_MINUSEQ);}
-			else if  (CUR_CHAR == _SC('-')) { NEXT(); RETURN_TOKEN(TK_MINUSMINUS);}
-			else RETURN_TOKEN('-');
-		case _SC('+'):
-			NEXT();
-			if (CUR_CHAR == _SC('=')) { NEXT(); RETURN_TOKEN(TK_PLUSEQ);}
-			else if (CUR_CHAR == _SC('+')) { NEXT(); RETURN_TOKEN(TK_PLUSPLUS);}
-			else RETURN_TOKEN('+');
-		case SQUIRREL_EOB:
-			return 0;
-		default: {
-			if (scisdigit(CUR_CHAR)) {
-				SQInteger ret = ReadNumber();
+			case _SC('{'):
+			case _SC('}'):
+			case _SC('('):
+			case _SC(')'):
+			case _SC('['):
+			case _SC(']'):
+			case _SC(';'):
+			case _SC(','):
+			case _SC('?'):
+			case _SC('^'):
+			case _SC('~'): {
+				SQInteger ret = CUR_CHAR;
+				NEXT();
 				RETURN_TOKEN(ret);
 			}
-			else if (scisalpha(CUR_CHAR) || CUR_CHAR == _SC('_')) {
-				SQInteger t = ReadID();
-				RETURN_TOKEN(t);
-			}
-			else {
-				SQInteger c = CUR_CHAR;
-				if (sciscntrl((int)c)) Error(_SC("unexpected character(control)"));
+			case _SC('.'):
 				NEXT();
-				RETURN_TOKEN(c);
+				if (CUR_CHAR != _SC('.')) {
+					RETURN_TOKEN('.')
+				}
+				NEXT();
+				if (CUR_CHAR != _SC('.')) {
+					Error(_SC("invalid token '..'"));
+				}
+				NEXT();
+				RETURN_TOKEN(TK_VARPARAMS);
+			case _SC('&'):
+				NEXT();
+				if (CUR_CHAR != _SC('&')) {
+					RETURN_TOKEN('&')
+				} else {
+					NEXT();
+					RETURN_TOKEN(TK_AND);
+				}
+			case _SC('|'):
+				NEXT();
+				if (CUR_CHAR != _SC('|')) {
+					RETURN_TOKEN('|')
+				} else {
+					NEXT();
+					RETURN_TOKEN(TK_OR);
+				}
+			case _SC(':'):
+				NEXT();
+				if (CUR_CHAR != _SC(':')) {
+					RETURN_TOKEN(':')
+				} else {
+					NEXT();
+					RETURN_TOKEN(TK_DOUBLE_COLON);
+				}
+			case _SC('*'):
+				NEXT();
+				if (CUR_CHAR == _SC('=')) {
+					NEXT();
+					RETURN_TOKEN(TK_MULEQ);
+				} else RETURN_TOKEN('*');
+			case _SC('%'):
+				NEXT();
+				if (CUR_CHAR == _SC('=')) {
+					NEXT();
+					RETURN_TOKEN(TK_MODEQ);
+				} else RETURN_TOKEN('%');
+			case _SC('-'):
+				NEXT();
+				if (CUR_CHAR == _SC('=')) {
+					NEXT();
+					RETURN_TOKEN(TK_MINUSEQ);
+				} else if  (CUR_CHAR == _SC('-')) {
+					NEXT();
+					RETURN_TOKEN(TK_MINUSMINUS);
+				} else RETURN_TOKEN('-');
+			case _SC('+'):
+				NEXT();
+				if (CUR_CHAR == _SC('=')) {
+					NEXT();
+					RETURN_TOKEN(TK_PLUSEQ);
+				} else if (CUR_CHAR == _SC('+')) {
+					NEXT();
+					RETURN_TOKEN(TK_PLUSPLUS);
+				} else RETURN_TOKEN('+');
+			case SQUIRREL_EOB:
+				return 0;
+			default: {
+				if (scisdigit(CUR_CHAR)) {
+					SQInteger ret = ReadNumber();
+					RETURN_TOKEN(ret);
+				} else if (scisalpha(CUR_CHAR) || CUR_CHAR == _SC('_')) {
+					SQInteger t = ReadID();
+					RETURN_TOKEN(t);
+				} else {
+					SQInteger c = CUR_CHAR;
+					if (sciscntrl((int)c))
+						Error(_SC("unexpected character(control)"));
+					NEXT();
+					RETURN_TOKEN(c);
+				}
+				RETURN_TOKEN(0);
 			}
-			RETURN_TOKEN(0);
-		}
 		}
 	}
 	return 0;
 }
 
-SQInteger LVLexer::GetIDType(const SQChar *s, SQInteger len)
-{
+SQInteger LVLexer::GetIDType(const SQChar *s, SQInteger len) {
 	SQObjectPtr t;
 	if (_keywords->GetStr(s, len, t)) {
 		return SQInteger(_integer(t));
 	}
+
 	return TK_IDENTIFIER;
 }
 
 #ifdef SQUNICODE
 #if WCHAR_SIZE == 2
-SQInteger LVLexer::AddUTF16(SQUnsignedInteger ch)
-{
-	if (ch >= 0x10000)
-	{
+SQInteger LVLexer::AddUTF16(SQUnsignedInteger ch) {
+	if (ch >= 0x10000) {
 		SQUnsignedInteger code = (ch - 0x10000);
 		APPEND_CHAR((SQChar)(0xD800 | (code >> 10)));
 		APPEND_CHAR((SQChar)(0xDC00 | (code & 0x3FF)));
 		return 2;
-	}
-	else {
+	} else {
 		APPEND_CHAR((SQChar)ch);
 		return 1;
 	}
 }
 #endif
 #else
-SQInteger LVLexer::AddUTF8(SQUnsignedInteger ch)
-{
+SQInteger LVLexer::AddUTF8(SQUnsignedInteger ch) {
 	if (ch < 0x80) {
 		APPEND_CHAR((char)ch);
 		return 1;
@@ -350,8 +401,7 @@ SQInteger LVLexer::AddUTF8(SQUnsignedInteger ch)
 }
 #endif
 
-SQInteger LVLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits)
-{
+SQInteger LVLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits) {
 	NEXT();
 	if (!isxdigit(CUR_CHAR)) Error(_SC("hexadecimal number expected"));
 	SQInteger n = 0;
@@ -364,8 +414,7 @@ SQInteger LVLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits)
 	return n;
 }
 
-SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim)
-{
+SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim) {
 	INIT_TEMP_STRING();
 	NEXT();
 	if (IS_EOB()) return -1;
@@ -373,74 +422,107 @@ SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim)
 		while (CUR_CHAR != ndelim) {
 			SQInteger x = CUR_CHAR;
 			switch (x) {
-			case SQUIRREL_EOB:
-				Error(_SC("unfinished string"));
-				return -1;
-			case _SC('\n'):
-				if (!verbatim) Error(_SC("newline in a constant"));
-				APPEND_CHAR(CUR_CHAR); NEXT();
-				_currentline++;
-				break;
-			case _SC('\\'):
-				if (verbatim) {
-					APPEND_CHAR('\\'); NEXT();
-				}
-				else {
+				case SQUIRREL_EOB:
+					Error(_SC("unfinished string"));
+					return -1;
+				case _SC('\n'):
+					if (!verbatim) Error(_SC("newline in a constant"));
+					APPEND_CHAR(CUR_CHAR);
 					NEXT();
-					switch (CUR_CHAR) {
-					case _SC('x'):  {
-						const SQInteger maxdigits = sizeof(SQChar) * 2;
-						SQChar temp[maxdigits + 1];
-						ProcessStringHexEscape(temp, maxdigits);
-						SQChar *stemp;
-						APPEND_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
-					}
+					_currentline++;
 					break;
-					case _SC('U'):
-					case _SC('u'):  {
-						const SQInteger maxdigits = x == 'u' ? 4 : 8;
-						SQChar temp[8 + 1];
-						ProcessStringHexEscape(temp, maxdigits);
-						SQChar *stemp;
+				case _SC('\\'):
+					if (verbatim) {
+						APPEND_CHAR('\\');
+						NEXT();
+					} else {
+						NEXT();
+						switch (CUR_CHAR) {
+							case _SC('x'):  {
+								const SQInteger maxdigits = sizeof(SQChar) * 2;
+								SQChar temp[maxdigits + 1];
+								ProcessStringHexEscape(temp, maxdigits);
+								SQChar *stemp;
+								APPEND_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
+							}
+							break;
+							case _SC('U'):
+							case _SC('u'):  {
+								const SQInteger maxdigits = x == 'u' ? 4 : 8;
+								SQChar temp[8 + 1];
+								ProcessStringHexEscape(temp, maxdigits);
+								SQChar *stemp;
 #ifdef SQUNICODE
 #if WCHAR_SIZE == 2
-						AddUTF16(scstrtoul(temp, &stemp, 16));
+								AddUTF16(scstrtoul(temp, &stemp, 16));
 #else
-						ADD_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
+								ADD_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
 #endif
 #else
-						AddUTF8(scstrtoul(temp, &stemp, 16));
+								AddUTF8(scstrtoul(temp, &stemp, 16));
 #endif
+							}
+							break;
+							case _SC('t'):
+								APPEND_CHAR(_SC('\t'));
+								NEXT();
+								break;
+							case _SC('a'):
+								APPEND_CHAR(_SC('\a'));
+								NEXT();
+								break;
+							case _SC('b'):
+								APPEND_CHAR(_SC('\b'));
+								NEXT();
+								break;
+							case _SC('n'):
+								APPEND_CHAR(_SC('\n'));
+								NEXT();
+								break;
+							case _SC('r'):
+								APPEND_CHAR(_SC('\r'));
+								NEXT();
+								break;
+							case _SC('v'):
+								APPEND_CHAR(_SC('\v'));
+								NEXT();
+								break;
+							case _SC('f'):
+								APPEND_CHAR(_SC('\f'));
+								NEXT();
+								break;
+							case _SC('0'):
+								APPEND_CHAR(_SC('\0'));
+								NEXT();
+								break;
+							case _SC('\\'):
+								APPEND_CHAR(_SC('\\'));
+								NEXT();
+								break;
+							case _SC('"'):
+								APPEND_CHAR(_SC('"'));
+								NEXT();
+								break;
+							case _SC('\''):
+								APPEND_CHAR(_SC('\''));
+								NEXT();
+								break;
+							default:
+								Error(_SC("unrecognised escaper char"));
+								break;
+						}
 					}
 					break;
-					case _SC('t'): APPEND_CHAR(_SC('\t')); NEXT(); break;
-					case _SC('a'): APPEND_CHAR(_SC('\a')); NEXT(); break;
-					case _SC('b'): APPEND_CHAR(_SC('\b')); NEXT(); break;
-					case _SC('n'): APPEND_CHAR(_SC('\n')); NEXT(); break;
-					case _SC('r'): APPEND_CHAR(_SC('\r')); NEXT(); break;
-					case _SC('v'): APPEND_CHAR(_SC('\v')); NEXT(); break;
-					case _SC('f'): APPEND_CHAR(_SC('\f')); NEXT(); break;
-					case _SC('0'): APPEND_CHAR(_SC('\0')); NEXT(); break;
-					case _SC('\\'): APPEND_CHAR(_SC('\\')); NEXT(); break;
-					case _SC('"'): APPEND_CHAR(_SC('"')); NEXT(); break;
-					case _SC('\''): APPEND_CHAR(_SC('\'')); NEXT(); break;
-					default:
-						Error(_SC("unrecognised escaper char"));
-						break;
-					}
-				}
-				break;
-			default:
-				APPEND_CHAR(CUR_CHAR);
-				NEXT();
+				default:
+					APPEND_CHAR(CUR_CHAR);
+					NEXT();
 			}
 		}
 		NEXT();
 		if (verbatim && CUR_CHAR == '"') { //double quotation
 			APPEND_CHAR(CUR_CHAR);
 			NEXT();
-		}
-		else {
+		} else {
 			break;
 		}
 	}
@@ -456,44 +538,44 @@ SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim)
 	return TK_STRING_LITERAL;
 }
 
-void LexHexadecimal(const SQChar *s, SQUnsignedInteger *res)
-{
+void LexHexadecimal(const SQChar *s, SQUnsignedInteger *res) {
 	*res = 0;
-	while (*s != 0)
-	{
+	while (*s != 0) {
 		if (scisdigit(*s)) *res = (*res) * 16 + ((*s++) - '0');
 		else if (scisxdigit(*s)) *res = (*res) * 16 + (toupper(*s++) - 'A' + 10);
-		else { assert(0); }
+		else {
+			assert(0);
+		}
 	}
 }
 
-void LexInteger(const SQChar *s, SQUnsignedInteger *res)
-{
+void LexInteger(const SQChar *s, SQUnsignedInteger *res) {
 	*res = 0;
-	while (*s != 0)
-	{
+	while (*s != 0) {
 		*res = (*res) * 10 + ((*s++) - '0');
 	}
 }
 
-SQInteger scisodigit(SQInteger c) { return c >= _SC('0') && c <= _SC('7'); }
+SQInteger scisodigit(SQInteger c) {
+	return c >= _SC('0') && c <= _SC('7');
+}
 
-void LexOctal(const SQChar *s, SQUnsignedInteger *res)
-{
+void LexOctal(const SQChar *s, SQUnsignedInteger *res) {
 	*res = 0;
-	while (*s != 0)
-	{
+	while (*s != 0) {
 		if (scisodigit(*s)) *res = (*res) * 8 + ((*s++) - '0');
-		else { assert(0); }
+		else {
+			assert(0);
+		}
 	}
 }
 
-SQInteger isexponent(SQInteger c) { return c == 'e' || c == 'E'; }
-
+SQInteger isexponent(SQInteger c) {
+	return c == 'e' || c == 'E';
+}
 
 #define MAX_HEX_DIGITS (sizeof(SQInteger)*2)
-SQInteger LVLexer::ReadNumber()
-{
+SQInteger LVLexer::ReadNumber() {
 #define TINT 1
 #define TFLOAT 2
 #define THEX 3
@@ -511,8 +593,7 @@ SQInteger LVLexer::ReadNumber()
 				NEXT();
 			}
 			if (scisdigit(CUR_CHAR)) Error(_SC("invalid octal number"));
-		}
-		else {
+		} else {
 			NEXT();
 			type = THEX;
 			while (isxdigit(CUR_CHAR)) {
@@ -521,13 +602,14 @@ SQInteger LVLexer::ReadNumber()
 			}
 			if (_longstr.size() > MAX_HEX_DIGITS) Error(_SC("too many digits for an Hex number"));
 		}
-	}
-	else {
+	} else {
 		APPEND_CHAR((int)firstchar);
 		while (CUR_CHAR == _SC('.') || scisdigit(CUR_CHAR) || isexponent(CUR_CHAR)) {
 			if (CUR_CHAR == _SC('.') || isexponent(CUR_CHAR)) type = TFLOAT;
 			if (isexponent(CUR_CHAR)) {
-				if (type != TFLOAT) Error(_SC("invalid numeric format"));
+				if (type != TFLOAT)
+					Error(_SC("invalid numeric format"));
+
 				type = TSCIENTIFIC;
 				APPEND_CHAR(CUR_CHAR);
 				NEXT();
@@ -544,35 +626,39 @@ SQInteger LVLexer::ReadNumber()
 	}
 	TERMINATE_BUFFER();
 	switch (type) {
-	case TSCIENTIFIC:
-	case TFLOAT:
-		_fvalue = (SQFloat)scstrtod(&_longstr[0], &sTemp);
-		return TK_FLOAT;
-	case TINT:
-		LexInteger(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
-	case THEX:
-		LexHexadecimal(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
-	case TOCTAL:
-		LexOctal(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
+		case TSCIENTIFIC:
+		case TFLOAT:
+			_fvalue = (SQFloat)scstrtod(&_longstr[0], &sTemp);
+			return TK_FLOAT;
+		case TINT:
+			LexInteger(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
+			return TK_INTEGER;
+		case THEX:
+			LexHexadecimal(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
+			return TK_INTEGER;
+		case TOCTAL:
+			LexOctal(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
+			return TK_INTEGER;
 	}
 	return 0;
 }
 
-SQInteger LVLexer::ReadID()
-{
+SQInteger LVLexer::ReadID() {
 	SQInteger res;
+
 	INIT_TEMP_STRING();
+
 	do {
 		APPEND_CHAR(CUR_CHAR);
 		NEXT();
 	} while (scisalnum(CUR_CHAR) || CUR_CHAR == _SC('_'));
+
 	TERMINATE_BUFFER();
+
 	res = GetIDType(&_longstr[0], _longstr.size() - 1);
 	if (res == TK_IDENTIFIER || res == TK_CONSTRUCTOR) {
 		_svalue = &_longstr[0];
 	}
+
 	return res;
 }

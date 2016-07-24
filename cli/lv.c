@@ -42,7 +42,7 @@ int MemAllocHook(int allocType, void *userData, size_t size, int blockType,
 
 SQInteger quit(HSQUIRRELVM v) {
 	int *done;
-	sq_getuserpointer(v, -1, (SQUserPointer*)&done);
+	sq_getuserpointer(v, -1, (SQUserPointer *)&done);
 	*done = 1;
 	return 0;
 }
@@ -81,8 +81,7 @@ void print_usage() {
 	          _SC("  -h              This help\n"));
 }
 
-enum result getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
-{
+enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 	int i;
 	int compiles_only = 0;
 	int run_statement_only = 0;
@@ -99,41 +98,41 @@ enum result getargs(HSQUIRRELVM v, int argc, char* argv[], SQInteger *retval)
 
 			if (argv[arg][0] == '-') {
 				switch (argv[arg][1]) {
-				case 'd':
-					sq_enabledebuginfo(v, 1);
-					break;
-				case 'c':
-					compiles_only = 1;
-					break;
-				case 'r':
-					if (arg < argc) {
-						arg++;
-						statement = argv[arg];
-						run_statement_only = 1;
-					}
-					break;
-				case 'a':
-					return INTERACTIVE;
-				case 'o':
-					if (arg < argc) {
-						arg++;
-						output = argv[arg];
-					}
-					break;
-				case 'v':
-					print_version_info();
-					return DONE;
+					case 'd':
+						sq_enabledebuginfo(v, 1);
+						break;
+					case 'c':
+						compiles_only = 1;
+						break;
+					case 'r':
+						if (arg < argc) {
+							arg++;
+							statement = argv[arg];
+							run_statement_only = 1;
+						}
+						break;
+					case 'a':
+						return INTERACTIVE;
+					case 'o':
+						if (arg < argc) {
+							arg++;
+							output = argv[arg];
+						}
+						break;
+					case 'v':
+						print_version_info();
+						return DONE;
 
-				case 'h':
-					print_version_info();
-					print_usage();
-					return DONE;
-				default:
-					print_version_info();
-					scprintf(_SC("unknown prameter '-%c'\n"), argv[arg][1]);
-					print_usage();
-					*retval = -1;
-					return ERROR;
+					case 'h':
+						print_version_info();
+						print_usage();
+						return DONE;
+					default:
+						print_version_info();
+						scprintf(_SC("unknown prameter '-%c'\n"), argv[arg][1]);
+						print_usage();
+						*retval = -1;
+						return ERROR;
 				}
 			} else {
 				break;
@@ -349,13 +348,13 @@ int main(int argc, char *argv[]) {
 	sqstd_seterrorhandlers(v);
 
 	switch (getargs(v, argc, argv, &retval)) {
-	case INTERACTIVE:
-		interactive(v);
-		break;
-	case DONE:
-	case ERROR:
-	default:
-		break;
+		case INTERACTIVE:
+			interactive(v);
+			break;
+		case DONE:
+		case ERROR:
+		default:
+			break;
 	}
 
 	sq_close(v);

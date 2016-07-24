@@ -50,7 +50,7 @@ typedef SQUnsignedInteger SQRawObjectVal; //is 32 bits on 32 bits builds and 64 
 #endif
 #endif
 
-typedef void* SQUserPointer;
+typedef void *SQUserPointer;
 typedef SQUnsignedInteger SQBool;
 typedef SQInteger SQRESULT;
 

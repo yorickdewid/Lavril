@@ -19,8 +19,7 @@
 #define screname rename
 #endif
 
-static SQInteger _system_getenv(HSQUIRRELVM v)
-{
+static SQInteger _system_getenv(HSQUIRRELVM v) {
 	const SQChar *s;
 	if (SQ_SUCCEEDED(sq_getstring(v, 2, &s))) {
 		sq_pushstring(v, scgetenv(s), -1);
@@ -29,8 +28,7 @@ static SQInteger _system_getenv(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _system_system(HSQUIRRELVM v)
-{
+static SQInteger _system_system(HSQUIRRELVM v) {
 	const SQChar *s;
 	if (SQ_SUCCEEDED(sq_getstring(v, 2, &s))) {
 		sq_pushinteger(v, scsystem(s));
@@ -39,21 +37,18 @@ static SQInteger _system_system(HSQUIRRELVM v)
 	return sq_throwerror(v, _SC("wrong param"));
 }
 
-static SQInteger _system_clock(HSQUIRRELVM v)
-{
+static SQInteger _system_clock(HSQUIRRELVM v) {
 	sq_pushfloat(v, ((SQFloat)clock()) / (SQFloat)CLOCKS_PER_SEC);
 	return 1;
 }
 
-static SQInteger _system_time(HSQUIRRELVM v)
-{
+static SQInteger _system_time(HSQUIRRELVM v) {
 	SQInteger t = (SQInteger)time(NULL);
 	sq_pushinteger(v, t);
 	return 1;
 }
 
-static SQInteger _system_remove(HSQUIRRELVM v)
-{
+static SQInteger _system_remove(HSQUIRRELVM v) {
 	const SQChar *s;
 	sq_getstring(v, 2, &s);
 	if (scremove(s) == -1)
@@ -61,8 +56,7 @@ static SQInteger _system_remove(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _system_rename(HSQUIRRELVM v)
-{
+static SQInteger _system_rename(HSQUIRRELVM v) {
 	const SQChar *oldn, *newn;
 	sq_getstring(v, 2, &oldn);
 	sq_getstring(v, 3, &newn);
@@ -71,15 +65,13 @@ static SQInteger _system_rename(HSQUIRRELVM v)
 	return 0;
 }
 
-static void _set_integer_slot(HSQUIRRELVM v, const SQChar *name, SQInteger val)
-{
+static void _set_integer_slot(HSQUIRRELVM v, const SQChar *name, SQInteger val) {
 	sq_pushstring(v, name, -1);
 	sq_pushinteger(v, val);
 	sq_rawset(v, -3);
 }
 
-static SQInteger _system_date(HSQUIRRELVM v)
-{
+static SQInteger _system_date(HSQUIRRELVM v) {
 	time_t t;
 	SQInteger it;
 	SQInteger format = 'l';
@@ -87,10 +79,9 @@ static SQInteger _system_date(HSQUIRRELVM v)
 		sq_getinteger(v, 2, &it);
 		t = it;
 		if (sq_gettop(v) > 2) {
-			sq_getinteger(v, 3, (SQInteger*)&format);
+			sq_getinteger(v, 3, (SQInteger *)&format);
 		}
-	}
-	else {
+	} else {
 		time(&t);
 	}
 	tm *date;
@@ -125,11 +116,9 @@ static const SQRegFunction systemlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQInteger sqstd_register_systemlib(HSQUIRRELVM v)
-{
+SQInteger sqstd_register_systemlib(HSQUIRRELVM v) {
 	SQInteger i = 0;
-	while (systemlib_funcs[i].name != 0)
-	{
+	while (systemlib_funcs[i].name != 0) {
 		sq_pushstring(v, systemlib_funcs[i].name, -1);
 		sq_newclosure(v, systemlib_funcs[i].f, 0);
 		sq_setparamscheck(v, systemlib_funcs[i].nparamscheck, systemlib_funcs[i].typemask);

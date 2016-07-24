@@ -6,8 +6,7 @@
 
 #define SQSTD_FILE_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000001)
 //basic API
-SQFILE sqstd_fopen(const SQChar *filename , const SQChar *mode)
-{
+SQFILE sqstd_fopen(const SQChar *filename , const SQChar *mode) {
 #ifndef SQUNICODE
 	return (SQFILE)fopen(filename, mode);
 #else
@@ -15,54 +14,62 @@ SQFILE sqstd_fopen(const SQChar *filename , const SQChar *mode)
 #endif
 }
 
-SQInteger sqstd_fread(void* buffer, SQInteger size, SQInteger count, SQFILE file)
-{
+SQInteger sqstd_fread(void *buffer, SQInteger size, SQInteger count, SQFILE file) {
 	SQInteger ret = (SQInteger)fread(buffer, size, count, (FILE *)file);
 	return ret;
 }
 
-SQInteger sqstd_fwrite(const SQUserPointer buffer, SQInteger size, SQInteger count, SQFILE file)
-{
+SQInteger sqstd_fwrite(const SQUserPointer buffer, SQInteger size, SQInteger count, SQFILE file) {
 	return (SQInteger)fwrite(buffer, size, count, (FILE *)file);
 }
 
-SQInteger sqstd_fseek(SQFILE file, SQInteger offset, SQInteger origin)
-{
+SQInteger sqstd_fseek(SQFILE file, SQInteger offset, SQInteger origin) {
 	SQInteger realorigin;
 	switch (origin) {
-	case SQ_SEEK_CUR: realorigin = SEEK_CUR; break;
-	case SQ_SEEK_END: realorigin = SEEK_END; break;
-	case SQ_SEEK_SET: realorigin = SEEK_SET; break;
-	default: return -1; //failed
+		case SQ_SEEK_CUR:
+			realorigin = SEEK_CUR;
+			break;
+		case SQ_SEEK_END:
+			realorigin = SEEK_END;
+			break;
+		case SQ_SEEK_SET:
+			realorigin = SEEK_SET;
+			break;
+		default:
+			return -1; //failed
 	}
 	return fseek((FILE *)file, (long)offset, (int)realorigin);
 }
 
-SQInteger sqstd_ftell(SQFILE file)
-{
+SQInteger sqstd_ftell(SQFILE file) {
 	return ftell((FILE *)file);
 }
 
-SQInteger sqstd_fflush(SQFILE file)
-{
+SQInteger sqstd_fflush(SQFILE file) {
 	return fflush((FILE *)file);
 }
 
-SQInteger sqstd_fclose(SQFILE file)
-{
+SQInteger sqstd_fclose(SQFILE file) {
 	return fclose((FILE *)file);
 }
 
-SQInteger sqstd_feof(SQFILE file)
-{
+SQInteger sqstd_feof(SQFILE file) {
 	return feof((FILE *)file);
 }
 
 //File
 struct SQFile : public SQStream {
-	SQFile() { _handle = NULL; _owns = false;}
-	SQFile(SQFILE file, bool owns) { _handle = file; _owns = owns;}
-	virtual ~SQFile() { Close(); }
+	SQFile() {
+		_handle = NULL;
+		_owns = false;
+	}
+	SQFile(SQFILE file, bool owns) {
+		_handle = file;
+		_owns = owns;
+	}
+	virtual ~SQFile() {
+		Close();
+	}
 	bool Open(const SQChar *filename , const SQChar *mode) {
 		Close();
 		if ( (_handle = sqstd_fopen(filename, mode)) ) {
@@ -100,30 +107,33 @@ struct SQFile : public SQStream {
 	SQInteger Seek(SQInteger offset, SQInteger origin)  {
 		return sqstd_fseek(_handle, offset, origin);
 	}
-	bool IsValid() { return _handle ? true : false; }
-	bool EOS() { return Tell() == Len() ? true : false;}
-	SQFILE GetHandle() {return _handle;}
-private:
+	bool IsValid() {
+		return _handle ? true : false;
+	}
+	bool EOS() {
+		return Tell() == Len() ? true : false;
+	}
+	SQFILE GetHandle() {
+		return _handle;
+	}
+  private:
 	SQFILE _handle;
 	bool _owns;
 };
 
-static SQInteger _file__typeof(HSQUIRRELVM v)
-{
+static SQInteger _file__typeof(HSQUIRRELVM v) {
 	sq_pushstring(v, _SC("file"), -1);
 	return 1;
 }
 
-static SQInteger _file_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size))
-{
-	SQFile *self = (SQFile*)p;
+static SQInteger _file_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size)) {
+	SQFile *self = (SQFile *)p;
 	self->~SQFile();
 	sq_free(self, sizeof(SQFile));
 	return 1;
 }
 
-static SQInteger _file_constructor(HSQUIRRELVM v)
-{
+static SQInteger _file_constructor(HSQUIRRELVM v) {
 	const SQChar *filename, *mode;
 	bool owns = true;
 	SQFile *f;
@@ -150,12 +160,10 @@ static SQInteger _file_constructor(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _file_close(HSQUIRRELVM v)
-{
+static SQInteger _file_close(HSQUIRRELVM v) {
 	SQFile *self = NULL;
-	if (SQ_SUCCEEDED(sq_getinstanceup(v, 1, (SQUserPointer*)&self, (SQUserPointer)SQSTD_FILE_TYPE_TAG))
-	        && self != NULL)
-	{
+	if (SQ_SUCCEEDED(sq_getinstanceup(v, 1, (SQUserPointer *)&self, (SQUserPointer)SQSTD_FILE_TYPE_TAG))
+	        && self != NULL) {
 		self->Close();
 	}
 	return 0;
@@ -172,8 +180,7 @@ static const SQRegFunction _file_methods[] = {
 
 
 
-SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file, SQBool own)
-{
+SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file, SQBool own) {
 	SQInteger top = sq_gettop(v);
 	sq_pushregistrytable(v);
 	sq_pushstring(v, _SC("std_file"), -1);
@@ -183,8 +190,7 @@ SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file, SQBool own)
 		sq_pushuserpointer(v, file); //file
 		if (own) {
 			sq_pushinteger(v, 1); //true
-		}
-		else {
+		} else {
 			sq_pushnull(v); //false
 		}
 		if (SQ_SUCCEEDED( sq_call(v, 3, SQTrue, SQFalse) )) {
@@ -196,10 +202,9 @@ SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file, SQBool own)
 	return SQ_ERROR;
 }
 
-SQRESULT sqstd_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file)
-{
+SQRESULT sqstd_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file) {
 	SQFile *fileobj = NULL;
-	if (SQ_SUCCEEDED(sq_getinstanceup(v, idx, (SQUserPointer*)&fileobj, (SQUserPointer)SQSTD_FILE_TYPE_TAG))) {
+	if (SQ_SUCCEEDED(sq_getinstanceup(v, idx, (SQUserPointer *)&fileobj, (SQUserPointer)SQSTD_FILE_TYPE_TAG))) {
 		*file = fileobj->GetHandle();
 		return SQ_OK;
 	}
@@ -216,17 +221,14 @@ struct IOBuffer {
 	SQFILE file;
 };
 
-SQInteger _read_byte(IOBuffer *iobuffer)
-{
+SQInteger _read_byte(IOBuffer *iobuffer) {
 	if (iobuffer->ptr < iobuffer->size) {
 
 		SQInteger ret = iobuffer->buffer[iobuffer->ptr];
 		iobuffer->ptr++;
 		return ret;
-	}
-	else {
-		if ( (iobuffer->size = sqstd_fread(iobuffer->buffer, 1, IO_BUFFER_SIZE, iobuffer->file )) > 0 )
-		{
+	} else {
+		if ( (iobuffer->size = sqstd_fread(iobuffer->buffer, 1, IO_BUFFER_SIZE, iobuffer->file )) > 0 ) {
 			SQInteger ret = iobuffer->buffer[0];
 			iobuffer->ptr = 1;
 			return ret;
@@ -236,19 +238,16 @@ SQInteger _read_byte(IOBuffer *iobuffer)
 	return 0;
 }
 
-SQInteger _read_two_bytes(IOBuffer *iobuffer)
-{
+SQInteger _read_two_bytes(IOBuffer *iobuffer) {
 	if (iobuffer->ptr < iobuffer->size) {
 		if (iobuffer->size < 2) return 0;
-		SQInteger ret = *((const wchar_t*)&iobuffer->buffer[iobuffer->ptr]);
+		SQInteger ret = *((const wchar_t *)&iobuffer->buffer[iobuffer->ptr]);
 		iobuffer->ptr += 2;
 		return ret;
-	}
-	else {
-		if ( (iobuffer->size = sqstd_fread(iobuffer->buffer, 1, IO_BUFFER_SIZE, iobuffer->file )) > 0 )
-		{
+	} else {
+		if ( (iobuffer->size = sqstd_fread(iobuffer->buffer, 1, IO_BUFFER_SIZE, iobuffer->file )) > 0 ) {
 			if (iobuffer->size < 2) return 0;
-			SQInteger ret = *((const wchar_t*)&iobuffer->buffer[0]);
+			SQInteger ret = *((const wchar_t *)&iobuffer->buffer[0]);
 			iobuffer->ptr = 2;
 			return ret;
 		}
@@ -257,23 +256,20 @@ SQInteger _read_two_bytes(IOBuffer *iobuffer)
 	return 0;
 }
 
-static SQInteger _io_file_lexfeed_PLAIN(SQUserPointer iobuf)
-{
+static SQInteger _io_file_lexfeed_PLAIN(SQUserPointer iobuf) {
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	return _read_byte(iobuffer);
 
 }
 
 #ifdef SQUNICODE
-static SQInteger _io_file_lexfeed_UTF8(SQUserPointer iobuf)
-{
+static SQInteger _io_file_lexfeed_UTF8(SQUserPointer iobuf) {
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 #define READ(iobuf) \
 	if((inchar = (unsigned char)_read_byte(iobuf)) == 0) \
 		return 0;
 
-	static const SQInteger utf8_lengths[16] =
-	{
+	static const SQInteger utf8_lengths[16] = {
 		1, 1, 1, 1, 1, 1, 1, 1, /* 0000 to 0111 : 1 byte (plain ASCII) */
 		0, 0, 0, 0,             /* 1000 to 1011 : not valid */
 		2, 2,                   /* 1100, 1101 : 2 bytes */
@@ -304,8 +300,7 @@ static SQInteger _io_file_lexfeed_UTF8(SQUserPointer iobuf)
 }
 #endif
 
-static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer iobuf)
-{
+static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer iobuf) {
 	SQInteger ret;
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	if ( (ret = _read_two_bytes(iobuffer)) > 0 )
@@ -313,8 +308,7 @@ static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer iobuf)
 	return 0;
 }
 
-static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf)
-{
+static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf) {
 	SQInteger c;
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	if ( (c = _read_two_bytes(iobuffer)) > 0 ) {
@@ -324,20 +318,17 @@ static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf)
 	return 0;
 }
 
-SQInteger file_read(SQUserPointer file, SQUserPointer buf, SQInteger size)
-{
+SQInteger file_read(SQUserPointer file, SQUserPointer buf, SQInteger size) {
 	SQInteger ret;
 	if ( ( ret = sqstd_fread(buf, 1, size, (SQFILE)file )) != 0 )return ret;
 	return -1;
 }
 
-SQInteger file_write(SQUserPointer file, SQUserPointer p, SQInteger size)
-{
+SQInteger file_write(SQUserPointer file, SQUserPointer p, SQInteger size) {
 	return sqstd_fwrite(p, 1, size, (SQFILE)file);
 }
 
-SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror)
-{
+SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
 	SQFILE file = sqstd_fopen(filename, _SC("rb"));
 
 	SQInteger ret;
@@ -358,33 +349,32 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror
 			}
 		} else { //SCRIPT
 
-			switch (us)
-			{
-			//gotta swap the next 2 lines on BIG endian machines
-			case 0xFFFE:
-				func = _io_file_lexfeed_UCS2_BE;
-				break;//UTF-16 little endian;
-			case 0xFEFF:
-				func = _io_file_lexfeed_UCS2_LE;
-				break;//UTF-16 big endian;
-			case 0xBBEF:
-				if (sqstd_fread(&uc, 1, sizeof(uc), file) == 0) {
-					sqstd_fclose(file);
-					return sq_throwerror(v, _SC("io error"));
-				}
-				if (uc != 0xBF) {
-					sqstd_fclose(file);
-					return sq_throwerror(v, _SC("Unrecognozed ecoding"));
-				}
+			switch (us) {
+				//gotta swap the next 2 lines on BIG endian machines
+				case 0xFFFE:
+					func = _io_file_lexfeed_UCS2_BE;
+					break;//UTF-16 little endian;
+				case 0xFEFF:
+					func = _io_file_lexfeed_UCS2_LE;
+					break;//UTF-16 big endian;
+				case 0xBBEF:
+					if (sqstd_fread(&uc, 1, sizeof(uc), file) == 0) {
+						sqstd_fclose(file);
+						return sq_throwerror(v, _SC("io error"));
+					}
+					if (uc != 0xBF) {
+						sqstd_fclose(file);
+						return sq_throwerror(v, _SC("Unrecognozed ecoding"));
+					}
 #ifdef SQUNICODE
-				func = _io_file_lexfeed_UTF8;
+					func = _io_file_lexfeed_UTF8;
 #else
-				func = _io_file_lexfeed_PLAIN;
+					func = _io_file_lexfeed_PLAIN;
 #endif
-				break;//UTF-8 ;
-			default:
-				sqstd_fseek(file, 0, SQ_SEEK_SET);
-				break; // ascii
+					break;//UTF-8 ;
+				default:
+					sqstd_fseek(file, 0, SQ_SEEK_SET);
+					break; // ascii
 			}
 
 			IOBuffer buffer;
@@ -402,8 +392,7 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror
 	return sq_throwerror(v, _SC("cannot open the file"));
 }
 
-SQRESULT sqstd_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror)
-{
+SQRESULT sqstd_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror) {
 	if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, printerror))) {
 		sq_push(v, -2);
 		if (SQ_SUCCEEDED(sq_call(v, 1, retval, SQTrue))) {
@@ -415,8 +404,7 @@ SQRESULT sqstd_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQ
 	return SQ_ERROR;
 }
 
-SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename)
-{
+SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename) {
 	SQFILE file = sqstd_fopen(filename, _SC("wb+"));
 	if (!file) return sq_throwerror(v, _SC("cannot open the file"));
 	if (SQ_SUCCEEDED(sq_writeclosure(v, file_write, file))) {
@@ -427,8 +415,7 @@ SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename)
 	return SQ_ERROR; //forward the error
 }
 
-SQInteger _g_io_loadfile(HSQUIRRELVM v)
-{
+SQInteger _g_io_loadfile(HSQUIRRELVM v) {
 	const SQChar *filename;
 	SQBool printerror = SQFalse;
 	sq_getstring(v, 2, &filename);
@@ -440,8 +427,7 @@ SQInteger _g_io_loadfile(HSQUIRRELVM v)
 	return SQ_ERROR; //propagates the error
 }
 
-SQInteger _g_io_writeclosuretofile(HSQUIRRELVM v)
-{
+SQInteger _g_io_writeclosuretofile(HSQUIRRELVM v) {
 	const SQChar *filename;
 	sq_getstring(v, 2, &filename);
 	if (SQ_SUCCEEDED(sqstd_writeclosuretofile(v, filename)))
@@ -449,8 +435,7 @@ SQInteger _g_io_writeclosuretofile(HSQUIRRELVM v)
 	return SQ_ERROR; //propagates the error
 }
 
-SQInteger _g_io_execfile(HSQUIRRELVM v)
-{
+SQInteger _g_io_execfile(HSQUIRRELVM v) {
 	const SQChar *filename;
 	SQBool printerror = SQFalse;
 	sq_getstring(v, 2, &filename);
@@ -471,8 +456,7 @@ static const SQRegFunction iolib_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-SQRESULT sqstd_register_iolib(HSQUIRRELVM v)
-{
+SQRESULT sqstd_register_iolib(HSQUIRRELVM v) {
 	SQInteger top = sq_gettop(v);
 	//create delegate
 	declare_stream(v, _SC("file"), (SQUserPointer)SQSTD_FILE_TYPE_TAG, _SC("std_file"), _file_methods, iolib_funcs);

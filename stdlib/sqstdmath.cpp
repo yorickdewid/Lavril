@@ -18,8 +18,7 @@
 	return 1; \
 }
 
-static SQInteger math_srand(HSQUIRRELVM v)
-{
+static SQInteger math_srand(HSQUIRRELVM v) {
 	SQInteger i;
 	if (SQ_FAILED(sq_getinteger(v, 2, &i)))
 		return sq_throwerror(v, _SC("invalid param"));
@@ -27,22 +26,19 @@ static SQInteger math_srand(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger math_rand(HSQUIRRELVM v)
-{
+static SQInteger math_rand(HSQUIRRELVM v) {
 	sq_pushinteger(v, rand());
 	return 1;
 }
 
-static SQInteger math_abs(HSQUIRRELVM v)
-{
+static SQInteger math_abs(HSQUIRRELVM v) {
 	SQInteger n;
 	sq_getinteger(v, 2, &n);
 	sq_pushinteger(v, (SQInteger)abs((int)n));
 	return 1;
 }
 
-static SQInteger math_universe(HSQUIRRELVM v)
-{
+static SQInteger math_universe(HSQUIRRELVM v) {
 	sq_pushinteger(v, 42);
 	return 1;
 }
@@ -92,8 +88,7 @@ static const SQRegFunction mathlib_funcs[] = {
 #define M_PI (3.14159265358979323846)
 #endif
 
-SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
-{
+SQRESULT sqstd_register_mathlib(HSQUIRRELVM v) {
 	SQInteger i = 0;
 	while (mathlib_funcs[i].name != 0) {
 		sq_pushstring(v, mathlib_funcs[i].name, -1);

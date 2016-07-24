@@ -16,8 +16,7 @@
 		return sq_throwerror(v,_SC("the blob is invalid"));
 
 
-static SQInteger _blob_resize(HSQUIRRELVM v)
-{
+static SQInteger _blob_resize(HSQUIRRELVM v) {
 	SETUP_BLOB(v);
 	SQInteger size;
 	sq_getinteger(v, 2, &size);
@@ -26,21 +25,18 @@ static SQInteger _blob_resize(HSQUIRRELVM v)
 	return 0;
 }
 
-static void __swap_dword(unsigned int *n)
-{
+static void __swap_dword(unsigned int *n) {
 	*n = (unsigned int)(((*n & 0xFF000000) >> 24)  |
 	                    ((*n & 0x00FF0000) >> 8)  |
 	                    ((*n & 0x0000FF00) << 8)  |
 	                    ((*n & 0x000000FF) << 24));
 }
 
-static void __swap_word(unsigned short *n)
-{
+static void __swap_word(unsigned short *n) {
 	*n = (unsigned short)((*n >> 8) & 0x00FF) | ((*n << 8) & 0xFF00);
 }
 
-static SQInteger _blob_swap4(HSQUIRRELVM v)
-{
+static SQInteger _blob_swap4(HSQUIRRELVM v) {
 	SETUP_BLOB(v);
 	SQInteger num = (self->Len() - (self->Len() % 4)) >> 2;
 	unsigned int *t = (unsigned int *)self->GetBuf();
@@ -50,8 +46,7 @@ static SQInteger _blob_swap4(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob_swap2(HSQUIRRELVM v)
-{
+static SQInteger _blob_swap2(HSQUIRRELVM v) {
 	SETUP_BLOB(v);
 	SQInteger num = (self->Len() - (self->Len() % 2)) >> 1;
 	unsigned short *t = (unsigned short *)self->GetBuf();
@@ -61,8 +56,7 @@ static SQInteger _blob_swap2(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob__set(HSQUIRRELVM v)
-{
+static SQInteger _blob__set(HSQUIRRELVM v) {
 	SETUP_BLOB(v);
 	SQInteger idx, val;
 	sq_getinteger(v, 2, &idx);
@@ -74,8 +68,7 @@ static SQInteger _blob__set(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _blob__get(HSQUIRRELVM v)
-{
+static SQInteger _blob__get(HSQUIRRELVM v) {
 	SETUP_BLOB(v);
 	SQInteger idx;
 	sq_getinteger(v, 2, &idx);
@@ -85,8 +78,7 @@ static SQInteger _blob__get(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _blob__nexti(HSQUIRRELVM v)
-{
+static SQInteger _blob__nexti(HSQUIRRELVM v) {
 	SETUP_BLOB(v);
 	if (sq_gettype(v, 2) == OT_NULL) {
 		sq_pushinteger(v, 0);
@@ -104,22 +96,19 @@ static SQInteger _blob__nexti(HSQUIRRELVM v)
 	return sq_throwerror(v, _SC("internal error (_nexti) wrong argument type"));
 }
 
-static SQInteger _blob__typeof(HSQUIRRELVM v)
-{
+static SQInteger _blob__typeof(HSQUIRRELVM v) {
 	sq_pushstring(v, _SC("blob"), -1);
 	return 1;
 }
 
-static SQInteger _blob_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size))
-{
-	SQBlob *self = (SQBlob*)p;
+static SQInteger _blob_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size)) {
+	SQBlob *self = (SQBlob *)p;
 	self->~SQBlob();
 	sq_free(self, sizeof(SQBlob));
 	return 1;
 }
 
-static SQInteger _blob_constructor(HSQUIRRELVM v)
-{
+static SQInteger _blob_constructor(HSQUIRRELVM v) {
 	SQInteger nparam = sq_gettop(v);
 	SQInteger size = 0;
 	if (nparam == 2) {
@@ -138,11 +127,10 @@ static SQInteger _blob_constructor(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob__cloned(HSQUIRRELVM v)
-{
+static SQInteger _blob__cloned(HSQUIRRELVM v) {
 	SQBlob *other = NULL;
 	{
-		if (SQ_FAILED(sq_getinstanceup(v, 2, (SQUserPointer*)&other, (SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
+		if (SQ_FAILED(sq_getinstanceup(v, 2, (SQUserPointer *)&other, (SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
 			return SQ_ERROR;
 	}
 	//SQBlob *thisone = new SQBlob(other->Len());
@@ -175,24 +163,21 @@ static const SQRegFunction _blob_methods[] = {
 
 //GLOBAL FUNCTIONS
 
-static SQInteger _g_blob_casti2f(HSQUIRRELVM v)
-{
+static SQInteger _g_blob_casti2f(HSQUIRRELVM v) {
 	SQInteger i;
 	sq_getinteger(v, 2, &i);
 	sq_pushfloat(v, *((const SQFloat *)&i));
 	return 1;
 }
 
-static SQInteger _g_blob_castf2i(HSQUIRRELVM v)
-{
+static SQInteger _g_blob_castf2i(HSQUIRRELVM v) {
 	SQFloat f;
 	sq_getfloat(v, 2, &f);
 	sq_pushinteger(v, *((const SQInteger *)&f));
 	return 1;
 }
 
-static SQInteger _g_blob_swap2(HSQUIRRELVM v)
-{
+static SQInteger _g_blob_swap2(HSQUIRRELVM v) {
 	SQInteger i;
 	sq_getinteger(v, 2, &i);
 	short s = (short)i;
@@ -200,8 +185,7 @@ static SQInteger _g_blob_swap2(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _g_blob_swap4(HSQUIRRELVM v)
-{
+static SQInteger _g_blob_swap4(HSQUIRRELVM v) {
 	SQInteger i;
 	sq_getinteger(v, 2, &i);
 	unsigned int t4 = (unsigned int)i;
@@ -210,8 +194,7 @@ static SQInteger _g_blob_swap4(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _g_blob_swapfloat(HSQUIRRELVM v)
-{
+static SQInteger _g_blob_swapfloat(HSQUIRRELVM v) {
 	SQFloat f;
 	sq_getfloat(v, 2, &f);
 	__swap_dword((unsigned int *)&f);
@@ -229,8 +212,7 @@ static const SQRegFunction bloblib_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-SQRESULT sqstd_getblob(HSQUIRRELVM v, SQInteger idx, SQUserPointer *ptr)
-{
+SQRESULT sqstd_getblob(HSQUIRRELVM v, SQInteger idx, SQUserPointer *ptr) {
 	SQBlob *blob;
 	if (SQ_FAILED(sq_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
 		return -1;
@@ -238,16 +220,14 @@ SQRESULT sqstd_getblob(HSQUIRRELVM v, SQInteger idx, SQUserPointer *ptr)
 	return SQ_OK;
 }
 
-SQInteger sqstd_getblobsize(HSQUIRRELVM v, SQInteger idx)
-{
+SQInteger sqstd_getblobsize(HSQUIRRELVM v, SQInteger idx) {
 	SQBlob *blob;
 	if (SQ_FAILED(sq_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
 		return -1;
 	return blob->Len();
 }
 
-SQUserPointer sqstd_createblob(HSQUIRRELVM v, SQInteger size)
-{
+SQUserPointer sqstd_createblob(HSQUIRRELVM v, SQInteger size) {
 	SQInteger top = sq_gettop(v);
 	sq_pushregistrytable(v);
 	sq_pushstring(v, _SC("std_blob"), -1);
@@ -266,8 +246,7 @@ SQUserPointer sqstd_createblob(HSQUIRRELVM v, SQInteger size)
 	return NULL;
 }
 
-SQRESULT sqstd_register_bloblib(HSQUIRRELVM v)
-{
+SQRESULT sqstd_register_bloblib(HSQUIRRELVM v) {
 	return declare_stream(v, _SC("blob"), (SQUserPointer)SQSTD_BLOB_TYPE_TAG, _SC("std_blob"), _blob_methods, bloblib_funcs);
 }
 

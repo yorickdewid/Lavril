@@ -10,16 +10,19 @@
 #define MAX_WFORMAT_LEN 3
 #define ADDITIONAL_FORMAT_SPACE (100*sizeof(SQChar))
 
-static SQBool isfmtchr(SQChar ch)
-{
+static SQBool isfmtchr(SQChar ch) {
 	switch (ch) {
-	case '-': case '+': case ' ': case '#': case '0': return SQTrue;
+		case '-':
+		case '+':
+		case ' ':
+		case '#':
+		case '0':
+			return SQTrue;
 	}
 	return SQFalse;
 }
 
-static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, SQInteger n, SQInteger &width)
-{
+static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, SQInteger n, SQInteger& width) {
 	SQChar *dummy;
 	SQChar swidth[MAX_WFORMAT_LEN];
 	SQInteger wc = 0;
@@ -36,8 +39,7 @@ static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, 
 	swidth[wc] = '\0';
 	if (wc > 0) {
 		width = scstrtol(swidth, &dummy, 10);
-	}
-	else
+	} else
 		width = 0;
 	if (src[n] == '.') {
 		n++;
@@ -63,8 +65,7 @@ static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, 
 	return n;
 }
 
-SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outlen, SQChar **output)
-{
+SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outlen, SQChar **output) {
 	const SQChar *format;
 	SQChar *dest;
 	SQChar fmt[MAX_FORMAT_LEN];
@@ -74,18 +75,15 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 	dest = sq_getscratchpad(v, allocated);
 	SQInteger n = 0, i = 0, nparam = nformatstringidx + 1, w = 0;
 	//while(format[n] != '\0')
-	while (n < format_size)
-	{
+	while (n < format_size) {
 		if (format[n] != '%') {
 			assert(i < allocated);
 			dest[i++] = format[n];
 			n++;
-		}
-		else if (format[n + 1] == '%') { //handles %%
+		} else if (format[n + 1] == '%') { //handles %%
 			dest[i++] = '%';
 			n += 2;
-		}
-		else {
+		} else {
 			n++;
 			if ( nparam > sq_gettop(v) )
 				return sq_throwerror(v, _SC("not enough paramters for the given format string"));
@@ -97,48 +95,63 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 			SQInteger ti = 0;
 			SQFloat tf = 0;
 			switch (format[n]) {
-			case 's':
-				if (SQ_FAILED(sq_getstring(v, nparam, &ts)))
-					return sq_throwerror(v, _SC("string expected for the specified format"));
-				addlen = (sq_getsize(v, nparam) * sizeof(SQChar)) + ((w + 1) * sizeof(SQChar));
-				valtype = 's';
-				break;
-			case 'i': case 'd': case 'o': case 'u':  case 'x':  case 'X':
+				case 's':
+					if (SQ_FAILED(sq_getstring(v, nparam, &ts)))
+						return sq_throwerror(v, _SC("string expected for the specified format"));
+					addlen = (sq_getsize(v, nparam) * sizeof(SQChar)) + ((w + 1) * sizeof(SQChar));
+					valtype = 's';
+					break;
+				case 'i':
+				case 'd':
+				case 'o':
+				case 'u':
+				case 'x':
+				case 'X':
 #ifdef _SQ64
-			{
-				size_t flen = scstrlen(fmt);
-				SQInteger fpos = flen - 1;
-				SQChar f = fmt[fpos];
-				const SQChar *prec = (const SQChar *)_PRINT_INT_PREC;
-				while (*prec != _SC('\0')) {
-					fmt[fpos++] = *prec++;
+				{
+					size_t flen = scstrlen(fmt);
+					SQInteger fpos = flen - 1;
+					SQChar f = fmt[fpos];
+					const SQChar *prec = (const SQChar *)_PRINT_INT_PREC;
+					while (*prec != _SC('\0')) {
+						fmt[fpos++] = *prec++;
+					}
+					fmt[fpos++] = f;
+					fmt[fpos++] = _SC('\0');
 				}
-				fmt[fpos++] = f;
-				fmt[fpos++] = _SC('\0');
-			}
 #endif
-			case 'c':
-				if (SQ_FAILED(sq_getinteger(v, nparam, &ti)))
-					return sq_throwerror(v, _SC("integer expected for the specified format"));
-				addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
-				valtype = 'i';
-				break;
-			case 'f': case 'g': case 'G': case 'e':  case 'E':
-				if (SQ_FAILED(sq_getfloat(v, nparam, &tf)))
-					return sq_throwerror(v, _SC("float expected for the specified format"));
-				addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
-				valtype = 'f';
-				break;
-			default:
-				return sq_throwerror(v, _SC("invalid format"));
+				case 'c':
+					if (SQ_FAILED(sq_getinteger(v, nparam, &ti)))
+						return sq_throwerror(v, _SC("integer expected for the specified format"));
+					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
+					valtype = 'i';
+					break;
+				case 'f':
+				case 'g':
+				case 'G':
+				case 'e':
+				case 'E':
+					if (SQ_FAILED(sq_getfloat(v, nparam, &tf)))
+						return sq_throwerror(v, _SC("float expected for the specified format"));
+					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
+					valtype = 'f';
+					break;
+				default:
+					return sq_throwerror(v, _SC("invalid format"));
 			}
 			n++;
 			allocated += addlen + sizeof(SQChar);
 			dest = sq_getscratchpad(v, allocated);
 			switch (valtype) {
-			case 's': i += scsprintf(&dest[i], allocated, fmt, ts); break;
-			case 'i': i += scsprintf(&dest[i], allocated, fmt, ti); break;
-			case 'f': i += scsprintf(&dest[i], allocated, fmt, tf); break;
+				case 's':
+					i += scsprintf(&dest[i], allocated, fmt, ts);
+					break;
+				case 'i':
+					i += scsprintf(&dest[i], allocated, fmt, ti);
+					break;
+				case 'f':
+					i += scsprintf(&dest[i], allocated, fmt, tf);
+					break;
 			};
 			nparam ++;
 		}
@@ -149,8 +162,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 	return SQ_OK;
 }
 
-static SQInteger _string_format(HSQUIRRELVM v)
-{
+static SQInteger _string_format(HSQUIRRELVM v) {
 	SQChar *dest = NULL;
 	SQInteger length = 0;
 	if (SQ_FAILED(sqstd_format(v, 2, &length, &dest)))
@@ -159,26 +171,27 @@ static SQInteger _string_format(HSQUIRRELVM v)
 	return 1;
 }
 
-static void __strip_l(const SQChar *str, const SQChar **start)
-{
+static void __strip_l(const SQChar *str, const SQChar **start) {
 	const SQChar *t = str;
-	while (((*t) != '\0') && scisspace(*t)) { t++; }
+	while (((*t) != '\0') && scisspace(*t)) {
+		t++;
+	}
 	*start = t;
 }
 
-static void __strip_r(const SQChar *str, SQInteger len, const SQChar **end)
-{
+static void __strip_r(const SQChar *str, SQInteger len, const SQChar **end) {
 	if (len == 0) {
 		*end = str;
 		return;
 	}
 	const SQChar *t = &str[len - 1];
-	while (t >= str && scisspace(*t)) { t--; }
+	while (t >= str && scisspace(*t)) {
+		t--;
+	}
 	*end = t + 1;
 }
 
-static SQInteger _string_strip(HSQUIRRELVM v)
-{
+static SQInteger _string_strip(HSQUIRRELVM v) {
 	const SQChar *str, *start, *end;
 	sq_getstring(v, 2, &str);
 	SQInteger len = sq_getsize(v, 2);
@@ -188,8 +201,7 @@ static SQInteger _string_strip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _string_lstrip(HSQUIRRELVM v)
-{
+static SQInteger _string_lstrip(HSQUIRRELVM v) {
 	const SQChar *str, *start;
 	sq_getstring(v, 2, &str);
 	__strip_l(str, &start);
@@ -197,8 +209,7 @@ static SQInteger _string_lstrip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _string_rstrip(HSQUIRRELVM v)
-{
+static SQInteger _string_rstrip(HSQUIRRELVM v) {
 	const SQChar *str, *end;
 	sq_getstring(v, 2, &str);
 	SQInteger len = sq_getsize(v, 2);
@@ -207,8 +218,7 @@ static SQInteger _string_rstrip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _string_split(HSQUIRRELVM v)
-{
+static SQInteger _string_split(HSQUIRRELVM v) {
 	const SQChar *str, *seps;
 	SQChar *stemp;
 	sq_getstring(v, 2, &str);
@@ -221,13 +231,10 @@ static SQInteger _string_split(HSQUIRRELVM v)
 	SQChar *start = stemp;
 	SQChar *end = stemp;
 	sq_newarray(v, 0);
-	while (*end != '\0')
-	{
+	while (*end != '\0') {
 		SQChar cur = *end;
-		for (SQInteger i = 0; i < sepsize; i++)
-		{
-			if (cur == seps[i])
-			{
+		for (SQInteger i = 0; i < sepsize; i++) {
+			if (cur == seps[i]) {
 				*end = 0;
 				sq_pushstring(v, start, -1);
 				sq_arrayappend(v, -2);
@@ -237,16 +244,14 @@ static SQInteger _string_split(HSQUIRRELVM v)
 		}
 		end++;
 	}
-	if (end != start)
-	{
+	if (end != start) {
 		sq_pushstring(v, start, -1);
 		sq_arrayappend(v, -2);
 	}
 	return 1;
 }
 
-static SQInteger _string_escape(HSQUIRRELVM v)
-{
+static SQInteger _string_escape(HSQUIRRELVM v) {
 	const SQChar *str;
 	SQChar *dest, *resstr;
 	SQInteger size;
@@ -278,28 +283,48 @@ static SQInteger _string_escape(HSQUIRRELVM v)
 		escch = 0;
 		if (scisprint(c) || c == 0) {
 			switch (c) {
-			case '\a': escch = 'a'; break;
-			case '\b': escch = 'b'; break;
-			case '\t': escch = 't'; break;
-			case '\n': escch = 'n'; break;
-			case '\v': escch = 'v'; break;
-			case '\f': escch = 'f'; break;
-			case '\r': escch = 'r'; break;
-			case '\\': escch = '\\'; break;
-			case '\"': escch = '\"'; break;
-			case '\'': escch = '\''; break;
-			case 0: escch = '0'; break;
+				case '\a':
+					escch = 'a';
+					break;
+				case '\b':
+					escch = 'b';
+					break;
+				case '\t':
+					escch = 't';
+					break;
+				case '\n':
+					escch = 'n';
+					break;
+				case '\v':
+					escch = 'v';
+					break;
+				case '\f':
+					escch = 'f';
+					break;
+				case '\r':
+					escch = 'r';
+					break;
+				case '\\':
+					escch = '\\';
+					break;
+				case '\"':
+					escch = '\"';
+					break;
+				case '\'':
+					escch = '\'';
+					break;
+				case 0:
+					escch = '0';
+					break;
 			}
 			if (escch) {
 				*dest++ = '\\';
 				*dest++ = escch;
 				escaped++;
-			}
-			else {
+			} else {
 				*dest++ = c;
 			}
-		}
-		else {
+		} else {
 
 			dest += scsprintf(dest, destcharsize, escpat, c);
 			escaped++;
@@ -308,15 +333,13 @@ static SQInteger _string_escape(HSQUIRRELVM v)
 
 	if (escaped) {
 		sq_pushstring(v, resstr, dest - resstr);
-	}
-	else {
+	} else {
 		sq_push(v, 2); //nothing escaped
 	}
 	return 1;
 }
 
-static SQInteger _string_startswith(HSQUIRRELVM v)
-{
+static SQInteger _string_startswith(HSQUIRRELVM v) {
 	const SQChar *str, *cmp;
 	sq_getstring(v, 2, &str);
 	sq_getstring(v, 3, &cmp);
@@ -330,8 +353,7 @@ static SQInteger _string_startswith(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _string_endswith(HSQUIRRELVM v)
-{
+static SQInteger _string_endswith(HSQUIRRELVM v) {
 	const SQChar *str, *cmp;
 	sq_getstring(v, 2, &str);
 	sq_getstring(v, 3, &cmp);
@@ -349,20 +371,17 @@ static SQInteger _string_endswith(HSQUIRRELVM v)
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
 
-static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size))
-{
+static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size)) {
 	SQRex *self = ((SQRex *)p);
 	sqstd_rex_free(self);
 	return 1;
 }
 
-static SQInteger _regexp_match(HSQUIRRELVM v)
-{
+static SQInteger _regexp_match(HSQUIRRELVM v) {
 	SETUP_REX(v);
 	const SQChar *str;
 	sq_getstring(v, 2, &str);
-	if (sqstd_rex_match(self, str) == SQTrue)
-	{
+	if (sqstd_rex_match(self, str) == SQTrue) {
 		sq_pushbool(v, SQTrue);
 		return 1;
 	}
@@ -370,8 +389,7 @@ static SQInteger _regexp_match(HSQUIRRELVM v)
 	return 1;
 }
 
-static void _addrexmatch(HSQUIRRELVM v, const SQChar *str, const SQChar *begin, const SQChar *end)
-{
+static void _addrexmatch(HSQUIRRELVM v, const SQChar *str, const SQChar *begin, const SQChar *end) {
 	sq_newtable(v);
 	sq_pushstring(v, _SC("begin"), -1);
 	sq_pushinteger(v, begin - str);
@@ -381,8 +399,7 @@ static void _addrexmatch(HSQUIRRELVM v, const SQChar *str, const SQChar *begin, 
 	sq_rawset(v, -3);
 }
 
-static SQInteger _regexp_search(HSQUIRRELVM v)
-{
+static SQInteger _regexp_search(HSQUIRRELVM v) {
 	SETUP_REX(v);
 	const SQChar *str, *begin, *end;
 	SQInteger start = 0;
@@ -395,8 +412,7 @@ static SQInteger _regexp_search(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp_capture(HSQUIRRELVM v)
-{
+static SQInteger _regexp_capture(HSQUIRRELVM v) {
 	SETUP_REX(v);
 	const SQChar *str, *begin, *end;
 	SQInteger start = 0;
@@ -419,15 +435,13 @@ static SQInteger _regexp_capture(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp_subexpcount(HSQUIRRELVM v)
-{
+static SQInteger _regexp_subexpcount(HSQUIRRELVM v) {
 	SETUP_REX(v);
 	sq_pushinteger(v, sqstd_rex_getsubexpcount(self));
 	return 1;
 }
 
-static SQInteger _regexp_constructor(HSQUIRRELVM v)
-{
+static SQInteger _regexp_constructor(HSQUIRRELVM v) {
 	const SQChar *error, *pattern;
 	sq_getstring(v, 2, &pattern);
 	SQRex *rex = sqstd_rex_compile(pattern, &error);
@@ -437,8 +451,7 @@ static SQInteger _regexp_constructor(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp__typeof(HSQUIRRELVM v)
-{
+static SQInteger _regexp__typeof(HSQUIRRELVM v) {
 	sq_pushstring(v, _SC("regexp"), -1);
 	return 1;
 }
@@ -470,13 +483,12 @@ static const SQRegFunction stringlib_funcs[] = {
 #undef _DECL_FUNC
 
 
-SQInteger sqstd_register_stringlib(HSQUIRRELVM v)
-{
+SQInteger sqstd_register_stringlib(HSQUIRRELVM v) {
 	sq_pushstring(v, _SC("regexp"), -1);
 	sq_newclass(v, SQFalse);
 	SQInteger i = 0;
 	while (rexobj_funcs[i].name != 0) {
-		const SQRegFunction &f = rexobj_funcs[i];
+		const SQRegFunction& f = rexobj_funcs[i];
 		sq_pushstring(v, f.name, -1);
 		sq_newclosure(v, f.f, 0);
 		sq_setparamscheck(v, f.nparamscheck, f.typemask);
@@ -487,8 +499,7 @@ SQInteger sqstd_register_stringlib(HSQUIRRELVM v)
 	sq_newslot(v, -3, SQFalse);
 
 	i = 0;
-	while (stringlib_funcs[i].name != 0)
-	{
+	while (stringlib_funcs[i].name != 0) {
 		sq_pushstring(v, stringlib_funcs[i].name, -1);
 		sq_newclosure(v, stringlib_funcs[i].f, 0);
 		sq_setparamscheck(v, stringlib_funcs[i].nparamscheck, stringlib_funcs[i].typemask);

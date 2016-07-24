@@ -70,8 +70,8 @@ struct SQScope {
 					_fs->_breaktargets.pop_back();_fs->_continuetargets.pop_back();}
 
 class LVCompiler {
-public:
-	LVCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename, bool raiseerror, bool lineinfo) {
+  public:
+	LVCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, bool raiseerror, bool lineinfo) {
 		_vm = v;
 		_lex.Init(_ss(v), rg, up, ThrowError, this);
 		_sourcename = SQString::Create(_ss(v), sourcename);
@@ -100,59 +100,62 @@ public:
 	}
 
 	SQObject Expect(SQInteger tok) {
-
 		if (_token != tok) {
 			if (_token == TK_CONSTRUCTOR && tok == TK_IDENTIFIER) {
 				//do nothing
-			}
-			else {
-				const SQChar *etypename;
+			} else {
+				const SQChar *etypename = NULL;
 				if (tok > 255) {
-					switch (tok)
-					{
-					case TK_IDENTIFIER:
-						etypename = _SC("IDENTIFIER");
-						break;
-					case TK_STRING_LITERAL:
-						etypename = _SC("STRING_LITERAL");
-						break;
-					case TK_INTEGER:
-						etypename = _SC("INTEGER");
-						break;
-					case TK_FLOAT:
-						etypename = _SC("FLOAT");
-						break;
-					default:
-						etypename = _lex.Tok2Str(tok);
+					switch (tok) {
+						case TK_IDENTIFIER:
+							etypename = _SC("IDENTIFIER");
+							break;
+						case TK_STRING_LITERAL:
+							etypename = _SC("STRING_LITERAL");
+							break;
+						case TK_INTEGER:
+							etypename = _SC("INTEGER");
+							break;
+						case TK_FLOAT:
+							etypename = _SC("FLOAT");
+							break;
+						default:
+							etypename = _lex.Tok2Str(tok);
 					}
 					Error(_SC("expected '%s'"), etypename);
 				}
 				Error(_SC("expected '%c'"), tok);
 			}
 		}
+
 		SQObjectPtr ret;
-		switch (tok)
-		{
-		case TK_IDENTIFIER:
-			ret = _fs->CreateString(_lex._svalue);
-			break;
-		case TK_STRING_LITERAL:
-			ret = _fs->CreateString(_lex._svalue, _lex._longstr.size() - 1);
-			break;
-		case TK_INTEGER:
-			ret = SQObjectPtr(_lex._nvalue);
-			break;
-		case TK_FLOAT:
-			ret = SQObjectPtr(_lex._fvalue);
-			break;
+		switch (tok) {
+			case TK_IDENTIFIER:
+				ret = _fs->CreateString(_lex._svalue);
+				break;
+			case TK_STRING_LITERAL:
+				ret = _fs->CreateString(_lex._svalue, _lex._longstr.size() - 1);
+				break;
+			case TK_INTEGER:
+				ret = SQObjectPtr(_lex._nvalue);
+				break;
+			case TK_FLOAT:
+				ret = SQObjectPtr(_lex._fvalue);
+				break;
 		}
 		Lex();
 		return ret;
 	}
-	bool IsEndOfStatement() { return ((_lex._prevtoken == _SC('\n')) || (_token == SQUIRREL_EOB) || (_token == _SC('}')) || (_token == _SC(';'))); }
-	void OptionalSemicolon()
-	{
-		if (_token == _SC(';')) { Lex(); return; }
+
+	bool IsEndOfStatement() {
+		return ((_lex._prevtoken == _SC('\n')) || (_token == SQUIRREL_EOB) || (_token == _SC('}')) || (_token == _SC(';')));
+	}
+
+	void OptionalSemicolon() {
+		if (_token == _SC(';')) {
+			Lex();
+			return;
+		}
 		if (!IsEndOfStatement()) {
 			Error(_SC("end of statement expected (; or lf)"));
 		}
@@ -164,8 +167,8 @@ public:
 			_fs->AddInstruction(_OP_MOVE, _fs->PushTarget(), trg);
 		}
 	}
-	bool StartCompiler(SQObjectPtr &o)
-	{
+
+	bool StartCompiler(SQObjectPtr& o) {
 		_debugline = 1;
 		_debugop = 0;
 
@@ -176,13 +179,19 @@ public:
 		_fs->AddParameter(_fs->CreateString(_SC("vargv")));
 		_fs->_varparams = true;
 		_fs->_sourcename = _sourcename;
+
 		SQInteger stacksize = _fs->GetStackSize();
 		if (setjmp(_errorjmp) == 0) {
 			Lex();
+
+			printf("_token %lld\n", _token);
+
 			while (_token > 0) {
 				Statement();
-				if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
+				if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';'))
+					OptionalSemicolon();
 			}
+
 			_fs->SetStackSize(stacksize);
 			_fs->AddLineInfos(_lex._currentline, _lineinfo, true);
 			_fs->AddInstruction(_OP_RETURN, 0xFF);
@@ -191,8 +200,7 @@ public:
 #ifdef _DEBUG_DUMP
 			_fs->Dump(_funcproto(o));
 #endif
-		}
-		else {
+		} else {
 			if (_raiseerror && _ss(_vm)->_compilererrorhandler) {
 				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, type(_sourcename) == OT_STRING ? _stringval(_sourcename) : _SC("unknown"),
 				                                _lex._currentline, _lex._currentcolumn);
@@ -202,261 +210,281 @@ public:
 		}
 		return true;
 	}
-	void Statements()
-	{
+
+	void Statements() {
 		while (_token != _SC('}') && _token != TK_DEFAULT && _token != TK_CASE) {
 			Statement();
 			if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
 		}
 	}
-	void Statement(bool closeframe = true)
-	{
+
+	void Statement(bool closeframe = true) {
 		_fs->AddLineInfos(_lex._currentline, _lineinfo);
 		switch (_token) {
-		case _SC(';'):  Lex();                  break;
-		case TK_IF:     IfStatement();          break;
-		case TK_WHILE:      WhileStatement();       break;
-		case TK_DO:     DoWhileStatement();     break;
-		case TK_FOR:        ForStatement();         break;
-		case TK_FOREACH:    ForEachStatement();     break;
-		case TK_SWITCH: SwitchStatement();      break;
-		case TK_LOCAL:      LocalDeclStatement();   break;
-		case TK_RETURN:
-		case TK_YIELD: {
-			SQOpcode op;
-			if (_token == TK_RETURN) {
-				op = _OP_RETURN;
+			case _SC(';'):
+				Lex();
+				break;
+			case TK_IF:
+				IfStatement();
+				break;
+			case TK_WHILE:
+				WhileStatement();
+				break;
+			case TK_DO:
+				DoWhileStatement();
+				break;
+			case TK_FOR:
+				ForStatement();
+				break;
+			case TK_FOREACH:
+				ForEachStatement();
+				break;
+			case TK_SWITCH:
+				SwitchStatement();
+				break;
+			case TK_LOCAL:
+				LocalDeclStatement();
+				break;
+			case TK_INCLUDE:
+				IncludeStatement();
+				break;
+			case TK_RETURN:
+			case TK_YIELD: {
+				SQOpcode op;
+				if (_token == TK_RETURN) {
+					op = _OP_RETURN;
+				} else {
+					op = _OP_YIELD;
+					_fs->_bgenerator = true;
+				}
+				Lex();
+				if (!IsEndOfStatement()) {
+					SQInteger retexp = _fs->GetCurrentPos() + 1;
+					CommaExpr();
+					if (op == _OP_RETURN && _fs->_traps > 0)
+						_fs->AddInstruction(_OP_POPTRAP, _fs->_traps, 0);
+					_fs->_returnexp = retexp;
+					_fs->AddInstruction(op, 1, _fs->PopTarget(), _fs->GetStackSize());
+				} else {
+					if (op == _OP_RETURN && _fs->_traps > 0)
+						_fs->AddInstruction(_OP_POPTRAP, _fs->_traps , 0);
+					_fs->_returnexp = -1;
+					_fs->AddInstruction(op, 0xFF, 0, _fs->GetStackSize());
+				}
+				break;
 			}
-			else {
-				op = _OP_YIELD;
-				_fs->_bgenerator = true;
+			case TK_BREAK:
+				if (_fs->_breaktargets.size() <= 0)
+					Error(_SC("'break' has to be in a loop block"));
+				if (_fs->_breaktargets.top() > 0) {
+					_fs->AddInstruction(_OP_POPTRAP, _fs->_breaktargets.top(), 0);
+				}
+				RESOLVE_OUTERS();
+				_fs->AddInstruction(_OP_JMP, 0, -1234);
+				_fs->_unresolvedbreaks.push_back(_fs->GetCurrentPos());
+				Lex();
+				break;
+			case TK_CONTINUE:
+				if (_fs->_continuetargets.size() <= 0)
+					Error(_SC("'continue' has to be in a loop block"));
+				if (_fs->_continuetargets.top() > 0) {
+					_fs->AddInstruction(_OP_POPTRAP, _fs->_continuetargets.top(), 0);
+				}
+				RESOLVE_OUTERS();
+				_fs->AddInstruction(_OP_JMP, 0, -1234);
+				_fs->_unresolvedcontinues.push_back(_fs->GetCurrentPos());
+				Lex();
+				break;
+			case TK_FUNCTION:
+				FunctionStatement();
+				break;
+			case TK_CLASS:
+				ClassStatement();
+				break;
+			case TK_ENUM:
+				EnumStatement();
+				break;
+			case _SC('{'): {
+				BEGIN_SCOPE();
+				Lex();
+				Statements();
+				Expect(_SC('}'));
+				if (closeframe) {
+					END_SCOPE();
+				} else {
+					END_SCOPE_NO_CLOSE();
+				}
 			}
-			Lex();
-			if (!IsEndOfStatement()) {
-				SQInteger retexp = _fs->GetCurrentPos() + 1;
+			break;
+			case TK_TRY:
+				TryCatchStatement();
+				break;
+			case TK_THROW:
+				Lex();
 				CommaExpr();
-				if (op == _OP_RETURN && _fs->_traps > 0)
-					_fs->AddInstruction(_OP_POPTRAP, _fs->_traps, 0);
-				_fs->_returnexp = retexp;
-				_fs->AddInstruction(op, 1, _fs->PopTarget(), _fs->GetStackSize());
+				_fs->AddInstruction(_OP_THROW, _fs->PopTarget());
+				break;
+			case TK_CONST: {
+				Lex();
+				SQObject id = Expect(TK_IDENTIFIER);
+				Expect('=');
+				SQObject val = ExpectScalar();
+				OptionalSemicolon();
+				SQTable *enums = _table(_ss(_vm)->_consts);
+				SQObjectPtr strongid = id;
+				enums->NewSlot(strongid, SQObjectPtr(val));
+				strongid.Null();
 			}
-			else {
-				if (op == _OP_RETURN && _fs->_traps > 0)
-					_fs->AddInstruction(_OP_POPTRAP, _fs->_traps , 0);
-				_fs->_returnexp = -1;
-				_fs->AddInstruction(op, 0xFF, 0, _fs->GetStackSize());
-			}
 			break;
-		}
-		case TK_BREAK:
-			if (_fs->_breaktargets.size() <= 0)Error(_SC("'break' has to be in a loop block"));
-			if (_fs->_breaktargets.top() > 0) {
-				_fs->AddInstruction(_OP_POPTRAP, _fs->_breaktargets.top(), 0);
-			}
-			RESOLVE_OUTERS();
-			_fs->AddInstruction(_OP_JMP, 0, -1234);
-			_fs->_unresolvedbreaks.push_back(_fs->GetCurrentPos());
-			Lex();
-			break;
-		case TK_CONTINUE:
-			if (_fs->_continuetargets.size() <= 0)Error(_SC("'continue' has to be in a loop block"));
-			if (_fs->_continuetargets.top() > 0) {
-				_fs->AddInstruction(_OP_POPTRAP, _fs->_continuetargets.top(), 0);
-			}
-			RESOLVE_OUTERS();
-			_fs->AddInstruction(_OP_JMP, 0, -1234);
-			_fs->_unresolvedcontinues.push_back(_fs->GetCurrentPos());
-			Lex();
-			break;
-		case TK_FUNCTION:
-			FunctionStatement();
-			break;
-		case TK_CLASS:
-			ClassStatement();
-			break;
-		case TK_ENUM:
-			EnumStatement();
-			break;
-		case _SC('{'): {
-			BEGIN_SCOPE();
-			Lex();
-			Statements();
-			Expect(_SC('}'));
-			if (closeframe) {
-				END_SCOPE();
-			}
-			else {
-				END_SCOPE_NO_CLOSE();
-			}
-		}
-		break;
-		case TK_TRY:
-			TryCatchStatement();
-			break;
-		case TK_THROW:
-			Lex();
-			CommaExpr();
-			_fs->AddInstruction(_OP_THROW, _fs->PopTarget());
-			break;
-		case TK_CONST:
-		{
-			Lex();
-			SQObject id = Expect(TK_IDENTIFIER);
-			Expect('=');
-			SQObject val = ExpectScalar();
-			OptionalSemicolon();
-			SQTable *enums = _table(_ss(_vm)->_consts);
-			SQObjectPtr strongid = id;
-			enums->NewSlot(strongid, SQObjectPtr(val));
-			strongid.Null();
-		}
-		break;
-		default:
-			CommaExpr();
-			_fs->DiscardTarget();
-			//_fs->PopTarget();
-			break;
+			default:
+				CommaExpr();
+				_fs->DiscardTarget();
+				//_fs->PopTarget();
+				break;
 		}
 		_fs->SnoozeOpt();
 	}
-	void EmitDerefOp(SQOpcode op)
-	{
+
+	void EmitDerefOp(SQOpcode op) {
 		SQInteger val = _fs->PopTarget();
 		SQInteger key = _fs->PopTarget();
 		SQInteger src = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), src, key, val);
 	}
-	void Emit2ArgsOP(SQOpcode op, SQInteger p3 = 0)
-	{
+
+	void Emit2ArgsOP(SQOpcode op, SQInteger p3 = 0) {
 		SQInteger p2 = _fs->PopTarget(); //src in OP_GET
 		SQInteger p1 = _fs->PopTarget(); //key in OP_GET
 		_fs->AddInstruction(op, _fs->PushTarget(), p1, p2, p3);
 	}
-	void EmitCompoundArith(SQInteger tok, SQInteger etype, SQInteger pos)
-	{
+
+	void EmitCompoundArith(SQInteger tok, SQInteger etype, SQInteger pos) {
 		/* Generate code depending on the expression type */
 		switch (etype) {
-		case LOCAL: {
-			SQInteger p2 = _fs->PopTarget(); //src in OP_GET
-			SQInteger p1 = _fs->PopTarget(); //key in OP_GET
-			_fs->PushTarget(p1);
-			//EmitCompArithLocal(tok, p1, p1, p2);
-			_fs->AddInstruction(ChooseArithOpByToken(tok), p1, p2, p1, 0);
-			_fs->SnoozeOpt();
-		}
-		break;
-		case OBJECT:
-		case BASE:
-		{
-			SQInteger val = _fs->PopTarget();
-			SQInteger key = _fs->PopTarget();
-			SQInteger src = _fs->PopTarget();
-			/* _OP_COMPARITH mixes dest obj and source val in the arg1 */
-			_fs->AddInstruction(_OP_COMPARITH, _fs->PushTarget(), (src << 16) | val, key, ChooseCompArithCharByToken(tok));
-		}
-		break;
-		case OUTER:
-		{
-			SQInteger val = _fs->TopTarget();
-			SQInteger tmp = _fs->PushTarget();
-			_fs->AddInstruction(_OP_GETOUTER,   tmp, pos);
-			_fs->AddInstruction(ChooseArithOpByToken(tok), tmp, val, tmp, 0);
-			_fs->PopTarget();
-			_fs->PopTarget();
-			_fs->AddInstruction(_OP_SETOUTER, _fs->PushTarget(), pos, tmp);
-		}
-		break;
+			case LOCAL: {
+				SQInteger p2 = _fs->PopTarget(); //src in OP_GET
+				SQInteger p1 = _fs->PopTarget(); //key in OP_GET
+				_fs->PushTarget(p1);
+				//EmitCompArithLocal(tok, p1, p1, p2);
+				_fs->AddInstruction(ChooseArithOpByToken(tok), p1, p2, p1, 0);
+				_fs->SnoozeOpt();
+			}
+			break;
+			case OBJECT:
+			case BASE: {
+				SQInteger val = _fs->PopTarget();
+				SQInteger key = _fs->PopTarget();
+				SQInteger src = _fs->PopTarget();
+				/* _OP_COMPARITH mixes dest obj and source val in the arg1 */
+				_fs->AddInstruction(_OP_COMPARITH, _fs->PushTarget(), (src << 16) | val, key, ChooseCompArithCharByToken(tok));
+			}
+			break;
+			case OUTER: {
+				SQInteger val = _fs->TopTarget();
+				SQInteger tmp = _fs->PushTarget();
+				_fs->AddInstruction(_OP_GETOUTER,   tmp, pos);
+				_fs->AddInstruction(ChooseArithOpByToken(tok), tmp, val, tmp, 0);
+				_fs->PopTarget();
+				_fs->PopTarget();
+				_fs->AddInstruction(_OP_SETOUTER, _fs->PushTarget(), pos, tmp);
+			}
+			break;
 		}
 	}
-	void CommaExpr()
-	{
+
+	void CommaExpr() {
 		for (Expression(); _token == ','; _fs->PopTarget(), Lex(), CommaExpr());
 	}
-	void Expression()
-	{
+
+	void Expression() {
 		SQExpState es = _es;
 		_es.etype     = EXPR;
 		_es.epos      = -1;
 		_es.donot_get = false;
 		LogicalOrExp();
-		switch (_token)  {
-		case _SC('='):
-		case TK_NEWSLOT:
-		case TK_MINUSEQ:
-		case TK_PLUSEQ:
-		case TK_MULEQ:
-		case TK_DIVEQ:
-		case TK_MODEQ: {
-			SQInteger op = _token;
-			SQInteger ds = _es.etype;
-			SQInteger pos = _es.epos;
-			if (ds == EXPR) Error(_SC("can't assign expression"));
-			else if (ds == BASE) Error(_SC("'base' cannot be modified"));
-			Lex(); Expression();
 
-			switch (op) {
+		switch (_token) {
+			case _SC('='):
 			case TK_NEWSLOT:
-				if (ds == OBJECT || ds == BASE)
-					EmitDerefOp(_OP_NEWSLOT);
-				else //if _derefstate != DEREF_NO_DEREF && DEREF_FIELD so is the index of a local
-					Error(_SC("can't 'create' a local slot"));
-				break;
-			case _SC('='): //ASSIGN
-				switch (ds) {
-				case LOCAL:
-				{
-					SQInteger src = _fs->PopTarget();
-					SQInteger dst = _fs->TopTarget();
-					_fs->AddInstruction(_OP_MOVE, dst, src);
-				}
-				break;
-				case OBJECT:
-				case BASE:
-					EmitDerefOp(_OP_SET);
-					break;
-				case OUTER:
-				{
-					SQInteger src = _fs->PopTarget();
-					SQInteger dst = _fs->PushTarget();
-					_fs->AddInstruction(_OP_SETOUTER, dst, pos, src);
-				}
-				}
-				break;
 			case TK_MINUSEQ:
 			case TK_PLUSEQ:
 			case TK_MULEQ:
 			case TK_DIVEQ:
-			case TK_MODEQ:
-				EmitCompoundArith(op, ds, pos);
-				break;
+			case TK_MODEQ: {
+				SQInteger op = _token;
+				SQInteger ds = _es.etype;
+				SQInteger pos = _es.epos;
+
+				if (ds == EXPR)
+					Error(_SC("can't assign expression"));
+				else if (ds == BASE)
+					Error(_SC("'base' cannot be modified"));
+
+				Lex();
+				Expression();
+
+				switch (op) {
+					case TK_NEWSLOT:
+						if (ds == OBJECT || ds == BASE)
+							EmitDerefOp(_OP_NEWSLOT);
+						else //if _derefstate != DEREF_NO_DEREF && DEREF_FIELD so is the index of a local
+							Error(_SC("can't 'create' a local slot"));
+						break;
+					case _SC('='): //ASSIGN
+						switch (ds) {
+							case LOCAL: {
+								SQInteger src = _fs->PopTarget();
+								SQInteger dst = _fs->TopTarget();
+								_fs->AddInstruction(_OP_MOVE, dst, src);
+							}
+							break;
+							case OBJECT:
+							case BASE:
+								EmitDerefOp(_OP_SET);
+								break;
+							case OUTER: {
+								SQInteger src = _fs->PopTarget();
+								SQInteger dst = _fs->PushTarget();
+								_fs->AddInstruction(_OP_SETOUTER, dst, pos, src);
+							}
+						}
+						break;
+					case TK_MINUSEQ:
+					case TK_PLUSEQ:
+					case TK_MULEQ:
+					case TK_DIVEQ:
+					case TK_MODEQ:
+						EmitCompoundArith(op, ds, pos);
+						break;
+				}
 			}
-		}
-		break;
-		case _SC('?'): {
-			Lex();
-			_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
-			SQInteger jzpos = _fs->GetCurrentPos();
-			SQInteger trg = _fs->PushTarget();
-			Expression();
-			SQInteger first_exp = _fs->PopTarget();
-			if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-			SQInteger endfirstexp = _fs->GetCurrentPos();
-			_fs->AddInstruction(_OP_JMP, 0, 0);
-			Expect(_SC(':'));
-			SQInteger jmppos = _fs->GetCurrentPos();
-			Expression();
-			SQInteger second_exp = _fs->PopTarget();
-			if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
-			_fs->SetIntructionParam(jmppos, 1, _fs->GetCurrentPos() - jmppos);
-			_fs->SetIntructionParam(jzpos, 1, endfirstexp - jzpos + 1);
-			_fs->SnoozeOpt();
-		}
-		break;
+			break;
+			case _SC('?'): {
+				Lex();
+				_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
+				SQInteger jzpos = _fs->GetCurrentPos();
+				SQInteger trg = _fs->PushTarget();
+				Expression();
+				SQInteger first_exp = _fs->PopTarget();
+				if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
+				SQInteger endfirstexp = _fs->GetCurrentPos();
+				_fs->AddInstruction(_OP_JMP, 0, 0);
+				Expect(_SC(':'));
+				SQInteger jmppos = _fs->GetCurrentPos();
+				Expression();
+				SQInteger second_exp = _fs->PopTarget();
+				if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
+				_fs->SetIntructionParam(jmppos, 1, _fs->GetCurrentPos() - jmppos);
+				_fs->SetIntructionParam(jzpos, 1, endfirstexp - jzpos + 1);
+				_fs->SnoozeOpt();
+			}
+			break;
 		}
 		_es = es;
 	}
-	template<typename T> void INVOKE_EXP(T f)
-	{
+
+	template<typename T>
+	void INVOKE_EXP(T f) {
 		SQExpState es = _es;
 		_es.etype     = EXPR;
 		_es.epos      = -1;
@@ -464,463 +492,593 @@ public:
 		(this->*f)();
 		_es = es;
 	}
-	template<typename T> void BIN_EXP(SQOpcode op, T f, SQInteger op3 = 0)
-	{
+
+	template<typename T>
+	void BIN_EXP(SQOpcode op, T f, SQInteger op3 = 0) {
 		Lex();
 		INVOKE_EXP(f);
-		SQInteger op1 = _fs->PopTarget(); SQInteger op2 = _fs->PopTarget();
+		SQInteger op1 = _fs->PopTarget();
+		SQInteger op2 = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), op1, op2, op3);
 	}
-	void LogicalOrExp()
-	{
+
+	void LogicalOrExp() {
 		LogicalAndExp();
-		for (;;) if (_token == TK_OR) {
+		for (;;)
+			if (_token == TK_OR) {
 				SQInteger first_exp = _fs->PopTarget();
 				SQInteger trg = _fs->PushTarget();
 				_fs->AddInstruction(_OP_OR, trg, 0, first_exp, 0);
 				SQInteger jpos = _fs->GetCurrentPos();
 				if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-				Lex(); INVOKE_EXP(&LVCompiler::LogicalOrExp);
+				Lex();
+				INVOKE_EXP(&LVCompiler::LogicalOrExp);
 				_fs->SnoozeOpt();
 				SQInteger second_exp = _fs->PopTarget();
 				if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
 				_fs->SnoozeOpt();
 				_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
 				break;
-			} else return;
-	}
-	void LogicalAndExp()
-	{
-		BitwiseOrExp();
-		for (;;) switch (_token) {
-			case TK_AND: {
-				SQInteger first_exp = _fs->PopTarget();
-				SQInteger trg = _fs->PushTarget();
-				_fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
-				SQInteger jpos = _fs->GetCurrentPos();
-				if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-				Lex(); INVOKE_EXP(&LVCompiler::LogicalAndExp);
-				_fs->SnoozeOpt();
-				SQInteger second_exp = _fs->PopTarget();
-				if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
-				_fs->SnoozeOpt();
-				_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
-				break;
-			}
-
-			default:
+			} else {
 				return;
 			}
 	}
-	void BitwiseOrExp()
-	{
+
+	void LogicalAndExp() {
+		BitwiseOrExp();
+		for (;;)
+			switch (_token) {
+				case TK_AND: {
+					SQInteger first_exp = _fs->PopTarget();
+					SQInteger trg = _fs->PushTarget();
+					_fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
+					SQInteger jpos = _fs->GetCurrentPos();
+					if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
+					Lex();
+					INVOKE_EXP(&LVCompiler::LogicalAndExp);
+					_fs->SnoozeOpt();
+					SQInteger second_exp = _fs->PopTarget();
+					if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
+					_fs->SnoozeOpt();
+					_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
+					break;
+				}
+				default:
+					return;
+			}
+	}
+
+	void BitwiseOrExp() {
 		BitwiseXorExp();
-		for (;;) if (_token == _SC('|'))
-			{	BIN_EXP(_OP_BITW, &LVCompiler::BitwiseXorExp, BW_OR);
-			} else return;
+		for (;;)
+			if (_token == _SC('|')) {
+				BIN_EXP(_OP_BITW, &LVCompiler::BitwiseXorExp, BW_OR);
+			} else {
+				return;
+			}
 	}
-	void BitwiseXorExp()
-	{
+	void BitwiseXorExp() {
 		BitwiseAndExp();
-		for (;;) if (_token == _SC('^'))
-			{	BIN_EXP(_OP_BITW, &LVCompiler::BitwiseAndExp, BW_XOR);
-			} else return;
+		for (;;)
+			if (_token == _SC('^')) {
+				BIN_EXP(_OP_BITW, &LVCompiler::BitwiseAndExp, BW_XOR);
+			} else {
+				return;
+			}
 	}
-	void BitwiseAndExp()
-	{
+	void BitwiseAndExp() {
 		EqExp();
-		for (;;) if (_token == _SC('&'))
-			{	BIN_EXP(_OP_BITW, &LVCompiler::EqExp, BW_AND);
-			} else return;
+		for (;;)
+			if (_token == _SC('&')) {
+				BIN_EXP(_OP_BITW, &LVCompiler::EqExp, BW_AND);
+			} else {
+				return;
+			}
 	}
-	void EqExp()
-	{
+	void EqExp() {
 		CompExp();
-		for (;;) switch (_token) {
-			case TK_EQ: BIN_EXP(_OP_EQ, &LVCompiler::CompExp); break;
-			case TK_NE: BIN_EXP(_OP_NE, &LVCompiler::CompExp); break;
-			case TK_3WAYSCMP: BIN_EXP(_OP_CMP, &LVCompiler::CompExp, CMP_3W); break;
-			default: return;
+		for (;;)
+			switch (_token) {
+				case TK_EQ:
+					BIN_EXP(_OP_EQ, &LVCompiler::CompExp);
+					break;
+				case TK_NE:
+					BIN_EXP(_OP_NE, &LVCompiler::CompExp);
+					break;
+				case TK_3WAYSCMP:
+					BIN_EXP(_OP_CMP, &LVCompiler::CompExp, CMP_3W);
+					break;
+				default:
+					return;
 			}
 	}
-	void CompExp()
-	{
+	void CompExp() {
 		ShiftExp();
-		for (;;) switch (_token) {
-			case _SC('>'): BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_G); break;
-			case _SC('<'): BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_L); break;
-			case TK_GE: BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_GE); break;
-			case TK_LE: BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_LE); break;
-			case TK_IN: BIN_EXP(_OP_EXISTS, &LVCompiler::ShiftExp); break;
-			case TK_INSTANCEOF: BIN_EXP(_OP_INSTANCEOF, &LVCompiler::ShiftExp); break;
-			default: return;
+		for (;;)
+			switch (_token) {
+				case _SC('>'):
+					BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_G);
+					break;
+				case _SC('<'):
+					BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_L);
+					break;
+				case TK_GE:
+					BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_GE);
+					break;
+				case TK_LE:
+					BIN_EXP(_OP_CMP, &LVCompiler::ShiftExp, CMP_LE);
+					break;
+				case TK_IN:
+					BIN_EXP(_OP_EXISTS, &LVCompiler::ShiftExp);
+					break;
+				case TK_INSTANCEOF:
+					BIN_EXP(_OP_INSTANCEOF, &LVCompiler::ShiftExp);
+					break;
+				default:
+					return;
 			}
 	}
-	void ShiftExp()
-	{
+	void ShiftExp() {
 		PlusExp();
-		for (;;) switch (_token) {
-			case TK_USHIFTR: BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_USHIFTR); break;
-			case TK_SHIFTL: BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_SHIFTL); break;
-			case TK_SHIFTR: BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_SHIFTR); break;
-			default: return;
+		for (;;)
+			switch (_token) {
+				case TK_USHIFTR:
+					BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_USHIFTR);
+					break;
+				case TK_SHIFTL:
+					BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_SHIFTL);
+					break;
+				case TK_SHIFTR:
+					BIN_EXP(_OP_BITW, &LVCompiler::PlusExp, BW_SHIFTR);
+					break;
+				default:
+					return;
 			}
 	}
-	SQOpcode ChooseArithOpByToken(SQInteger tok)
-	{
+	SQOpcode ChooseArithOpByToken(SQInteger tok) {
 		switch (tok) {
-		case TK_PLUSEQ: case '+': return _OP_ADD;
-		case TK_MINUSEQ: case '-': return _OP_SUB;
-		case TK_MULEQ: case '*': return _OP_MUL;
-		case TK_DIVEQ: case '/': return _OP_DIV;
-		case TK_MODEQ: case '%': return _OP_MOD;
-		default: assert(0);
+			case TK_PLUSEQ:
+			case '+':
+				return _OP_ADD;
+			case TK_MINUSEQ:
+			case '-':
+				return _OP_SUB;
+			case TK_MULEQ:
+			case '*':
+				return _OP_MUL;
+			case TK_DIVEQ:
+			case '/':
+				return _OP_DIV;
+			case TK_MODEQ:
+			case '%':
+				return _OP_MOD;
+			default:
+				assert(0);
 		}
 		return _OP_ADD;
 	}
-	SQInteger ChooseCompArithCharByToken(SQInteger tok)
-	{
+	SQInteger ChooseCompArithCharByToken(SQInteger tok) {
 		SQInteger oper;
 		switch (tok) {
-		case TK_MINUSEQ: oper = '-'; break;
-		case TK_PLUSEQ: oper = '+'; break;
-		case TK_MULEQ: oper = '*'; break;
-		case TK_DIVEQ: oper = '/'; break;
-		case TK_MODEQ: oper = '%'; break;
-		default: oper = 0; //shut up compiler
-			assert(0); break;
+			case TK_MINUSEQ:
+				oper = '-';
+				break;
+			case TK_PLUSEQ:
+				oper = '+';
+				break;
+			case TK_MULEQ:
+				oper = '*';
+				break;
+			case TK_DIVEQ:
+				oper = '/';
+				break;
+			case TK_MODEQ:
+				oper = '%';
+				break;
+			default:
+				oper = 0; //shut up compiler
+				assert(0);
+				break;
 		};
 		return oper;
 	}
-	void PlusExp()
-	{
+	void PlusExp() {
 		MultExp();
-		for (;;) switch (_token) {
-			case _SC('+'): case _SC('-'):
-				BIN_EXP(ChooseArithOpByToken(_token), &LVCompiler::MultExp); break;
-			default: return;
+		for (;;)
+			switch (_token) {
+				case _SC('+'):
+				case _SC('-'):
+					BIN_EXP(ChooseArithOpByToken(_token), &LVCompiler::MultExp);
+					break;
+				default:
+					return;
 			}
 	}
 
-	void MultExp()
-	{
+	void MultExp() {
 		PrefixedExpr();
-		for (;;) switch (_token) {
-			case _SC('*'): case _SC('/'): case _SC('%'):
-				BIN_EXP(ChooseArithOpByToken(_token), &LVCompiler::PrefixedExpr); break;
-			default: return;
+		for (;;)
+			switch (_token) {
+				case _SC('*'):
+				case _SC('/'):
+				case _SC('%'):
+					BIN_EXP(ChooseArithOpByToken(_token), &LVCompiler::PrefixedExpr);
+					break;
+				default:
+					return;
 			}
 	}
+
 	//if 'pos' != -1 the previous variable is a local variable
-	void PrefixedExpr()
-	{
+	void PrefixedExpr() {
 		SQInteger pos = Factor();
 		for (;;) {
 			switch (_token) {
-			case _SC('.'):
-				pos = -1;
-				Lex();
+				case _SC('.'):
+					pos = -1;
+					Lex();
 
-				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
-				if (_es.etype == BASE) {
-					Emit2ArgsOP(_OP_GET);
-					pos = _fs->TopTarget();
-					_es.etype = EXPR;
-					_es.epos   = pos;
-				}
-				else {
-					if (NeedGet()) {
+					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
+					if (_es.etype == BASE) {
 						Emit2ArgsOP(_OP_GET);
+						pos = _fs->TopTarget();
+						_es.etype = EXPR;
+						_es.epos   = pos;
+					} else {
+						if (NeedGet()) {
+							Emit2ArgsOP(_OP_GET);
+						}
+						_es.etype = OBJECT;
 					}
-					_es.etype = OBJECT;
-				}
-				break;
-			case _SC('['):
-				if (_lex._prevtoken == _SC('\n')) Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
-				Lex(); Expression(); Expect(_SC(']'));
-				pos = -1;
-				if (_es.etype == BASE) {
-					Emit2ArgsOP(_OP_GET);
-					pos = _fs->TopTarget();
-					_es.etype = EXPR;
-					_es.epos   = pos;
-				}
-				else {
-					if (NeedGet()) {
+					break;
+				case _SC('['):
+					if (_lex._prevtoken == _SC('\n')) Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
+					Lex();
+					Expression();
+					Expect(_SC(']'));
+					pos = -1;
+					if (_es.etype == BASE) {
 						Emit2ArgsOP(_OP_GET);
+						pos = _fs->TopTarget();
+						_es.etype = EXPR;
+						_es.epos   = pos;
+					} else {
+						if (NeedGet()) {
+							Emit2ArgsOP(_OP_GET);
+						}
+						_es.etype = OBJECT;
 					}
-					_es.etype = OBJECT;
-				}
-				break;
-			case TK_MINUSMINUS:
-			case TK_PLUSPLUS:
-			{
-				if (IsEndOfStatement()) return;
-				SQInteger diff = (_token == TK_MINUSMINUS) ? -1 : 1;
-				Lex();
-				switch (_es.etype)
-				{
-				case EXPR: Error(_SC("can't '++' or '--' an expression")); break;
-				case OBJECT:
-				case BASE:
-					if (_es.donot_get == true)  { Error(_SC("can't '++' or '--' an expression")); break; } //mmh dor this make sense?
-					Emit2ArgsOP(_OP_PINC, diff);
 					break;
-				case LOCAL: {
-					SQInteger src = _fs->PopTarget();
-					_fs->AddInstruction(_OP_PINCL, _fs->PushTarget(), src, 0, diff);
+				case TK_MINUSMINUS:
+				case TK_PLUSPLUS: {
+					if (IsEndOfStatement()) return;
+					SQInteger diff = (_token == TK_MINUSMINUS) ? -1 : 1;
+					Lex();
+					switch (_es.etype) {
+						case EXPR:
+							Error(_SC("can't '++' or '--' an expression"));
+							break;
+						case OBJECT:
+						case BASE:
+							if (_es.donot_get == true)  {
+								Error(_SC("can't '++' or '--' an expression"));    //mmh dor this make sense?
+								break;
+							}
+							Emit2ArgsOP(_OP_PINC, diff);
+							break;
+						case LOCAL: {
+							SQInteger src = _fs->PopTarget();
+							_fs->AddInstruction(_OP_PINCL, _fs->PushTarget(), src, 0, diff);
+						}
+						break;
+						case OUTER: {
+							SQInteger tmp1 = _fs->PushTarget();
+							SQInteger tmp2 = _fs->PushTarget();
+							_fs->AddInstruction(_OP_GETOUTER, tmp2, _es.epos);
+							_fs->AddInstruction(_OP_PINCL,    tmp1, tmp2, 0, diff);
+							_fs->AddInstruction(_OP_SETOUTER, tmp2, _es.epos, tmp2);
+							_fs->PopTarget();
+						}
+					}
 				}
+				return;
 				break;
-				case OUTER: {
-					SQInteger tmp1 = _fs->PushTarget();
-					SQInteger tmp2 = _fs->PushTarget();
-					_fs->AddInstruction(_OP_GETOUTER, tmp2, _es.epos);
-					_fs->AddInstruction(_OP_PINCL,    tmp1, tmp2, 0, diff);
-					_fs->AddInstruction(_OP_SETOUTER, tmp2, _es.epos, tmp2);
-					_fs->PopTarget();
-				}
-				}
-			}
-			return;
-			break;
-			case _SC('('):
-				switch (_es.etype) {
-				case OBJECT: {
-					SQInteger key     = _fs->PopTarget();  /* location of the key */
-					SQInteger table   = _fs->PopTarget();  /* location of the object */
-					SQInteger closure = _fs->PushTarget(); /* location for the closure */
-					SQInteger ttarget = _fs->PushTarget(); /* location for 'this' pointer */
-					_fs->AddInstruction(_OP_PREPCALL, closure, key, table, ttarget);
-				}
-				break;
-				case BASE:
-					//Emit2ArgsOP(_OP_GET);
-					_fs->AddInstruction(_OP_MOVE, _fs->PushTarget(), 0);
-					break;
-				case OUTER:
-					_fs->AddInstruction(_OP_GETOUTER, _fs->PushTarget(), _es.epos);
-					_fs->AddInstruction(_OP_MOVE,     _fs->PushTarget(), 0);
+				case _SC('('):
+					switch (_es.etype) {
+						case OBJECT: {
+							SQInteger key     = _fs->PopTarget();  /* location of the key */
+							SQInteger table   = _fs->PopTarget();  /* location of the object */
+							SQInteger closure = _fs->PushTarget(); /* location for the closure */
+							SQInteger ttarget = _fs->PushTarget(); /* location for 'this' pointer */
+							_fs->AddInstruction(_OP_PREPCALL, closure, key, table, ttarget);
+						}
+						break;
+						case BASE:
+							//Emit2ArgsOP(_OP_GET);
+							_fs->AddInstruction(_OP_MOVE, _fs->PushTarget(), 0);
+							break;
+						case OUTER:
+							_fs->AddInstruction(_OP_GETOUTER, _fs->PushTarget(), _es.epos);
+							_fs->AddInstruction(_OP_MOVE,     _fs->PushTarget(), 0);
+							break;
+						default:
+							_fs->AddInstruction(_OP_MOVE, _fs->PushTarget(), 0);
+					}
+					_es.etype = EXPR;
+					Lex();
+					FunctionCallArgs();
 					break;
 				default:
-					_fs->AddInstruction(_OP_MOVE, _fs->PushTarget(), 0);
-				}
-				_es.etype = EXPR;
-				Lex();
-				FunctionCallArgs();
-				break;
-			default: return;
+					return;
 			}
 		}
 	}
-	SQInteger Factor()
-	{
+	SQInteger Factor() {
 		//_es.etype = EXPR;
-		switch (_token)
-		{
-		case TK_STRING_LITERAL:
-			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex._svalue, _lex._longstr.size() - 1)));
-			Lex();
-			break;
-		case TK_BASE:
-			Lex();
-			_fs->AddInstruction(_OP_GETBASE, _fs->PushTarget());
-			_es.etype  = BASE;
-			_es.epos   = _fs->TopTarget();
-			return (_es.epos);
-			break;
-		case TK_IDENTIFIER:
-		case TK_CONSTRUCTOR:
-		case TK_THIS: {
-			SQObject id;
-			SQObject constant;
+		switch (_token) {
+			case TK_STRING_LITERAL:
+				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex._svalue, _lex._longstr.size() - 1)));
+				Lex();
+				break;
+			case TK_BASE:
+				Lex();
+				_fs->AddInstruction(_OP_GETBASE, _fs->PushTarget());
+				_es.etype  = BASE;
+				_es.epos   = _fs->TopTarget();
+				return (_es.epos);
+				break;
+			case TK_IDENTIFIER:
+			case TK_CONSTRUCTOR:
+			case TK_THIS: {
+				SQObject id;
+				SQObject constant;
 
-			switch (_token) {
-			case TK_IDENTIFIER:  id = _fs->CreateString(_lex._svalue);       break;
-			case TK_THIS:        id = _fs->CreateString(_SC("this"), 4);        break;
-			case TK_CONSTRUCTOR: id = _fs->CreateString(_SC("constructor"), 11); break;
-			}
-
-			SQInteger pos = -1;
-			Lex();
-			if ((pos = _fs->GetLocalVariable(id)) != -1) {
-				/* Handle a local variable (includes 'this') */
-				_fs->PushTarget(pos);
-				_es.etype  = LOCAL;
-				_es.epos   = pos;
-			}
-
-			else if ((pos = _fs->GetOuterVariable(id)) != -1) {
-				/* Handle a free var */
-				if (NeedGet()) {
-					_es.epos  = _fs->PushTarget();
-					_fs->AddInstruction(_OP_GETOUTER, _es.epos, pos);
-					/* _es.etype = EXPR; already default value */
+				switch (_token) {
+					case TK_IDENTIFIER:
+						id = _fs->CreateString(_lex._svalue);
+						break;
+					case TK_THIS:
+						id = _fs->CreateString(_SC("this"), 4);
+						break;
+					case TK_CONSTRUCTOR:
+						id = _fs->CreateString(_SC("constructor"), 11);
+						break;
 				}
-				else {
-					_es.etype = OUTER;
-					_es.epos  = pos;
-				}
-			}
 
-			else if (_fs->IsConstant(id, constant)) {
-				/* Handle named constant */
-				SQObjectPtr constval;
-				SQObject    constid;
-				if (type(constant) == OT_TABLE) {
-					Expect('.');
-					constid = Expect(TK_IDENTIFIER);
-					if (!_table(constant)->Get(constid, constval)) {
-						constval.Null();
-						Error(_SC("invalid constant [%s.%s]"), _stringval(id), _stringval(constid));
+				SQInteger pos = -1;
+				Lex();
+				if ((pos = _fs->GetLocalVariable(id)) != -1) {
+					/* Handle a local variable (includes 'this') */
+					_fs->PushTarget(pos);
+					_es.etype  = LOCAL;
+					_es.epos   = pos;
+				} else if ((pos = _fs->GetOuterVariable(id)) != -1) {
+					/* Handle a free var */
+					if (NeedGet()) {
+						_es.epos  = _fs->PushTarget();
+						_fs->AddInstruction(_OP_GETOUTER, _es.epos, pos);
+						/* _es.etype = EXPR; already default value */
+					} else {
+						_es.etype = OUTER;
+						_es.epos  = pos;
 					}
-				}
-				else {
-					constval = constant;
-				}
-				_es.epos = _fs->PushTarget();
+				} else if (_fs->IsConstant(id, constant)) {
+					/* Handle named constant */
+					SQObjectPtr constval;
+					SQObject    constid;
+					if (type(constant) == OT_TABLE) {
+						Expect('.');
+						constid = Expect(TK_IDENTIFIER);
+						if (!_table(constant)->Get(constid, constval)) {
+							constval.Null();
+							Error(_SC("invalid constant [%s.%s]"), _stringval(id), _stringval(constid));
+						}
+					} else {
+						constval = constant;
+					}
+					_es.epos = _fs->PushTarget();
 
-				/* generate direct or literal function depending on size */
-				SQObjectType ctype = type(constval);
-				switch (ctype) {
-				case OT_INTEGER: EmitLoadConstInt(_integer(constval), _es.epos); break;
-				case OT_FLOAT: EmitLoadConstFloat(_float(constval), _es.epos); break;
-				case OT_BOOL: _fs->AddInstruction(_OP_LOADBOOL, _es.epos, _integer(constval)); break;
-				default: _fs->AddInstruction(_OP_LOAD, _es.epos, _fs->GetConstant(constval)); break;
+					/* generate direct or literal function depending on size */
+					SQObjectType ctype = type(constval);
+					switch (ctype) {
+						case OT_INTEGER:
+							EmitLoadConstInt(_integer(constval), _es.epos);
+							break;
+						case OT_FLOAT:
+							EmitLoadConstFloat(_float(constval), _es.epos);
+							break;
+						case OT_BOOL:
+							_fs->AddInstruction(_OP_LOADBOOL, _es.epos, _integer(constval));
+							break;
+						default:
+							_fs->AddInstruction(_OP_LOAD, _es.epos, _fs->GetConstant(constval));
+							break;
+					}
+					_es.etype = EXPR;
+				} else {
+					/* Handle a non-local variable, aka a field. Push the 'this' pointer on
+					* the virtual stack (always found in offset 0, so no instruction needs to
+					* be generated), and push the key next. Generate an _OP_LOAD instruction
+					* for the latter. If we are not using the variable as a dref expr, generate
+					* the _OP_GET instruction.
+					*/
+					_fs->PushTarget(0);
+					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
+					if (NeedGet()) {
+						Emit2ArgsOP(_OP_GET);
+					}
+					_es.etype = OBJECT;
 				}
-				_es.etype = EXPR;
+				return _es.epos;
 			}
-			else {
-				/* Handle a non-local variable, aka a field. Push the 'this' pointer on
-				* the virtual stack (always found in offset 0, so no instruction needs to
-				* be generated), and push the key next. Generate an _OP_LOAD instruction
-				* for the latter. If we are not using the variable as a dref expr, generate
-				* the _OP_GET instruction.
-				*/
-				_fs->PushTarget(0);
-				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
-				if (NeedGet()) {
-					Emit2ArgsOP(_OP_GET);
-				}
+			break;
+			case TK_DOUBLE_COLON:  // "::"
+				_fs->AddInstruction(_OP_LOADROOT, _fs->PushTarget());
 				_es.etype = OBJECT;
-			}
-			return _es.epos;
-		}
-		break;
-		case TK_DOUBLE_COLON:  // "::"
-			_fs->AddInstruction(_OP_LOADROOT, _fs->PushTarget());
-			_es.etype = OBJECT;
-			_token = _SC('.'); /* hack: drop into PrefixExpr, case '.'*/
-			_es.epos = -1;
-			return _es.epos;
-			break;
-		case TK_NULL:
-			_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
-			Lex();
-			break;
-		case TK_INTEGER: EmitLoadConstInt(_lex._nvalue, -1); Lex();  break;
-		case TK_FLOAT: EmitLoadConstFloat(_lex._fvalue, -1); Lex(); break;
-		case TK_TRUE: case TK_FALSE:
-			_fs->AddInstruction(_OP_LOADBOOL, _fs->PushTarget(), _token == TK_TRUE ? 1 : 0);
-			Lex();
-			break;
-		case _SC('['): {
-			_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, 0, NOT_ARRAY);
-			SQInteger apos = _fs->GetCurrentPos(), key = 0;
-			Lex();
-			while (_token != _SC(']')) {
-				Expression();
-				if (_token == _SC(',')) Lex();
-				SQInteger val = _fs->PopTarget();
-				SQInteger array = _fs->TopTarget();
-				_fs->AddInstruction(_OP_APPENDARRAY, array, val, AAT_STACK);
-				key++;
-			}
-			_fs->SetIntructionParam(apos, 1, key);
-			Lex();
-		}
-		break;
-		case _SC('{'):
-			_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, NOT_TABLE);
-			Lex(); ParseTableOrClass(_SC(','), _SC('}'));
-			break;
-		case TK_FUNCTION: FunctionExp(_token); break;
-		case _SC('@'): FunctionExp(_token, true); break;
-		case TK_CLASS: Lex(); ClassExp(); break;
-		case _SC('-'):
-			Lex();
-			switch (_token) {
-			case TK_INTEGER: EmitLoadConstInt(-_lex._nvalue, -1); Lex(); break;
-			case TK_FLOAT: EmitLoadConstFloat(-_lex._fvalue, -1); Lex(); break;
-			default: UnaryOP(_OP_NEG);
+				_token = _SC('.'); /* hack: drop into PrefixExpr, case '.'*/
+				_es.epos = -1;
+				return _es.epos;
+				break;
+			case TK_NULL:
+				_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
+				Lex();
+				break;
+			case TK_INTEGER:
+				EmitLoadConstInt(_lex._nvalue, -1);
+				Lex();
+				break;
+			case TK_FLOAT:
+				EmitLoadConstFloat(_lex._fvalue, -1);
+				Lex();
+				break;
+			case TK_TRUE:
+			case TK_FALSE:
+				_fs->AddInstruction(_OP_LOADBOOL, _fs->PushTarget(), _token == TK_TRUE ? 1 : 0);
+				Lex();
+				break;
+			case _SC('['): {
+				_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, 0, NOT_ARRAY);
+				SQInteger apos = _fs->GetCurrentPos(), key = 0;
+				Lex();
+				while (_token != _SC(']')) {
+					Expression();
+					if (_token == _SC(',')) Lex();
+					SQInteger val = _fs->PopTarget();
+					SQInteger array = _fs->TopTarget();
+					_fs->AddInstruction(_OP_APPENDARRAY, array, val, AAT_STACK);
+					key++;
+				}
+				_fs->SetIntructionParam(apos, 1, key);
+				Lex();
 			}
 			break;
-		case _SC('!'): Lex(); UnaryOP(_OP_NOT); break;
-		case _SC('~'):
-			Lex();
-			if (_token == TK_INTEGER)  { EmitLoadConstInt(~_lex._nvalue, -1); Lex(); break; }
-			UnaryOP(_OP_BWNOT);
-			break;
-		case TK_TYPEOF : Lex() ; UnaryOP(_OP_TYPEOF); break;
-		case TK_RESUME : Lex(); UnaryOP(_OP_RESUME); break;
-		case TK_CLONE : Lex(); UnaryOP(_OP_CLONE); break;
-		case TK_MINUSMINUS :
-		case TK_PLUSPLUS : PrefixIncDec(_token); break;
-		case TK_DELETE : DeleteExpr(); break;
-		case _SC('('): Lex(); CommaExpr(); Expect(_SC(')'));
-			break;
-		case TK___LINE__: EmitLoadConstInt(_lex._currentline, -1); Lex(); break;
-		case TK___FILE__: _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_sourcename)); Lex(); break;
-		default: Error(_SC("expression expected"));
+			case _SC('{'):
+				_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, NOT_TABLE);
+				Lex();
+				ParseTableOrClass(_SC(','), _SC('}'));
+				break;
+			case TK_FUNCTION:
+				FunctionExp(_token);
+				break;
+			case _SC('@'):
+				FunctionExp(_token, true);
+				break;
+			case TK_CLASS:
+				Lex();
+				ClassExp();
+				break;
+			case _SC('-'):
+				Lex();
+				switch (_token) {
+					case TK_INTEGER:
+						EmitLoadConstInt(-_lex._nvalue, -1);
+						Lex();
+						break;
+					case TK_FLOAT:
+						EmitLoadConstFloat(-_lex._fvalue, -1);
+						Lex();
+						break;
+					default:
+						UnaryOP(_OP_NEG);
+				}
+				break;
+			case _SC('!'):
+				Lex();
+				UnaryOP(_OP_NOT);
+				break;
+			case _SC('~'):
+				Lex();
+				if (_token == TK_INTEGER)  {
+					EmitLoadConstInt(~_lex._nvalue, -1);
+					Lex();
+					break;
+				}
+				UnaryOP(_OP_BWNOT);
+				break;
+			case TK_TYPEOF :
+				Lex() ;
+				UnaryOP(_OP_TYPEOF);
+				break;
+			case TK_RESUME :
+				Lex();
+				UnaryOP(_OP_RESUME);
+				break;
+			case TK_CLONE :
+				Lex();
+				UnaryOP(_OP_CLONE);
+				break;
+			case TK_MINUSMINUS :
+			case TK_PLUSPLUS :
+				PrefixIncDec(_token);
+				break;
+			case TK_DELETE :
+				DeleteExpr();
+				break;
+			case _SC('('):
+				Lex();
+				CommaExpr();
+				Expect(_SC(')'));
+				break;
+			case TK___LINE__:
+				EmitLoadConstInt(_lex._currentline, -1);
+				Lex();
+				break;
+			case TK___FILE__:
+				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_sourcename));
+				Lex();
+				break;
+			default:
+				Error(_SC("expression expected"));
 		}
 		_es.etype = EXPR;
 		return -1;
 	}
-	void EmitLoadConstInt(SQInteger value, SQInteger target)
-	{
+	void EmitLoadConstInt(SQInteger value, SQInteger target) {
 		if (target < 0) {
 			target = _fs->PushTarget();
 		}
 		if (value <= INT_MAX && value > INT_MIN) { //does it fit in 32 bits?
 			_fs->AddInstruction(_OP_LOADINT, target, value);
-		}
-		else {
+		} else {
 			_fs->AddInstruction(_OP_LOAD, target, _fs->GetNumericConstant(value));
 		}
 	}
-	void EmitLoadConstFloat(SQFloat value, SQInteger target)
-	{
+	void EmitLoadConstFloat(SQFloat value, SQInteger target) {
 		if (target < 0) {
 			target = _fs->PushTarget();
 		}
 		if (sizeof(SQFloat) == sizeof(SQInt32)) {
 			_fs->AddInstruction(_OP_LOADFLOAT, target, *((SQInt32 *)&value));
-		}
-		else {
+		} else {
 			_fs->AddInstruction(_OP_LOAD, target, _fs->GetNumericConstant(value));
 		}
 	}
-	void UnaryOP(SQOpcode op)
-	{
+	void UnaryOP(SQOpcode op) {
 		PrefixedExpr();
 		SQInteger src = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), src);
 	}
-	bool NeedGet()
-	{
+	bool NeedGet() {
 		switch (_token) {
-		case _SC('='): case _SC('('): case TK_NEWSLOT: case TK_MODEQ: case TK_MULEQ:
-		case TK_DIVEQ: case TK_MINUSEQ: case TK_PLUSEQ:
-			return false;
-		case TK_PLUSPLUS: case TK_MINUSMINUS:
-			if (!IsEndOfStatement()) {
+			case _SC('='):
+			case _SC('('):
+			case TK_NEWSLOT:
+			case TK_MODEQ:
+			case TK_MULEQ:
+			case TK_DIVEQ:
+			case TK_MINUSEQ:
+			case TK_PLUSEQ:
 				return false;
-			}
-			break;
+			case TK_PLUSPLUS:
+			case TK_MINUSMINUS:
+				if (!IsEndOfStatement()) {
+					return false;
+				}
+				break;
 		}
 		return (!_es.donot_get || ( _es.donot_get && (_token == _SC('.') || _token == _SC('['))));
 	}
-	void FunctionCallArgs()
-	{
+	void FunctionCallArgs() {
 		SQInteger nargs = 1;//this
 		while (_token != _SC(')')) {
 			Expression();
@@ -937,8 +1095,7 @@ public:
 		SQInteger closure = _fs->PopTarget();
 		_fs->AddInstruction(_OP_CALL, _fs->PushTarget(), closure, stackbase, nargs);
 	}
-	void ParseTableOrClass(SQInteger separator, SQInteger terminator)
-	{
+	void ParseTableOrClass(SQInteger separator, SQInteger terminator) {
 		SQInteger tpos = _fs->GetCurrentPos(), nkeys = 0;
 		while (_token != terminator) {
 			bool hasattrs = false;
@@ -946,7 +1103,8 @@ public:
 			//check if is an attribute
 			if (separator == ';') {
 				if (_token == TK_ATTR_OPEN) {
-					_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, NOT_TABLE); Lex();
+					_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, NOT_TABLE);
+					Lex();
 					ParseTableOrClass(',', TK_ATTR_CLOSE);
 					hasattrs = true;
 				}
@@ -956,30 +1114,35 @@ public:
 				}
 			}
 			switch (_token) {
-			case TK_FUNCTION:
-			case TK_CONSTRUCTOR: {
-				SQInteger tk = _token;
-				Lex();
-				SQObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) : _fs->CreateString(_SC("constructor"));
-				Expect(_SC('('));
-				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
-				CreateFunction(id);
-				_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
-			}
-			break;
-			case _SC('['):
-				Lex(); CommaExpr(); Expect(_SC(']'));
-				Expect(_SC('=')); Expression();
-				break;
-			case TK_STRING_LITERAL: //JSON
-				if (separator == ',') { //only works for tables
-					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_STRING_LITERAL)));
-					Expect(_SC(':')); Expression();
-					break;
+				case TK_FUNCTION:
+				case TK_CONSTRUCTOR: {
+					SQInteger tk = _token;
+					Lex();
+					SQObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) : _fs->CreateString(_SC("constructor"));
+					Expect(_SC('('));
+					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
+					CreateFunction(id);
+					_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 				}
-			default :
-				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
-				Expect(_SC('=')); Expression();
+				break;
+				case _SC('['):
+					Lex();
+					CommaExpr();
+					Expect(_SC(']'));
+					Expect(_SC('='));
+					Expression();
+					break;
+				case TK_STRING_LITERAL: //JSON
+					if (separator == ',') { //only works for tables
+						_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_STRING_LITERAL)));
+						Expect(_SC(':'));
+						Expression();
+						break;
+					}
+				default :
+					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
+					Expect(_SC('='));
+					Expression();
 			}
 			if (_token == separator) Lex(); //optional comma/semicolon
 			nkeys++;
@@ -992,77 +1155,129 @@ public:
 			SQInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
 			if (separator == _SC(',')) { //hack recognizes a table from the separator
 				_fs->AddInstruction(_OP_NEWSLOT, 0xFF, table, key, val);
-			}
-			else {
+			} else {
 				_fs->AddInstruction(_OP_NEWSLOTA, flags, table, key, val); //this for classes only as it invokes _newmember
 			}
 		}
 		if (separator == _SC(',')) //hack recognizes a table from the separator
 			_fs->SetIntructionParam(tpos, 1, nkeys);
+
 		Lex();
 	}
-	void LocalDeclStatement()
-	{
+
+	void LocalDeclStatement() {
 		SQObject varname;
+
 		Lex();
+
 		if ( _token == TK_FUNCTION) {
 			Lex();
+
 			varname = Expect(TK_IDENTIFIER);
 			Expect(_SC('('));
 			CreateFunction(varname, false);
+
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 			_fs->PopTarget();
 			_fs->PushLocalVariable(varname);
+
 			return;
 		}
 
 		do {
 			varname = Expect(TK_IDENTIFIER);
 			if (_token == _SC('=')) {
-				Lex(); Expression();
+				Lex();
+				Expression();
 				SQInteger src = _fs->PopTarget();
 				SQInteger dest = _fs->PushTarget();
 				if (dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
-			}
-			else {
+			} else {
 				_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
 			}
+
 			_fs->PopTarget();
 			_fs->PushLocalVariable(varname);
-			if (_token == _SC(',')) Lex(); else break;
+
+			if (_token == _SC(','))
+				Lex();
+			else
+				break;
 		} while (1);
 	}
-	void IfBlock()
-	{
-		if (_token == _SC('{'))
-		{
+
+	void IncludeStatement() {
+		SQObject varname;
+
+		Lex();
+
+		varname = Expect(TK_STRING_LITERAL);
+
+		// type(_sourcename) == OT_STRING ? _stringval(_sourcename)
+
+		puts(_stringval(varname));
+		// if ( _token == TK_STRING_LITERAL) {
+		// Lex();
+
+		// Expect(_SC('('));
+		// CreateFunction(varname, false);
+
+		// _fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
+		// _fs->PopTarget();
+		// _fs->PushLocalVariable(varname);
+
+		// return;
+		// }
+
+		/*do {
+			varname = Expect(TK_IDENTIFIER);
+			if (_token == _SC('=')) {
+				Lex();
+				Expression();
+				SQInteger src = _fs->PopTarget();
+				SQInteger dest = _fs->PushTarget();
+				if (dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
+			} else {
+				_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
+			}
+
+			_fs->PopTarget();
+			_fs->PushLocalVariable(varname);
+
+			if (_token == _SC(','))
+				Lex();
+			else
+				break;
+		} while (1);*/
+	}
+
+	void IfBlock() {
+		if (_token == _SC('{')) {
 			BEGIN_SCOPE();
 			Lex();
 			Statements();
 			Expect(_SC('}'));
 			if (true) {
 				END_SCOPE();
-			}
-			else {
+			} else {
 				END_SCOPE_NO_CLOSE();
 			}
-		}
-		else {
+		} else {
 			//BEGIN_SCOPE();
 			Statement();
 			if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
 			//END_SCOPE();
 		}
 	}
-	void IfStatement()
-	{
+	void IfStatement() {
 		SQInteger jmppos;
 		bool haselse = false;
-		Lex(); Expect(_SC('(')); CommaExpr(); Expect(_SC(')'));
+		Lex();
+		Expect(_SC('('));
+		CommaExpr();
+		Expect(_SC(')'));
 		_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
 		SQInteger jnepos = _fs->GetCurrentPos();
-
-
 
 		IfBlock();
 		//
@@ -1092,11 +1307,13 @@ public:
 		}
 		_fs->SetIntructionParam(jnepos, 1, endifblock - jnepos + (haselse ? 1 : 0));
 	}
-	void WhileStatement()
-	{
+	void WhileStatement() {
 		SQInteger jzpos, jmppos;
 		jmppos = _fs->GetCurrentPos();
-		Lex(); Expect(_SC('(')); CommaExpr(); Expect(_SC(')'));
+		Lex();
+		Expect(_SC('('));
+		CommaExpr();
+		Expect(_SC(')'));
 
 		BEGIN_BREAKBLE_BLOCK();
 		_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
@@ -1111,8 +1328,7 @@ public:
 
 		END_BREAKBLE_BLOCK(jmppos);
 	}
-	void DoWhileStatement()
-	{
+	void DoWhileStatement() {
 		Lex();
 		SQInteger jmptrg = _fs->GetCurrentPos();
 		BEGIN_BREAKBLE_BLOCK()
@@ -1121,13 +1337,14 @@ public:
 		END_SCOPE();
 		Expect(TK_WHILE);
 		SQInteger continuetrg = _fs->GetCurrentPos();
-		Expect(_SC('(')); CommaExpr(); Expect(_SC(')'));
+		Expect(_SC('('));
+		CommaExpr();
+		Expect(_SC(')'));
 		_fs->AddInstruction(_OP_JZ, _fs->PopTarget(), 1);
 		_fs->AddInstruction(_OP_JMP, 0, jmptrg - _fs->GetCurrentPos() - 1);
 		END_BREAKBLE_BLOCK(continuetrg);
 	}
-	void ForStatement()
-	{
+	void ForStatement() {
 		Lex();
 		BEGIN_SCOPE();
 		Expect(_SC('('));
@@ -1140,7 +1357,11 @@ public:
 		_fs->SnoozeOpt();
 		SQInteger jmppos = _fs->GetCurrentPos();
 		SQInteger jzpos = -1;
-		if (_token != _SC(';')) { CommaExpr(); _fs->AddInstruction(_OP_JZ, _fs->PopTarget()); jzpos = _fs->GetCurrentPos(); }
+		if (_token != _SC(';')) {
+			CommaExpr();
+			_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
+			jzpos = _fs->GetCurrentPos();
+		}
 		Expect(_SC(';'));
 		_fs->SnoozeOpt();
 		SQInteger expstart = _fs->GetCurrentPos() + 1;
@@ -1171,15 +1392,16 @@ public:
 
 		END_BREAKBLE_BLOCK(continuetrg);
 	}
-	void ForEachStatement()
-	{
+	void ForEachStatement() {
 		SQObject idxname, valname;
-		Lex(); Expect(_SC('(')); valname = Expect(TK_IDENTIFIER);
+		Lex();
+		Expect(_SC('('));
+		valname = Expect(TK_IDENTIFIER);
 		if (_token == _SC(',')) {
 			idxname = valname;
-			Lex(); valname = Expect(TK_IDENTIFIER);
-		}
-		else {
+			Lex();
+			valname = Expect(TK_IDENTIFIER);
+		} else {
 			idxname = _fs->CreateString(_SC("@INDEX@"));
 		}
 		Expect(TK_IN);
@@ -1187,7 +1409,8 @@ public:
 		//save the stack size
 		BEGIN_SCOPE();
 		//put the table in the stack(evaluate the table expression)
-		Expression(); Expect(_SC(')'));
+		Expression();
+		Expect(_SC(')'));
 		SQInteger container = _fs->TopTarget();
 		//push the index local var
 		SQInteger indexpos = _fs->PushLocalVariable(idxname);
@@ -1213,9 +1436,11 @@ public:
 		_fs->PopTarget();
 		END_SCOPE();
 	}
-	void SwitchStatement()
-	{
-		Lex(); Expect(_SC('(')); CommaExpr(); Expect(_SC(')'));
+	void SwitchStatement() {
+		Lex();
+		Expect(_SC('('));
+		CommaExpr();
+		Expect(_SC(')'));
 		Expect(_SC('{'));
 		SQInteger expr = _fs->TopTarget();
 		bool bfirst = true;
@@ -1230,7 +1455,9 @@ public:
 				_fs->SetIntructionParam(tonextcondjmp, 1, _fs->GetCurrentPos() - tonextcondjmp);
 			}
 			//condition
-			Lex(); Expression(); Expect(_SC(':'));
+			Lex();
+			Expression();
+			Expect(_SC(':'));
 			SQInteger trg = _fs->PopTarget();
 			SQInteger eqtarget = trg;
 			bool local = _fs->IsLocal(trg);
@@ -1256,7 +1483,8 @@ public:
 		if (tonextcondjmp != -1)
 			_fs->SetIntructionParam(tonextcondjmp, 1, _fs->GetCurrentPos() - tonextcondjmp);
 		if (_token == TK_DEFAULT) {
-			Lex(); Expect(_SC(':'));
+			Lex();
+			Expect(_SC(':'));
 			BEGIN_SCOPE();
 			Statements();
 			END_SCOPE();
@@ -1267,10 +1495,10 @@ public:
 		if (__nbreaks__ > 0)ResolveBreaks(_fs, __nbreaks__);
 		_fs->_breaktargets.pop_back();
 	}
-	void FunctionStatement()
-	{
+	void FunctionStatement() {
 		SQObject id;
-		Lex(); id = Expect(TK_IDENTIFIER);
+		Lex();
+		id = Expect(TK_IDENTIFIER);
 		_fs->PushTarget(0);
 		_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 		if (_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
@@ -1287,8 +1515,7 @@ public:
 		EmitDerefOp(_OP_NEWSLOT);
 		_fs->PopTarget();
 	}
-	void ClassStatement()
-	{
+	void ClassStatement() {
 		SQExpState es;
 		Lex();
 		es = _es;
@@ -1296,62 +1523,58 @@ public:
 		PrefixedExpr();
 		if (_es.etype == EXPR) {
 			Error(_SC("invalid class name"));
-		}
-		else if (_es.etype == OBJECT || _es.etype == BASE) {
+		} else if (_es.etype == OBJECT || _es.etype == BASE) {
 			ClassExp();
 			EmitDerefOp(_OP_NEWSLOT);
 			_fs->PopTarget();
-		}
-		else {
+		} else {
 			Error(_SC("cannot create a class in a local with the syntax(class <local>)"));
 		}
 		_es = es;
 	}
-	SQObject ExpectScalar()
-	{
+	SQObject ExpectScalar() {
 		SQObject val;
-		val._type = OT_NULL; val._unVal.nInteger = 0; //shut up GCC 4.x
+		val._type = OT_NULL;
+		val._unVal.nInteger = 0; //shut up GCC 4.x
 		switch (_token) {
-		case TK_INTEGER:
-			val._type = OT_INTEGER;
-			val._unVal.nInteger = _lex._nvalue;
-			break;
-		case TK_FLOAT:
-			val._type = OT_FLOAT;
-			val._unVal.fFloat = _lex._fvalue;
-			break;
-		case TK_STRING_LITERAL:
-			val = _fs->CreateString(_lex._svalue, _lex._longstr.size() - 1);
-			break;
-		case TK_TRUE:
-		case TK_FALSE:
-			val._type = OT_BOOL;
-			val._unVal.nInteger = _token == TK_TRUE ? 1 : 0;
-			break;
-		case '-':
-			Lex();
-			switch (_token)
-			{
 			case TK_INTEGER:
 				val._type = OT_INTEGER;
-				val._unVal.nInteger = -_lex._nvalue;
+				val._unVal.nInteger = _lex._nvalue;
 				break;
 			case TK_FLOAT:
 				val._type = OT_FLOAT;
-				val._unVal.fFloat = -_lex._fvalue;
+				val._unVal.fFloat = _lex._fvalue;
+				break;
+			case TK_STRING_LITERAL:
+				val = _fs->CreateString(_lex._svalue, _lex._longstr.size() - 1);
+				break;
+			case TK_TRUE:
+			case TK_FALSE:
+				val._type = OT_BOOL;
+				val._unVal.nInteger = _token == TK_TRUE ? 1 : 0;
+				break;
+			case '-':
+				Lex();
+				switch (_token) {
+					case TK_INTEGER:
+						val._type = OT_INTEGER;
+						val._unVal.nInteger = -_lex._nvalue;
+						break;
+					case TK_FLOAT:
+						val._type = OT_FLOAT;
+						val._unVal.fFloat = -_lex._fvalue;
+						break;
+					default:
+						Error(_SC("scalar expected : integer,float"));
+				}
 				break;
 			default:
-				Error(_SC("scalar expected : integer,float"));
-			}
-			break;
-		default:
-			Error(_SC("scalar expected : integer,float or string"));
+				Error(_SC("scalar expected : integer,float or string"));
 		}
 		Lex();
 		return val;
 	}
-	void EnumStatement()
-	{
+	void EnumStatement() {
 		Lex();
 		SQObject id = Expect(TK_IDENTIFIER);
 		Expect(_SC('{'));
@@ -1364,8 +1587,7 @@ public:
 			if (_token == _SC('=')) {
 				Lex();
 				val = ExpectScalar();
-			}
-			else {
+			} else {
 				val._type = OT_INTEGER;
 				val._unVal.nInteger = nval++;
 			}
@@ -1378,8 +1600,7 @@ public:
 		strongid.Null();
 		Lex();
 	}
-	void TryCatchStatement()
-	{
+	void TryCatchStatement() {
 		SQObject exid;
 		Lex();
 		_fs->AddInstruction(_OP_PUSHTRAP, 0, 0);
@@ -1399,7 +1620,10 @@ public:
 		_fs->AddInstruction(_OP_JMP, 0, 0);
 		SQInteger jmppos = _fs->GetCurrentPos();
 		_fs->SetIntructionParam(trappos, 1, (_fs->GetCurrentPos() - trappos));
-		Expect(TK_CATCH); Expect(_SC('(')); exid = Expect(TK_IDENTIFIER); Expect(_SC(')'));
+		Expect(TK_CATCH);
+		Expect(_SC('('));
+		exid = Expect(TK_IDENTIFIER);
+		Expect(_SC(')'));
 		{
 			BEGIN_SCOPE();
 			SQInteger ex_target = _fs->PushLocalVariable(exid);
@@ -1409,19 +1633,19 @@ public:
 			END_SCOPE();
 		}
 	}
-	void FunctionExp(SQInteger ftype, bool lambda = false)
-	{
-		Lex(); Expect(_SC('('));
+	void FunctionExp(SQInteger ftype, bool lambda = false) {
+		Lex();
+		Expect(_SC('('));
 		SQObjectPtr dummy;
 		CreateFunction(dummy, lambda);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION ? 0 : 1);
 	}
-	void ClassExp()
-	{
+	void ClassExp() {
 		SQInteger base = -1;
 		SQInteger attrs = -1;
 		if (_token == TK_EXTENDS) {
-			Lex(); Expression();
+			Lex();
+			Expression();
 			base = _fs->TopTarget();
 		}
 		if (_token == TK_ATTR_OPEN) {
@@ -1436,8 +1660,7 @@ public:
 		_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), base, attrs, NOT_CLASS);
 		ParseTableOrClass(_SC(';'), _SC('}'));
 	}
-	void DeleteExpr()
-	{
+	void DeleteExpr() {
 		SQExpState es;
 		Lex();
 		es = _es;
@@ -1446,14 +1669,12 @@ public:
 		if (_es.etype == EXPR) Error(_SC("can't delete an expression"));
 		if (_es.etype == OBJECT || _es.etype == BASE) {
 			Emit2ArgsOP(_OP_DELETE);
-		}
-		else {
+		} else {
 			Error(_SC("cannot delete an (outer) local"));
 		}
 		_es = es;
 	}
-	void PrefixIncDec(SQInteger token)
-	{
+	void PrefixIncDec(SQInteger token) {
 		SQExpState  es;
 		SQInteger diff = (token == TK_MINUSMINUS) ? -1 : 1;
 		Lex();
@@ -1462,16 +1683,13 @@ public:
 		PrefixedExpr();
 		if (_es.etype == EXPR) {
 			Error(_SC("can't '++' or '--' an expression"));
-		}
-		else if (_es.etype == OBJECT || _es.etype == BASE) {
+		} else if (_es.etype == OBJECT || _es.etype == BASE) {
 			Emit2ArgsOP(_OP_INC, diff);
-		}
-		else if (_es.etype == LOCAL) {
+		} else if (_es.etype == LOCAL) {
 			SQInteger src = _fs->TopTarget();
 			_fs->AddInstruction(_OP_INCL, src, src, 0, diff);
 
-		}
-		else if (_es.etype == OUTER) {
+		} else if (_es.etype == OUTER) {
 			SQInteger tmp = _fs->PushTarget();
 			_fs->AddInstruction(_OP_GETOUTER, tmp, _es.epos);
 			_fs->AddInstruction(_OP_INCL,     tmp, tmp, 0, diff);
@@ -1479,8 +1697,8 @@ public:
 		}
 		_es = es;
 	}
-	void CreateFunction(SQObject &name, bool lambda = false)
-	{
+
+	void CreateFunction(SQObject& name, bool lambda = false) {
 		SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
 		funcstate->_name = name;
 		SQObject paramname;
@@ -1495,8 +1713,7 @@ public:
 				Lex();
 				if (_token != _SC(')')) Error(_SC("expected ')'"));
 				break;
-			}
-			else {
+			} else {
 				paramname = Expect(TK_IDENTIFIER);
 				funcstate->AddParameter(paramname);
 				if (_token == _SC('=')) {
@@ -1504,8 +1721,7 @@ public:
 					Expression();
 					funcstate->AddDefaultParam(_fs->TopTarget());
 					defparams++;
-				}
-				else {
+				} else {
 					if (defparams > 0) Error(_SC("expected '='"));
 				}
 				if (_token == _SC(',')) Lex();
@@ -1522,8 +1738,7 @@ public:
 		if (lambda) {
 			Expression();
 			_fs->AddInstruction(_OP_RETURN, 1, _fs->PopTarget());
-		}
-		else {
+		} else {
 			Statement(false);
 		}
 		funcstate->AddLineInfos(_lex._prevtoken == _SC('\n') ? _lex._lasttokenline : _lex._currentline, _lineinfo, true);
@@ -1538,8 +1753,8 @@ public:
 		_fs->_functions.push_back(func);
 		_fs->PopChildState();
 	}
-	void ResolveBreaks(SQFuncState *funcstate, SQInteger ntoresolve)
-	{
+
+	void ResolveBreaks(SQFuncState *funcstate, SQInteger ntoresolve) {
 		while (ntoresolve > 0) {
 			SQInteger pos = funcstate->_unresolvedbreaks.back();
 			funcstate->_unresolvedbreaks.pop_back();
@@ -1548,8 +1763,7 @@ public:
 			ntoresolve--;
 		}
 	}
-	void ResolveContinues(SQFuncState *funcstate, SQInteger ntoresolve, SQInteger targetpos)
-	{
+	void ResolveContinues(SQFuncState *funcstate, SQInteger ntoresolve, SQInteger targetpos) {
 		while (ntoresolve > 0) {
 			SQInteger pos = funcstate->_unresolvedcontinues.back();
 			funcstate->_unresolvedcontinues.pop_back();
@@ -1559,7 +1773,7 @@ public:
 		}
 	}
 
-private:
+  private:
 	SQInteger _token;
 	SQFuncState *_fs;
 	SQObjectPtr _sourcename;
@@ -1575,7 +1789,7 @@ private:
 	SQVM *_vm;
 };
 
-bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo) {
+bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo) {
 	LVCompiler compiler(vm, rg, up, sourcename, raiseerror, lineinfo);
 	return compiler.StartCompiler(out);
 }
