@@ -11,6 +11,7 @@ struct SQArray : public CHAINABLE_OBJ {
 	~SQArray() {
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
+
   public:
 	static SQArray *Create(SQSharedState *ss, SQInteger nInitialSize) {
 		SQArray *newarray = (SQArray *)SQ_MALLOC(sizeof(SQArray));

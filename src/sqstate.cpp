@@ -159,6 +159,7 @@ void SQSharedState::Init() {
 	newsysstring(_SC("class"));
 	newsysstring(_SC("instance"));
 	newsysstring(_SC("bool"));
+
 	//meta methods
 	newmetamethod(MM_ADD);
 	newmetamethod(MM_SUB);

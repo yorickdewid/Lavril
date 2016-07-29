@@ -1,4 +1,3 @@
-/*  see copyright notice in squirrel.h */
 #ifndef _SQOBJECT_H_
 #define _SQOBJECT_H_
 
@@ -296,7 +295,6 @@ struct SQObjectPtr : public SQObject {
 	SQObjectPtr(const SQChar *) {} //safety
 };
 
-
 inline void _Swap(SQObject& a, SQObject& b) {
 	SQObjectType tOldType = a._type;
 	SQObjectValue unOldVal = a._unVal;
@@ -321,7 +319,6 @@ struct SQCollectable : public SQRefCounted {
 	static void AddToChain(SQCollectable **chain, SQCollectable *c);
 	static void RemoveFromChain(SQCollectable **chain, SQCollectable *c);
 };
-
 
 #define ADD_TO_CHAIN(chain,obj) AddToChain(chain,obj)
 #define REMOVE_FROM_CHAIN(chain,obj) {if(!(_uiRef&MARK_FLAG))RemoveFromChain(chain,obj);}

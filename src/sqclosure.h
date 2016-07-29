@@ -68,6 +68,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 		return OT_CLOSURE;
 	}
 #endif
+
 	SQWeakRef *_env;
 	SQWeakRef *_root;
 	SQClass *_base;
@@ -78,7 +79,6 @@ struct SQClosure : public CHAINABLE_OBJ {
 
 //////////////////////////////////////////////
 struct SQOuter : public CHAINABLE_OBJ {
-
   private:
 	SQOuter(SQSharedState *ss, SQObjectPtr *outer) {
 		_valptr = outer;
@@ -120,7 +120,12 @@ struct SQOuter : public CHAINABLE_OBJ {
 
 //////////////////////////////////////////////
 struct SQGenerator : public CHAINABLE_OBJ {
-	enum SQGeneratorState {eRunning, eSuspended, eDead};
+	enum SQGeneratorState {
+		eRunning,
+		eSuspended,
+		eDead
+	};
+
   private:
 	SQGenerator(SQSharedState *ss, SQClosure *closure) {
 		_closure = closure;
@@ -159,6 +164,7 @@ struct SQGenerator : public CHAINABLE_OBJ {
 		return OT_GENERATOR;
 	}
 #endif
+
 	SQObjectPtr _closure;
 	SQObjectPtrVec _stack;
 	SQVM::CallInfo _ci;
@@ -176,6 +182,7 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 		ADD_TO_CHAIN(&_ss(this)->_gc_chain, this);
 		_env = NULL;
 	}
+
   public:
 	static SQNativeClosure *Create(SQSharedState *ss, SQFUNCTION func, SQInteger nouters) {
 		SQInteger size = _CALC_NATVIVECLOSURE_SIZE(nouters);
@@ -216,6 +223,7 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 		return OT_NATIVECLOSURE;
 	}
 #endif
+
 	SQInteger _nparamscheck;
 	SQIntVec _typecheck;
 	SQObjectPtr *_outervalues;
