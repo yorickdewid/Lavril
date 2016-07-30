@@ -16,7 +16,7 @@ SQRESULT sq_getfunctioninfo(HSQUIRRELVM v, SQInteger level, SQFunctionInfo *fi) 
 			fi->name = type(proto->_name) == OT_STRING ? _stringval(proto->_name) : _SC("unknown");
 			fi->source = type(proto->_sourcename) == OT_STRING ? _stringval(proto->_sourcename) : _SC("unknown");
 			fi->line = proto->_lineinfos[0]._line;
-			return SQ_OK;
+			return LV_OK;
 		}
 	}
 	return sq_throwerror(v, _SC("the object is not a closure"));
@@ -47,9 +47,9 @@ SQRESULT sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si) {
 			default:
 				break; //shutup compiler
 		}
-		return SQ_OK;
+		return LV_OK;
 	}
-	return SQ_ERROR;
+	return LV_ERROR;
 }
 
 void SQVM::Raise_Error(const SQChar *s, ...) {

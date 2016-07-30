@@ -21,7 +21,7 @@
 
 static SQInteger _system_getenv(HSQUIRRELVM v) {
 	const SQChar *s;
-	if (SQ_SUCCEEDED(sq_getstring(v, 2, &s))) {
+	if (LV_SUCCEEDED(sq_getstring(v, 2, &s))) {
 		sq_pushstring(v, scgetenv(s), -1);
 		return 1;
 	}
@@ -30,7 +30,7 @@ static SQInteger _system_getenv(HSQUIRRELVM v) {
 
 static SQInteger _system_system(HSQUIRRELVM v) {
 	const SQChar *s;
-	if (SQ_SUCCEEDED(sq_getstring(v, 2, &s))) {
+	if (LV_SUCCEEDED(sq_getstring(v, 2, &s))) {
 		sq_pushinteger(v, scsystem(s));
 		return 1;
 	}

@@ -13,7 +13,7 @@ void sqstd_printcallstack(HSQUIRRELVM v) {
 		const SQChar *name = 0;
 		SQInteger seq = 0;
 		pf(v, _SC("\nCALLSTACK\n"));
-		while (SQ_SUCCEEDED(sq_stackinfos(v, level, &si))) {
+		while (LV_SUCCEEDED(sq_stackinfos(v, level, &si))) {
 			const SQChar *fn = _SC("unknown");
 			const SQChar *src = _SC("unknown");
 			if (si.funcname)fn = si.funcname;
@@ -98,7 +98,7 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v) {
 	if (pf) {
 		const SQChar *sErr = 0;
 		if (sq_gettop(v) >= 1) {
-			if (SQ_SUCCEEDED(sq_getstring(v, 2, &sErr)))   {
+			if (LV_SUCCEEDED(sq_getstring(v, 2, &sErr)))   {
 				pf(v, _SC("runtime error: %s\n"), sErr);
 			} else {
 				pf(v, _SC("runtime error: [unknown]\n"));

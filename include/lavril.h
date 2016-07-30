@@ -379,13 +379,11 @@ LAVRIL_API void sq_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook);
 #define sq_isweakref(o) ((o)._type==OT_WEAKREF)
 #define sq_type(o) ((o)._type)
 
-#define SQ_OK (0)
-#define SQ_ERROR (-1)
+#define LV_OK (0)
+#define LV_ERROR (-1)
 
-#define SQ_FAILED(res) (res<0)
-#define SQ_SUCCEEDED(res) (res>=0)
-
-#define LV_UNUSED(v) ((void)(v))
+#define LV_FAILED(res) (res<0)
+#define LV_SUCCEEDED(res) (res>=0)
 
 #ifdef __GNUC__
 # define SQ_UNUSED_ARG(x) __attribute__((unused)) x

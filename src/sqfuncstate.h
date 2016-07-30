@@ -1,16 +1,16 @@
-#ifndef _SQFUNCSTATE_H_
-#define _SQFUNCSTATE_H_
+#ifndef _FUNCTIONSTATE_H_
+#define _FUNCTIONSTATE_H_
 
 #include "squtils.h"
 
-struct SQFuncState {
-	SQFuncState(SQSharedState *ss, SQFuncState *parent, CompilerErrorFunc efunc, void *ed);
-	~SQFuncState();
+struct FunctionState {
+	FunctionState(SQSharedState *ss, FunctionState *parent, CompilerErrorFunc efunc, void *ed);
+	~FunctionState();
 #ifdef _DEBUG_DUMP
 	void Dump(SQFunctionProto *func);
 #endif
 	void Error(const SQChar *err);
-	SQFuncState *PushChildState(SQSharedState *ss);
+	FunctionState *PushChildState(SQSharedState *ss);
 	void PopChildState();
 	void AddInstruction(SQOpcode _op, SQInteger arg0 = 0, SQInteger arg1 = 0, SQInteger arg2 = 0, SQInteger arg3 = 0) {
 		SQInstruction i(_op, arg0, arg1, arg2, arg3);
@@ -78,20 +78,20 @@ struct SQFuncState {
 	SQObjectPtr _literals;
 	SQObjectPtr _strings;
 	SQObjectPtr _name;
-	SQObjectPtr _sourcename;
+	SQObjectPtr _sourcename; /* Name of unit */
 	SQInteger _nliterals;
 	SQLineInfoVec _lineinfos;
-	SQFuncState *_parent;
+	FunctionState *_parent;
 	SQIntVec _scope_blocks;
 	SQIntVec _breaktargets;
 	SQIntVec _continuetargets;
 	SQIntVec _defaultparams;
 	SQInteger _lastline;
-	SQInteger _traps; //contains number of nested exception traps
+	SQInteger _traps; /* Contains number of nested exception traps */
 	SQInteger _outers;
 	bool _optimization;
 	SQSharedState *_sharedstate;
-	sqvector<SQFuncState *> _childstates;
+	sqvector<FunctionState *> _childstates;
 	SQInteger GetConstant(const SQObject& cons);
 
   private:
@@ -100,5 +100,5 @@ struct SQFuncState {
 	SQSharedState *_ss;
 };
 
-#endif //_SQFUNCSTATE_H_
+#endif //_FUNCTIONSTATE_H_
 

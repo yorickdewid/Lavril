@@ -10,7 +10,7 @@
 
 #define SETUP_STREAM(v) \
 	SQStream *self = NULL; \
-	if(SQ_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_STREAM_TYPE_TAG))) \
+	if(LV_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_STREAM_TYPE_TAG))) \
 		return sq_throwerror(v,_SC("invalid type tag")); \
 	if(!self || !self->IsValid())  \
 		return sq_throwerror(v,_SC("the stream is invalid"));
@@ -98,7 +98,7 @@ SQInteger _stream_writeblob(HSQUIRRELVM v) {
 	SQUserPointer data;
 	SQInteger size;
 	SETUP_STREAM(v);
-	if (SQ_FAILED(sqstd_getblob(v, 2, &data)))
+	if (LV_FAILED(sqstd_getblob(v, 2, &data)))
 		return sq_throwerror(v, _SC("invalid parameter"));
 	size = sqstd_getblobsize(v, 2);
 	if (self->Write(data, size) != size)
@@ -251,7 +251,7 @@ static const SQRegFunction _stream_methods[] = {
 void init_streamclass(HSQUIRRELVM v) {
 	sq_pushregistrytable(v);
 	sq_pushstring(v, _SC("std_stream"), -1);
-	if (SQ_FAILED(sq_get(v, -2))) {
+	if (LV_FAILED(sq_get(v, -2))) {
 		sq_pushstring(v, _SC("std_stream"), -1);
 		sq_newclass(v, SQFalse);
 		sq_settypetag(v, -1, (SQUserPointer)SQSTD_STREAM_TYPE_TAG);
@@ -286,7 +286,7 @@ SQRESULT declare_stream(HSQUIRRELVM v, const SQChar *name, SQUserPointer typetag
 	sq_pushregistrytable(v);
 	sq_pushstring(v, reg_name, -1);
 	sq_pushstring(v, _SC("std_stream"), -1);
-	if (SQ_SUCCEEDED(sq_get(v, -3))) {
+	if (LV_SUCCEEDED(sq_get(v, -3))) {
 		sq_newclass(v, SQTrue);
 		sq_settypetag(v, -1, typetag);
 		SQInteger i = 0;
@@ -321,8 +321,8 @@ SQRESULT declare_stream(HSQUIRRELVM v, const SQChar *name, SQUserPointer typetag
 		sq_newslot(v, -3, SQFalse);
 
 		sq_settop(v, top);
-		return SQ_OK;
+		return LV_OK;
 	}
 	sq_settop(v, top);
-	return SQ_ERROR;
+	return LV_ERROR;
 }

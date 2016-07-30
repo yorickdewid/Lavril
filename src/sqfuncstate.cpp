@@ -93,7 +93,7 @@ void DumpLiteral(SQObjectPtr& o) {
 	}
 }
 
-SQFuncState::SQFuncState(SQSharedState *ss, SQFuncState *parent, CompilerErrorFunc efunc, void *ed) {
+FunctionState::FunctionState(SQSharedState *ss, FunctionState *parent, CompilerErrorFunc efunc, void *ed) {
 	_nliterals = 0;
 	_literals = SQTable::Create(ss, 0);
 	_strings =  SQTable::Create(ss, 0);
@@ -112,12 +112,12 @@ SQFuncState::SQFuncState(SQSharedState *ss, SQFuncState *parent, CompilerErrorFu
 	_ss = ss;
 }
 
-void SQFuncState::Error(const SQChar *err) {
+void FunctionState::Error(const SQChar *err) {
 	_errfunc(_errtarget, err);
 }
 
 #ifdef _DEBUG_DUMP
-void SQFuncState::Dump(SQFunctionProto *func) {
+void FunctionState::Dump(SQFunctionProto *func) {
 	SQUnsignedInteger n = 0, i;
 	SQInteger si;
 
@@ -211,15 +211,15 @@ void SQFuncState::Dump(SQFunctionProto *func) {
 }
 #endif
 
-SQInteger SQFuncState::GetNumericConstant(const SQInteger cons) {
+SQInteger FunctionState::GetNumericConstant(const SQInteger cons) {
 	return GetConstant(SQObjectPtr(cons));
 }
 
-SQInteger SQFuncState::GetNumericConstant(const SQFloat cons) {
+SQInteger FunctionState::GetNumericConstant(const SQFloat cons) {
 	return GetConstant(SQObjectPtr(cons));
 }
 
-SQInteger SQFuncState::GetConstant(const SQObject& cons) {
+SQInteger FunctionState::GetConstant(const SQObject& cons) {
 	SQObjectPtr val;
 	if (!_table(_literals)->Get(cons, val)) {
 		val = _nliterals;
@@ -233,14 +233,14 @@ SQInteger SQFuncState::GetConstant(const SQObject& cons) {
 	return _integer(val);
 }
 
-void SQFuncState::SetIntructionParams(SQInteger pos, SQInteger arg0, SQInteger arg1, SQInteger arg2, SQInteger arg3) {
+void FunctionState::SetIntructionParams(SQInteger pos, SQInteger arg0, SQInteger arg1, SQInteger arg2, SQInteger arg3) {
 	_instructions[pos]._arg0 = (unsigned char) * ((SQUnsignedInteger *)&arg0);
 	_instructions[pos]._arg1 = (SQInt32) * ((SQUnsignedInteger *)&arg1);
 	_instructions[pos]._arg2 = (unsigned char) * ((SQUnsignedInteger *)&arg2);
 	_instructions[pos]._arg3 = (unsigned char) * ((SQUnsignedInteger *)&arg3);
 }
 
-void SQFuncState::SetIntructionParam(SQInteger pos, SQInteger arg, SQInteger val) {
+void FunctionState::SetIntructionParam(SQInteger pos, SQInteger arg, SQInteger val) {
 	switch (arg) {
 		case 0:
 			_instructions[pos]._arg0 = (unsigned char) * ((SQUnsignedInteger *)&val);
@@ -258,7 +258,7 @@ void SQFuncState::SetIntructionParam(SQInteger pos, SQInteger arg, SQInteger val
 	};
 }
 
-SQInteger SQFuncState::AllocStackPos() {
+SQInteger FunctionState::AllocStackPos() {
 	SQInteger npos = _vlocals.size();
 	_vlocals.push_back(SQLocalVarInfo());
 	if (_vlocals.size() > ((SQUnsignedInteger)_stacksize)) {
@@ -268,7 +268,7 @@ SQInteger SQFuncState::AllocStackPos() {
 	return npos;
 }
 
-SQInteger SQFuncState::PushTarget(SQInteger n) {
+SQInteger FunctionState::PushTarget(SQInteger n) {
 	if (n != -1) {
 		_targetstack.push_back(n);
 		return n;
@@ -278,14 +278,15 @@ SQInteger SQFuncState::PushTarget(SQInteger n) {
 	return n;
 }
 
-SQInteger SQFuncState::GetUpTarget(SQInteger n) {
+SQInteger FunctionState::GetUpTarget(SQInteger n) {
 	return _targetstack[((_targetstack.size() - 1) - n)];
 }
 
-SQInteger SQFuncState::TopTarget() {
+SQInteger FunctionState::TopTarget() {
 	return _targetstack.back();
 }
-SQInteger SQFuncState::PopTarget() {
+
+SQInteger FunctionState::PopTarget() {
 	SQUnsignedInteger npos = _targetstack.back();
 	assert(npos < _vlocals.size());
 	SQLocalVarInfo& t = _vlocals[npos];
@@ -296,11 +297,11 @@ SQInteger SQFuncState::PopTarget() {
 	return npos;
 }
 
-SQInteger SQFuncState::GetStackSize() {
+SQInteger FunctionState::GetStackSize() {
 	return _vlocals.size();
 }
 
-SQInteger SQFuncState::CountOuters(SQInteger stacksize) {
+SQInteger FunctionState::CountOuters(SQInteger stacksize) {
 	SQInteger outers = 0;
 	SQInteger k = _vlocals.size() - 1;
 	while (k >= stacksize) {
@@ -313,7 +314,7 @@ SQInteger SQFuncState::CountOuters(SQInteger stacksize) {
 	return outers;
 }
 
-void SQFuncState::SetStackSize(SQInteger n) {
+void FunctionState::SetStackSize(SQInteger n) {
 	SQInteger size = _vlocals.size();
 	while (size > n) {
 		size--;
@@ -329,7 +330,7 @@ void SQFuncState::SetStackSize(SQInteger n) {
 	}
 }
 
-bool SQFuncState::IsConstant(const SQObject& name, SQObject& e) {
+bool FunctionState::IsConstant(const SQObject& name, SQObject& e) {
 	SQObjectPtr val;
 	if (_table(_sharedstate->_consts)->Get(name, val)) {
 		e = val;
@@ -338,26 +339,25 @@ bool SQFuncState::IsConstant(const SQObject& name, SQObject& e) {
 	return false;
 }
 
-bool SQFuncState::IsLocal(SQUnsignedInteger stkpos) {
+bool FunctionState::IsLocal(SQUnsignedInteger stkpos) {
 	if (stkpos >= _vlocals.size())return false;
 	else if (type(_vlocals[stkpos]._name) != OT_NULL)return true;
 	return false;
 }
 
-SQInteger SQFuncState::PushLocalVariable(const SQObject& name) {
+SQInteger FunctionState::PushLocalVariable(const SQObject& name) {
 	SQInteger pos = _vlocals.size();
 	SQLocalVarInfo lvi;
 	lvi._name = name;
 	lvi._start_op = GetCurrentPos() + 1;
 	lvi._pos = _vlocals.size();
 	_vlocals.push_back(lvi);
-	if (_vlocals.size() > ((SQUnsignedInteger)_stacksize))_stacksize = _vlocals.size();
+	if (_vlocals.size() > ((SQUnsignedInteger)_stacksize))
+		_stacksize = _vlocals.size();
 	return pos;
 }
 
-
-
-SQInteger SQFuncState::GetLocalVariable(const SQObject& name) {
+SQInteger FunctionState::GetLocalVariable(const SQObject& name) {
 	SQInteger locals = _vlocals.size();
 	while (locals >= 1) {
 		SQLocalVarInfo& lvi = _vlocals[locals - 1];
@@ -369,13 +369,13 @@ SQInteger SQFuncState::GetLocalVariable(const SQObject& name) {
 	return -1;
 }
 
-void SQFuncState::MarkLocalAsOuter(SQInteger pos) {
+void FunctionState::MarkLocalAsOuter(SQInteger pos) {
 	SQLocalVarInfo& lvi = _vlocals[pos];
 	lvi._end_op = UINT_MINUS_ONE;
 	_outers++;
 }
 
-SQInteger SQFuncState::GetOuterVariable(const SQObject& name) {
+SQInteger FunctionState::GetOuterVariable(const SQObject& name) {
 	SQInteger outers = _outervalues.size();
 	for (SQInteger i = 0; i < outers; i++) {
 		if (_string(_outervalues[i]._name) == _string(name))
@@ -401,12 +401,12 @@ SQInteger SQFuncState::GetOuterVariable(const SQObject& name) {
 	return -1;
 }
 
-void SQFuncState::AddParameter(const SQObject& name) {
+void FunctionState::AddParameter(const SQObject& name) {
 	PushLocalVariable(name);
 	_parameters.push_back(name);
 }
 
-void SQFuncState::AddLineInfos(SQInteger line, bool lineop, bool force) {
+void FunctionState::AddLineInfos(SQInteger line, bool lineop, bool force) {
 	if (_lastline != line || force) {
 		SQLineInfo li;
 		li._line = line;
@@ -419,7 +419,7 @@ void SQFuncState::AddLineInfos(SQInteger line, bool lineop, bool force) {
 	}
 }
 
-void SQFuncState::DiscardTarget() {
+void FunctionState::DiscardTarget() {
 	SQInteger discardedtarget = PopTarget();
 	SQInteger size = _instructions.size();
 	if (size > 0 && _optimization) {
@@ -436,7 +436,7 @@ void SQFuncState::DiscardTarget() {
 	}
 }
 
-void SQFuncState::AddInstruction(SQInstruction& i) {
+void FunctionState::AddInstruction(SQInstruction& i) {
 	SQInteger size = _instructions.size();
 	if (size > 0 && _optimization) { //simple optimizer
 		SQInstruction& pi = _instructions[size - 1]; //previous instruction
@@ -584,19 +584,19 @@ void SQFuncState::AddInstruction(SQInstruction& i) {
 	_instructions.push_back(i);
 }
 
-SQObject SQFuncState::CreateString(const SQChar *s, SQInteger len) {
+SQObject FunctionState::CreateString(const SQChar *s, SQInteger len) {
 	SQObjectPtr ns(SQString::Create(_sharedstate, s, len));
 	_table(_strings)->NewSlot(ns, (SQInteger)1);
 	return ns;
 }
 
-SQObject SQFuncState::CreateTable() {
+SQObject FunctionState::CreateTable() {
 	SQObjectPtr nt(SQTable::Create(_sharedstate, 0));
 	_table(_strings)->NewSlot(nt, (SQInteger)1);
 	return nt;
 }
 
-SQFunctionProto *SQFuncState::BuildProto() {
+SQFunctionProto *FunctionState::BuildProto() {
 
 	SQFunctionProto *f = SQFunctionProto::Create(_ss, _instructions.size(),
 	                     _nliterals, _parameters.size(), _functions.size(), _outervalues.size(),
@@ -629,20 +629,20 @@ SQFunctionProto *SQFuncState::BuildProto() {
 	return f;
 }
 
-SQFuncState *SQFuncState::PushChildState(SQSharedState *ss) {
-	SQFuncState *child = (SQFuncState *)sq_malloc(sizeof(SQFuncState));
-	new (child) SQFuncState(ss, this, _errfunc, _errtarget);
+FunctionState *FunctionState::PushChildState(SQSharedState *ss) {
+	FunctionState *child = (FunctionState *)sq_malloc(sizeof(FunctionState));
+	new (child) FunctionState(ss, this, _errfunc, _errtarget);
 	_childstates.push_back(child);
 	return child;
 }
 
-void SQFuncState::PopChildState() {
-	SQFuncState *child = _childstates.back();
-	sq_delete(child, SQFuncState);
+void FunctionState::PopChildState() {
+	FunctionState *child = _childstates.back();
+	sq_delete(child, FunctionState);
 	_childstates.pop_back();
 }
 
-SQFuncState::~SQFuncState() {
+FunctionState::~FunctionState() {
 	while (_childstates.size() > 0) {
 		PopChildState();
 	}

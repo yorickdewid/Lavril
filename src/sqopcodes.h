@@ -114,7 +114,6 @@ struct SQInstruction {
 		_arg3 = (unsigned char)a3;
 	}
 
-
 	SQInt32 _arg1;
 	unsigned char op;
 	unsigned char _arg0;

@@ -151,7 +151,7 @@ static SQInteger _file_constructor(HSQUIRRELVM v) {
 	}
 
 	f = new (sq_malloc(sizeof(SQFile)))SQFile(newf, owns);
-	if (SQ_FAILED(sq_setinstanceup(v, 1, f))) {
+	if (LV_FAILED(sq_setinstanceup(v, 1, f))) {
 		f->~SQFile();
 		sq_free(f, sizeof(SQFile));
 		return sq_throwerror(v, _SC("cannot create blob with negative size"));
@@ -162,7 +162,7 @@ static SQInteger _file_constructor(HSQUIRRELVM v) {
 
 static SQInteger _file_close(HSQUIRRELVM v) {
 	SQFile *self = NULL;
-	if (SQ_SUCCEEDED(sq_getinstanceup(v, 1, (SQUserPointer *)&self, (SQUserPointer)SQSTD_FILE_TYPE_TAG))
+	if (LV_SUCCEEDED(sq_getinstanceup(v, 1, (SQUserPointer *)&self, (SQUserPointer)SQSTD_FILE_TYPE_TAG))
 	        && self != NULL) {
 		self->Close();
 	}
@@ -184,7 +184,7 @@ SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file, SQBool own) {
 	SQInteger top = sq_gettop(v);
 	sq_pushregistrytable(v);
 	sq_pushstring(v, _SC("std_file"), -1);
-	if (SQ_SUCCEEDED(sq_get(v, -2))) {
+	if (LV_SUCCEEDED(sq_get(v, -2))) {
 		sq_remove(v, -2); //removes the registry
 		sq_pushroottable(v); // push the this
 		sq_pushuserpointer(v, file); //file
@@ -193,20 +193,20 @@ SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file, SQBool own) {
 		} else {
 			sq_pushnull(v); //false
 		}
-		if (SQ_SUCCEEDED( sq_call(v, 3, SQTrue, SQFalse) )) {
+		if (LV_SUCCEEDED( sq_call(v, 3, SQTrue, SQFalse) )) {
 			sq_remove(v, -2);
-			return SQ_OK;
+			return LV_OK;
 		}
 	}
 	sq_settop(v, top);
-	return SQ_ERROR;
+	return LV_ERROR;
 }
 
 SQRESULT sqstd_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file) {
 	SQFile *fileobj = NULL;
-	if (SQ_SUCCEEDED(sq_getinstanceup(v, idx, (SQUserPointer *)&fileobj, (SQUserPointer)SQSTD_FILE_TYPE_TAG))) {
+	if (LV_SUCCEEDED(sq_getinstanceup(v, idx, (SQUserPointer *)&fileobj, (SQUserPointer)SQSTD_FILE_TYPE_TAG))) {
 		*file = fileobj->GetHandle();
-		return SQ_OK;
+		return LV_OK;
 	}
 	return sq_throwerror(v, _SC("not a file"));
 }
@@ -343,9 +343,9 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror
 		}
 		if (us == SQ_BYTECODE_STREAM_TAG) { //BYTECODE
 			sqstd_fseek(file, 0, SQ_SEEK_SET);
-			if (SQ_SUCCEEDED(sq_readclosure(v, file_read, file))) {
+			if (LV_SUCCEEDED(sq_readclosure(v, file_read, file))) {
 				sqstd_fclose(file);
-				return SQ_OK;
+				return LV_OK;
 			}
 		} else { //SCRIPT
 
@@ -381,38 +381,38 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror
 			buffer.ptr = 0;
 			buffer.size = 0;
 			buffer.file = file;
-			if (SQ_SUCCEEDED(sq_compile(v, func, &buffer, filename, printerror))) {
+			if (LV_SUCCEEDED(sq_compile(v, func, &buffer, filename, printerror))) {
 				sqstd_fclose(file);
-				return SQ_OK;
+				return LV_OK;
 			}
 		}
 		sqstd_fclose(file);
-		return SQ_ERROR;
+		return LV_ERROR;
 	}
 	return sq_throwerror(v, _SC("cannot open the file"));
 }
 
 SQRESULT sqstd_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror) {
-	if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, printerror))) {
+	if (LV_SUCCEEDED(sqstd_loadfile(v, filename, printerror))) {
 		sq_push(v, -2);
-		if (SQ_SUCCEEDED(sq_call(v, 1, retval, SQTrue))) {
+		if (LV_SUCCEEDED(sq_call(v, 1, retval, SQTrue))) {
 			sq_remove(v, retval ? -2 : -1); //removes the closure
 			return 1;
 		}
 		sq_pop(v, 1); //removes the closure
 	}
-	return SQ_ERROR;
+	return LV_ERROR;
 }
 
 SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename) {
 	SQFILE file = sqstd_fopen(filename, _SC("wb+"));
 	if (!file) return sq_throwerror(v, _SC("cannot open the file"));
-	if (SQ_SUCCEEDED(sq_writeclosure(v, file_write, file))) {
+	if (LV_SUCCEEDED(sq_writeclosure(v, file_write, file))) {
 		sqstd_fclose(file);
-		return SQ_OK;
+		return LV_OK;
 	}
 	sqstd_fclose(file);
-	return SQ_ERROR; //forward the error
+	return LV_ERROR; //forward the error
 }
 
 SQInteger _g_io_loadfile(HSQUIRRELVM v) {
@@ -422,17 +422,17 @@ SQInteger _g_io_loadfile(HSQUIRRELVM v) {
 	if (sq_gettop(v) >= 3) {
 		sq_getbool(v, 3, &printerror);
 	}
-	if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, printerror)))
+	if (LV_SUCCEEDED(sqstd_loadfile(v, filename, printerror)))
 		return 1;
-	return SQ_ERROR; //propagates the error
+	return LV_ERROR; //propagates the error
 }
 
 SQInteger _g_io_writeclosuretofile(HSQUIRRELVM v) {
 	const SQChar *filename;
 	sq_getstring(v, 2, &filename);
-	if (SQ_SUCCEEDED(sqstd_writeclosuretofile(v, filename)))
+	if (LV_SUCCEEDED(sqstd_writeclosuretofile(v, filename)))
 		return 1;
-	return SQ_ERROR; //propagates the error
+	return LV_ERROR; //propagates the error
 }
 
 SQInteger _g_io_execfile(HSQUIRRELVM v) {
@@ -443,9 +443,9 @@ SQInteger _g_io_execfile(HSQUIRRELVM v) {
 		sq_getbool(v, 3, &printerror);
 	}
 	sq_push(v, 1); //repush the this
-	if (SQ_SUCCEEDED(sqstd_execfile(v, filename, SQTrue, printerror)))
+	if (LV_SUCCEEDED(sqstd_execfile(v, filename, SQTrue, printerror)))
 		return 1;
-	return SQ_ERROR; //propagates the error
+	return LV_ERROR; //propagates the error
 }
 
 #define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck}
@@ -470,5 +470,5 @@ SQRESULT sqstd_register_iolib(HSQUIRRELVM v) {
 	sqstd_createfile(v, stderr, SQFalse);
 	sq_newslot(v, -3, SQFalse);
 	sq_settop(v, top);
-	return SQ_OK;
+	return LV_OK;
 }

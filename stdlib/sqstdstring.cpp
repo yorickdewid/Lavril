@@ -96,7 +96,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 			SQFloat tf = 0;
 			switch (format[n]) {
 				case 's':
-					if (SQ_FAILED(sq_getstring(v, nparam, &ts)))
+					if (LV_FAILED(sq_getstring(v, nparam, &ts)))
 						return sq_throwerror(v, _SC("string expected for the specified format"));
 					addlen = (sq_getsize(v, nparam) * sizeof(SQChar)) + ((w + 1) * sizeof(SQChar));
 					valtype = 's';
@@ -121,7 +121,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 				}
 #endif
 				case 'c':
-					if (SQ_FAILED(sq_getinteger(v, nparam, &ti)))
+					if (LV_FAILED(sq_getinteger(v, nparam, &ti)))
 						return sq_throwerror(v, _SC("integer expected for the specified format"));
 					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
 					valtype = 'i';
@@ -131,7 +131,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 				case 'G':
 				case 'e':
 				case 'E':
-					if (SQ_FAILED(sq_getfloat(v, nparam, &tf)))
+					if (LV_FAILED(sq_getfloat(v, nparam, &tf)))
 						return sq_throwerror(v, _SC("float expected for the specified format"));
 					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
 					valtype = 'f';
@@ -159,13 +159,13 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 	*outlen = i;
 	dest[i] = '\0';
 	*output = dest;
-	return SQ_OK;
+	return LV_OK;
 }
 
 static SQInteger _string_format(HSQUIRRELVM v) {
 	SQChar *dest = NULL;
 	SQInteger length = 0;
-	if (SQ_FAILED(sqstd_format(v, 2, &length, &dest)))
+	if (LV_FAILED(sqstd_format(v, 2, &length, &dest)))
 		return -1;
 	sq_pushstring(v, dest, length);
 	return 1;

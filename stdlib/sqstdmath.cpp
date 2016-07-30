@@ -20,7 +20,7 @@
 
 static SQInteger math_srand(HSQUIRRELVM v) {
 	SQInteger i;
-	if (SQ_FAILED(sq_getinteger(v, 2, &i)))
+	if (LV_FAILED(sq_getinteger(v, 2, &i)))
 		return sq_throwerror(v, _SC("invalid param"));
 	srand((unsigned int)i);
 	return 0;
@@ -106,5 +106,5 @@ SQRESULT sqstd_register_mathlib(HSQUIRRELVM v) {
 	sq_pushfloat(v, (SQFloat)M_PI);
 	sq_newslot(v, -3, SQFalse);
 
-	return SQ_OK;
+	return LV_OK;
 }

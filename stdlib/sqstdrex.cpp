@@ -8,10 +8,21 @@
 #include <stdio.h>
 
 static const SQChar *g_nnames[] = {
-	_SC("NONE"), _SC("OP_GREEDY"),   _SC("OP_OR"),
-	_SC("OP_EXPR"), _SC("OP_NOCAPEXPR"), _SC("OP_DOT"),   _SC("OP_CLASS"),
-	_SC("OP_CCLASS"), _SC("OP_NCLASS"), _SC("OP_RANGE"), _SC("OP_CHAR"),
-	_SC("OP_EOL"), _SC("OP_BOL"), _SC("OP_WB"), _SC("OP_MB")
+	_SC("NONE"),
+	_SC("OP_GREEDY"),
+	_SC("OP_OR"),
+	_SC("OP_EXPR"),
+	_SC("OP_NOCAPEXPR"),
+	_SC("OP_DOT"),
+	_SC("OP_CLASS"),
+	_SC("OP_CCLASS"),
+	_SC("OP_NCLASS"),
+	_SC("OP_RANGE"),
+	_SC("OP_CHAR"),
+	_SC("OP_EOL"),
+	_SC("OP_BOL"),
+	_SC("OP_WB"),
+	_SC("OP_MB")
 };
 
 #endif

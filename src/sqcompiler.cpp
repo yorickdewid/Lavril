@@ -143,7 +143,9 @@ class LVCompiler {
 				ret = SQObjectPtr(_lex._fvalue);
 				break;
 		}
+
 		Lex();
+
 		return ret;
 	}
 
@@ -172,7 +174,7 @@ class LVCompiler {
 		_debugline = 1;
 		_debugop = 0;
 
-		SQFuncState funcstate(_ss(_vm), NULL, ThrowError, this);
+		FunctionState funcstate(_ss(_vm), NULL, ThrowError, this);
 		funcstate._name = SQString::Create(_ss(_vm), _SC("main"));
 		_fs = &funcstate;
 		_fs->AddParameter(_fs->CreateString(_SC("this")));
@@ -184,6 +186,7 @@ class LVCompiler {
 		if (setjmp(_errorjmp) == 0) {
 			Lex();
 
+			printf("stacksize %lld\n", stacksize);
 			printf("_token %lld\n", _token);
 
 			while (_token > 0) {
@@ -1664,7 +1667,7 @@ class LVCompiler {
 	}
 
 	void CreateFunction(SQObject& name, bool lambda = false) {
-		SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
+		FunctionState *funcstate = _fs->PushChildState(_ss(_vm));
 		funcstate->_name = name;
 		SQObject paramname;
 		funcstate->AddParameter(_fs->CreateString(_SC("this")));
@@ -1698,7 +1701,7 @@ class LVCompiler {
 			_fs->PopTarget();
 		}
 
-		SQFuncState *currchunk = _fs;
+		FunctionState *currchunk = _fs;
 		_fs = funcstate;
 		if (lambda) {
 			Expression();
@@ -1719,7 +1722,7 @@ class LVCompiler {
 		_fs->PopChildState();
 	}
 
-	void ResolveBreaks(SQFuncState *funcstate, SQInteger ntoresolve) {
+	void ResolveBreaks(FunctionState *funcstate, SQInteger ntoresolve) {
 		while (ntoresolve > 0) {
 			SQInteger pos = funcstate->_unresolvedbreaks.back();
 			funcstate->_unresolvedbreaks.pop_back();
@@ -1728,7 +1731,7 @@ class LVCompiler {
 			ntoresolve--;
 		}
 	}
-	void ResolveContinues(SQFuncState *funcstate, SQInteger ntoresolve, SQInteger targetpos) {
+	void ResolveContinues(FunctionState *funcstate, SQInteger ntoresolve, SQInteger targetpos) {
 		while (ntoresolve > 0) {
 			SQInteger pos = funcstate->_unresolvedcontinues.back();
 			funcstate->_unresolvedcontinues.pop_back();
@@ -1740,7 +1743,7 @@ class LVCompiler {
 
   private:
 	SQInteger _token;
-	SQFuncState *_fs;
+	FunctionState *_fs;
 	SQObjectPtr _sourcename;
 	LVLexer _lex;
 	bool _lineinfo;

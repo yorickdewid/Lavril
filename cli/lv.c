@@ -52,7 +52,6 @@ void print_func(HSQUIRRELVM SQ_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
-	LV_UNUSED(v);
 }
 
 void error_func(HSQUIRRELVM SQ_UNUSED_ARG(v), const SQChar *s, ...) {
@@ -147,9 +146,9 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			int i = scstrlen(statement);
 			if (i > 0) {
 				SQInteger oldtop = sq_gettop(v);
-				if (SQ_SUCCEEDED(sq_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
+				if (LV_SUCCEEDED(sq_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
 					sq_pushroottable(v);
-					if (SQ_SUCCEEDED(sq_call(v, 1, _retval, SQTrue)) && _retval) {
+					if (LV_SUCCEEDED(sq_call(v, 1, _retval, SQTrue)) && _retval) {
 						scprintf(_SC("\n"));
 						sq_pushroottable(v);
 						sq_pushstring(v, _SC("print"), -1);
@@ -180,7 +179,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			arg++;
 
 			if (compiles_only) {
-				if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
 					const SQChar *outfile = _SC("out.lavc");
 					if (output) {
 #ifdef SQUNICODE
@@ -191,12 +190,12 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 						outfile = output;
 #endif
 					}
-					if (SQ_SUCCEEDED(sqstd_writeclosuretofile(v, outfile))) {
+					if (LV_SUCCEEDED(sqstd_writeclosuretofile(v, outfile))) {
 						return DONE;
 					}
 				}
 			} else {
-				if (SQ_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
 					int callargs = 1;
 					sq_pushroottable(v);
 
@@ -214,7 +213,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 						callargs++;
 					}
 
-					if (SQ_SUCCEEDED(sq_call(v, callargs, SQTrue, SQTrue))) {
+					if (LV_SUCCEEDED(sq_call(v, callargs, SQTrue, SQTrue))) {
 						SQObjectType type = sq_gettype(v, -1);
 						if (type == OT_INTEGER) {
 							*retval = type;
@@ -231,7 +230,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			{
 				const SQChar *err;
 				sq_getlasterror(v);
-				if (SQ_SUCCEEDED(sq_getstring(v, -1, &err))) {
+				if (LV_SUCCEEDED(sq_getstring(v, -1, &err))) {
 					scprintf(_SC("Error [%s]\n"), err);
 					*retval = -2;
 					return ERROR;
@@ -306,9 +305,9 @@ void interactive(HSQUIRRELVM v) {
 		i = scstrlen(buffer);
 		if (i > 0) {
 			SQInteger oldtop = sq_gettop(v);
-			if (SQ_SUCCEEDED(sq_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
+			if (LV_SUCCEEDED(sq_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
 				sq_pushroottable(v);
-				if (SQ_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) &&  retval) {
+				if (LV_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) &&  retval) {
 					scprintf(_SC("\n"));
 					sq_pushroottable(v);
 					sq_pushstring(v, _SC("print"), -1);

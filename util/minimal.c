@@ -42,7 +42,7 @@ void call_main(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 	sq_pushstring(v, _SC("test"), -1);
 
 	/* Get the routine 'test' from the global table */
-	if (SQ_SUCCEEDED(sq_get(v, -2))) {
+	if (LV_SUCCEEDED(sq_get(v, -2))) {
 		sq_pushroottable(v);
 		sq_pushinteger(v, n);
 		sq_pushfloat(v, f);
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 	sq_pushroottable(v);
 
 	/* Print syntax errors if any */
-	if (SQ_SUCCEEDED(sqstd_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
+	if (LV_SUCCEEDED(sqstd_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
 		call_main(v, 1, 2.5, _SC("teststring"));
 	}
 
