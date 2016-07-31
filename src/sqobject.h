@@ -235,7 +235,7 @@ struct SQObjectPtr : public SQObject {
 	_REF_TYPE_DECL(OT_USERDATA, SQUserData, pUserData)
 	_REF_TYPE_DECL(OT_WEAKREF, SQWeakRef, pWeakRef)
 	_REF_TYPE_DECL(OT_THREAD, SQVM, pThread)
-	_REF_TYPE_DECL(OT_FUNCPROTO, SQFunctionProto, pFunctionProto)
+	_REF_TYPE_DECL(OT_FUNCPROTO, FunctionPrototype, pFunctionProto)
 
 	_SCALAR_TYPE_DECL(OT_INTEGER, SQInteger, nInteger)
 	_SCALAR_TYPE_DECL(OT_FLOAT, SQFloat, fFloat)

@@ -1,6 +1,3 @@
-/*
-	see copyright notice in squirrel.h
-*/
 #include "sqpcheader.h"
 #ifndef NO_COMPILER
 #include <stdarg.h>
@@ -211,6 +208,9 @@ class LVCompiler {
 			_vm->_lasterror = SQString::Create(_ss(_vm), _compilererror, -1);
 			return false;
 		}
+
+		printf("compiler out\n");
+
 		return true;
 	}
 
@@ -1210,13 +1210,31 @@ class LVCompiler {
 	}
 
 	void IncludeStatement() {
-		SQObject varname;
+		SQObject unitname;
 
 		Lex();
+		Expect(_SC('('));
+		unitname = Expect(TK_STRING_LITERAL);
+		Expect(_SC(')'));
 
-		varname = Expect(TK_STRING_LITERAL);
+		if (LV_SUCCEEDED(sqstd_loadfile(_vm, _stringval(unitname), SQTrue))) {
+			int callargs = 1;
+			sq_pushroottable(_vm);
 
-		puts(_stringval(varname));
+			if (LV_SUCCEEDED(sq_call(_vm, callargs, SQTrue, SQTrue))) {
+				/*SQObjectType type = sq_gettype(_vm, -1);
+				if (type == OT_INTEGER) {
+					*retval = type;
+					sq_getinteger(_vm, -1, retval);
+				}*/
+				return;// DONE;
+			}
+
+			return;// ERROR;
+		}
+
+		// if (LV_FAILED(sqstd_loadfile(_vm, _stringval(unitname), SQTrue)))
+		// Error(_SC("cannot load required unit"));
 	}
 
 	void IfBlock() {
@@ -1233,10 +1251,12 @@ class LVCompiler {
 		} else {
 			//BEGIN_SCOPE();
 			Statement();
-			if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
+			if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';'))
+				OptionalSemicolon();
 			//END_SCOPE();
 		}
 	}
+
 	void IfStatement() {
 		SQInteger jmppos;
 		bool haselse = false;
@@ -1275,6 +1295,7 @@ class LVCompiler {
 		}
 		_fs->SetIntructionParam(jnepos, 1, endifblock - jnepos + (haselse ? 1 : 0));
 	}
+
 	void WhileStatement() {
 		SQInteger jzpos, jmppos;
 		jmppos = _fs->GetCurrentPos();
@@ -1296,6 +1317,7 @@ class LVCompiler {
 
 		END_BREAKBLE_BLOCK(jmppos);
 	}
+
 	void DoWhileStatement() {
 		Lex();
 		SQInteger jmptrg = _fs->GetCurrentPos();
@@ -1312,6 +1334,7 @@ class LVCompiler {
 		_fs->AddInstruction(_OP_JMP, 0, jmptrg - _fs->GetCurrentPos() - 1);
 		END_BREAKBLE_BLOCK(continuetrg);
 	}
+
 	void ForStatement() {
 		Lex();
 		BEGIN_SCOPE();
@@ -1360,6 +1383,7 @@ class LVCompiler {
 
 		END_BREAKBLE_BLOCK(continuetrg);
 	}
+
 	void ForEachStatement() {
 		SQObject idxname, valname;
 		Lex();
@@ -1404,6 +1428,7 @@ class LVCompiler {
 		_fs->PopTarget();
 		END_SCOPE();
 	}
+
 	void SwitchStatement() {
 		Lex();
 		Expect(_SC('('));
@@ -1463,13 +1488,15 @@ class LVCompiler {
 		if (__nbreaks__ > 0)ResolveBreaks(_fs, __nbreaks__);
 		_fs->_breaktargets.pop_back();
 	}
+
 	void FunctionStatement() {
 		SQObject id;
 		Lex();
 		id = Expect(TK_IDENTIFIER);
 		_fs->PushTarget(0);
 		_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
-		if (_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
+		if (_token == TK_DOUBLE_COLON)
+			Emit2ArgsOP(_OP_GET);
 
 		while (_token == TK_DOUBLE_COLON) {
 			Lex();
@@ -1477,12 +1504,14 @@ class LVCompiler {
 			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 			if (_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
 		}
+
 		Expect(_SC('('));
 		CreateFunction(id);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 		EmitDerefOp(_OP_NEWSLOT);
 		_fs->PopTarget();
 	}
+
 	void ClassStatement() {
 		SQExpState es;
 		Lex();
@@ -1500,6 +1529,7 @@ class LVCompiler {
 		}
 		_es = es;
 	}
+
 	SQObject ExpectScalar() {
 		SQObject val;
 		val._type = OT_NULL;
@@ -1542,6 +1572,7 @@ class LVCompiler {
 		Lex();
 		return val;
 	}
+
 	void EnumStatement() {
 		Lex();
 		SQObject id = Expect(TK_IDENTIFIER);
@@ -1568,6 +1599,7 @@ class LVCompiler {
 		strongid.Null();
 		Lex();
 	}
+
 	void TryCatchStatement() {
 		SQObject exid;
 		Lex();
@@ -1601,6 +1633,7 @@ class LVCompiler {
 			END_SCOPE();
 		}
 	}
+
 	void FunctionExp(SQInteger ftype, bool lambda = false) {
 		Lex();
 		Expect(_SC('('));
@@ -1608,6 +1641,7 @@ class LVCompiler {
 		CreateFunction(dummy, lambda);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION ? 0 : 1);
 	}
+
 	void ClassExp() {
 		SQInteger base = -1;
 		SQInteger attrs = -1;
@@ -1628,6 +1662,7 @@ class LVCompiler {
 		_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), base, attrs, NOT_CLASS);
 		ParseTableOrClass(_SC(';'), _SC('}'));
 	}
+
 	void DeleteExpr() {
 		SQExpState es;
 		Lex();
@@ -1642,6 +1677,7 @@ class LVCompiler {
 		}
 		_es = es;
 	}
+
 	void PrefixIncDec(SQInteger token) {
 		SQExpState  es;
 		SQInteger diff = (token == TK_MINUSMINUS) ? -1 : 1;
@@ -1713,7 +1749,7 @@ class LVCompiler {
 		funcstate->AddInstruction(_OP_RETURN, -1);
 		funcstate->SetStackSize(0);
 
-		SQFunctionProto *func = funcstate->BuildProto();
+		FunctionPrototype *func = funcstate->BuildProto();
 #ifdef _DEBUG_DUMP
 		funcstate->Dump(func);
 #endif
@@ -1731,6 +1767,7 @@ class LVCompiler {
 			ntoresolve--;
 		}
 	}
+
 	void ResolveContinues(FunctionState *funcstate, SQInteger ntoresolve, SQInteger targetpos) {
 		while (ntoresolve > 0) {
 			SQInteger pos = funcstate->_unresolvedcontinues.back();

@@ -3,11 +3,11 @@
 
 #define _CALC_CLOSURE_SIZE(func) (sizeof(SQClosure) + (func->_noutervalues*sizeof(SQObjectPtr)) + (func->_ndefaultparams*sizeof(SQObjectPtr)))
 
-struct SQFunctionProto;
+struct FunctionPrototype;
 struct SQClass;
 struct SQClosure : public CHAINABLE_OBJ {
   private:
-	SQClosure(SQSharedState *ss, SQFunctionProto *func) {
+	SQClosure(SQSharedState *ss, FunctionPrototype *func) {
 		_function = func;
 		__ObjAddRef(_function);
 		_base = NULL;
@@ -18,7 +18,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 	}
 
   public:
-	static SQClosure *Create(SQSharedState *ss, SQFunctionProto *func, SQWeakRef *root) {
+	static SQClosure *Create(SQSharedState *ss, FunctionPrototype *func, SQWeakRef *root) {
 		SQInteger size = _CALC_CLOSURE_SIZE(func);
 		SQClosure *nc = (SQClosure *)SQ_MALLOC(size);
 		new (nc) SQClosure(ss, func);
@@ -31,7 +31,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 		return nc;
 	}
 	void Release() {
-		SQFunctionProto *f = _function;
+		FunctionPrototype *f = _function;
 		SQInteger size = _CALC_CLOSURE_SIZE(f);
 		_DESTRUCT_VECTOR(SQObjectPtr, f->_noutervalues, _outervalues);
 		_DESTRUCT_VECTOR(SQObjectPtr, f->_ndefaultparams, _defaultparams);
@@ -45,7 +45,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 		__ObjAddRef(_root);
 	}
 	SQClosure *Clone() {
-		SQFunctionProto *f = _function;
+		FunctionPrototype *f = _function;
 		SQClosure *ret = SQClosure::Create(_opt_ss(this), f, _root);
 		ret->_env = _env;
 		if (ret->_env) __ObjAddRef(ret->_env);
@@ -60,7 +60,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
 	void Finalize() {
-		SQFunctionProto *f = _function;
+		FunctionPrototype *f = _function;
 		_NULL_SQOBJECT_VECTOR(_outervalues, f->_noutervalues);
 		_NULL_SQOBJECT_VECTOR(_defaultparams, f->_ndefaultparams);
 	}
@@ -72,7 +72,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 	SQWeakRef *_env;
 	SQWeakRef *_root;
 	SQClass *_base;
-	SQFunctionProto *_function;
+	FunctionPrototype *_function;
 	SQObjectPtr *_outervalues;
 	SQObjectPtr *_defaultparams;
 };

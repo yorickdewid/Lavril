@@ -137,7 +137,7 @@ typedef union tagSQObjectValue {
 	SQInteger nInteger;
 	SQFloat fFloat;
 	SQUserPointer pUserPointer;
-	struct SQFunctionProto *pFunctionProto;
+	struct FunctionPrototype *pFunctionProto;
 	struct SQRefCounted *pRefCounted;
 	struct SQDelegable *pDelegable;
 	struct SQVM *pThread;
@@ -388,7 +388,7 @@ LAVRIL_API void sq_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook);
 #ifdef __GNUC__
 # define SQ_UNUSED_ARG(x) __attribute__((unused)) x
 #else
-# define SQ_UNUSED_ARG(x) x
+# define SQ_UNUSED_ARG(x) ((void)x)
 #endif
 
 #ifdef __cplusplus

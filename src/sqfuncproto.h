@@ -51,27 +51,27 @@ typedef sqvector<SQOuterVar> SQOuterVarVec;
 typedef sqvector<SQLocalVarInfo> SQLocalVarInfoVec;
 typedef sqvector<SQLineInfo> SQLineInfoVec;
 
-#define _FUNC_SIZE(ni,nl,nparams,nfuncs,nouters,nlineinf,localinf,defparams) (sizeof(SQFunctionProto) \
+#define _FUNC_SIZE(ni,nl,nparams,nfuncs,nouters,nlineinf,localinf,defparams) (sizeof(FunctionPrototype) \
         +((ni-1)*sizeof(SQInstruction))+(nl*sizeof(SQObjectPtr)) \
         +(nparams*sizeof(SQObjectPtr))+(nfuncs*sizeof(SQObjectPtr)) \
         +(nouters*sizeof(SQOuterVar))+(nlineinf*sizeof(SQLineInfo)) \
         +(localinf*sizeof(SQLocalVarInfo))+(defparams*sizeof(SQInteger)))
 
 
-struct SQFunctionProto : public CHAINABLE_OBJ {
+struct FunctionPrototype : public CHAINABLE_OBJ {
   private:
-	SQFunctionProto(SQSharedState *ss);
-	~SQFunctionProto();
+	FunctionPrototype(SQSharedState *ss);
+	~FunctionPrototype();
 
   public:
-	static SQFunctionProto *Create(SQSharedState *ss, SQInteger ninstructions,
-	                               SQInteger nliterals, SQInteger nparameters,
-	                               SQInteger nfunctions, SQInteger noutervalues,
-	                               SQInteger nlineinfos, SQInteger nlocalvarinfos, SQInteger ndefaultparams) {
-		SQFunctionProto *f;
+	static FunctionPrototype *Create(SQSharedState *ss, SQInteger ninstructions,
+	                                 SQInteger nliterals, SQInteger nparameters,
+	                                 SQInteger nfunctions, SQInteger noutervalues,
+	                                 SQInteger nlineinfos, SQInteger nlocalvarinfos, SQInteger ndefaultparams) {
+		FunctionPrototype *f;
 		//I compact the whole class and members in a single memory allocation
-		f = (SQFunctionProto *)sq_vm_malloc(_FUNC_SIZE(ninstructions, nliterals, nparameters, nfunctions, noutervalues, nlineinfos, nlocalvarinfos, ndefaultparams));
-		new (f) SQFunctionProto(ss);
+		f = (FunctionPrototype *)sq_vm_malloc(_FUNC_SIZE(ninstructions, nliterals, nparameters, nfunctions, noutervalues, nlineinfos, nlocalvarinfos, ndefaultparams));
+		new (f) FunctionPrototype(ss);
 		f->_ninstructions = ninstructions;
 		f->_literals = (SQObjectPtr *)&f->_instructions[ninstructions];
 		f->_nliterals = nliterals;
@@ -104,7 +104,7 @@ struct SQFunctionProto : public CHAINABLE_OBJ {
 		//_DESTRUCT_VECTOR(SQLineInfo,_nlineinfos,_lineinfos); //not required are 2 integers
 		_DESTRUCT_VECTOR(SQLocalVarInfo, _nlocalvarinfos, _localvarinfos);
 		SQInteger size = _FUNC_SIZE(_ninstructions, _nliterals, _nparameters, _nfunctions, _noutervalues, _nlineinfos, _nlocalvarinfos, _ndefaultparams);
-		this->~SQFunctionProto();
+		this->~FunctionPrototype();
 		sq_vm_free(this, size);
 	}
 
@@ -121,6 +121,7 @@ struct SQFunctionProto : public CHAINABLE_OBJ {
 		return OT_FUNCPROTO;
 	}
 #endif
+
 	SQObjectPtr _sourcename;
 	SQObjectPtr _name;
 	SQInteger _stacksize;

@@ -11,7 +11,7 @@ SQRESULT sq_getfunctioninfo(HSQUIRRELVM v, SQInteger level, SQFunctionInfo *fi) 
 		SQVM::CallInfo& ci = v->_callsstack[cssize - level - 1];
 		if (sq_isclosure(ci._closure)) {
 			SQClosure *c = _closure(ci._closure);
-			SQFunctionProto *proto = c->_function;
+			FunctionPrototype *proto = c->_function;
 			fi->funcid = proto;
 			fi->name = type(proto->_name) == OT_STRING ? _stringval(proto->_name) : _SC("unknown");
 			fi->source = type(proto->_sourcename) == OT_STRING ? _stringval(proto->_sourcename) : _SC("unknown");
@@ -29,7 +29,7 @@ SQRESULT sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si) {
 		SQVM::CallInfo& ci = v->_callsstack[cssize - level - 1];
 		switch (type(ci._closure)) {
 			case OT_CLOSURE: {
-				SQFunctionProto *func = _closure(ci._closure)->_function;
+				FunctionPrototype *func = _closure(ci._closure)->_function;
 				if (type(func->_name) == OT_STRING)
 					si->funcname = _stringval(func->_name);
 				if (type(func->_sourcename) == OT_STRING)

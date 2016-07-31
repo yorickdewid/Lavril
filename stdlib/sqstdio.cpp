@@ -320,7 +320,8 @@ static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf) {
 
 SQInteger file_read(SQUserPointer file, SQUserPointer buf, SQInteger size) {
 	SQInteger ret;
-	if ( ( ret = sqstd_fread(buf, 1, size, (SQFILE)file )) != 0 )return ret;
+	if ((ret = sqstd_fread(buf, 1, size, (SQFILE)file )) != 0)
+		return ret;
 	return -1;
 }
 

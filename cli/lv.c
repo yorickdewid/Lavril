@@ -307,7 +307,7 @@ void interactive(HSQUIRRELVM v) {
 			SQInteger oldtop = sq_gettop(v);
 			if (LV_SUCCEEDED(sq_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
 				sq_pushroottable(v);
-				if (LV_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) &&  retval) {
+				if (LV_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) && retval) {
 					scprintf(_SC("\n"));
 					sq_pushroottable(v);
 					sq_pushstring(v, _SC("print"), -1);

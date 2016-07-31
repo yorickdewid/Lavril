@@ -72,6 +72,7 @@ SQInstructionDesc g_InstrDesc[] = {
 	{_SC("_OP_CLOSE")},
 };
 #endif
+
 void DumpLiteral(SQObjectPtr& o) {
 	switch (type(o)) {
 		case OT_STRING:
@@ -117,7 +118,7 @@ void FunctionState::Error(const SQChar *err) {
 }
 
 #ifdef _DEBUG_DUMP
-void FunctionState::Dump(SQFunctionProto *func) {
+void FunctionState::Dump(FunctionPrototype *func) {
 	SQUnsignedInteger n = 0, i;
 	SQInteger si;
 
@@ -126,6 +127,7 @@ void FunctionState::Dump(SQFunctionProto *func) {
 	scprintf(_SC("stack size: " LVFORMATINT "\n"), func->_stacksize);
 	if (_varparams)
 		scprintf(_SC("varparams: true\n"));
+
 	scprintf(_SC("literals:\n"));
 	SQObjectPtr refidx, key, val;
 	SQInteger idx;
@@ -596,11 +598,10 @@ SQObject FunctionState::CreateTable() {
 	return nt;
 }
 
-SQFunctionProto *FunctionState::BuildProto() {
-
-	SQFunctionProto *f = SQFunctionProto::Create(_ss, _instructions.size(),
-	                     _nliterals, _parameters.size(), _functions.size(), _outervalues.size(),
-	                     _lineinfos.size(), _localvarinfos.size(), _defaultparams.size());
+FunctionPrototype *FunctionState::BuildProto() {
+	FunctionPrototype *f = FunctionPrototype::Create(_ss, _instructions.size(),
+	                       _nliterals, _parameters.size(), _functions.size(), _outervalues.size(),
+	                       _lineinfos.size(), _localvarinfos.size(), _defaultparams.size());
 
 	SQObjectPtr refidx, key, val;
 	SQInteger idx;

@@ -358,7 +358,7 @@ SQRESULT sq_getclosureinfo(HSQUIRRELVM v, SQInteger idx, SQUnsignedInteger *npar
 	SQObject o = stack_get(v, idx);
 	if (type(o) == OT_CLOSURE) {
 		SQClosure *c = _closure(o);
-		SQFunctionProto *proto = c->_function;
+		FunctionPrototype *proto = c->_function;
 		*nparams = (SQUnsignedInteger)proto->_nparameters;
 		*nfreevars = (SQUnsignedInteger)proto->_noutervalues;
 		return LV_OK;
@@ -1000,7 +1000,7 @@ const SQChar *sq_getlocal(HSQUIRRELVM v, SQUnsignedInteger level, SQUnsignedInte
 		if (type(ci._closure) != OT_CLOSURE)
 			return NULL;
 		SQClosure *c = _closure(ci._closure);
-		SQFunctionProto *func = c->_function;
+		FunctionPrototype *func = c->_function;
 		if (func->_noutervalues > (SQInteger)idx) {
 			v->Push(*_outer(c->_outervalues[idx])->_valptr);
 			return _stringval(func->_outervalues[idx]._name);
@@ -1072,7 +1072,7 @@ SQRESULT sq_call(HSQUIRRELVM v, SQInteger params, SQBool retval, SQBool raiseerr
 
 	if (v->Call(v->GetUp(-(params + 1)), params, v->_top - params, res, raiseerror ? true : false)) {
 		if (!v->_suspended) {
-			v->Pop(params);//pop closure and args
+			v->Pop(params); //pop closure and args
 		}
 
 		if (retval) {
@@ -1223,7 +1223,7 @@ const SQChar *sq_getfreevariable(HSQUIRRELVM v, SQInteger idx, SQUnsignedInteger
 	switch (type(self)) {
 		case OT_CLOSURE: {
 			SQClosure *clo = _closure(self);
-			SQFunctionProto *fp = clo->_function;
+			FunctionPrototype *fp = clo->_function;
 			if (((SQUnsignedInteger)fp->_noutervalues) > nval) {
 				v->Push(*(_outer(clo->_outervalues[nval])->_valptr));
 				SQOuterVar& ov = fp->_outervalues[nval];
@@ -1249,7 +1249,7 @@ SQRESULT sq_setfreevariable(HSQUIRRELVM v, SQInteger idx, SQUnsignedInteger nval
 	SQObjectPtr& self = stack_get(v, idx);
 	switch (type(self)) {
 		case OT_CLOSURE: {
-			SQFunctionProto *fp = _closure(self)->_function;
+			FunctionPrototype *fp = _closure(self)->_function;
 			if (((SQUnsignedInteger)fp->_noutervalues) > nval) {
 				*(_outer(_closure(self)->_outervalues[nval])->_valptr) = stack_get(v, -1);
 			} else return sq_throwerror(v, _SC("invalid free var index"));

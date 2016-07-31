@@ -439,9 +439,8 @@ bool SQVM::Init(SQVM *friendvm, SQInteger stacksize) {
 	return true;
 }
 
-
 bool SQVM::StartCall(SQClosure *closure, SQInteger target, SQInteger args, SQInteger stackbase, bool tailcall) {
-	SQFunctionProto *func = closure->_function;
+	FunctionPrototype *func = closure->_function;
 
 	SQInteger paramssize = func->_nparameters;
 	const SQInteger newtop = stackbase + func->_stacksize;
@@ -494,7 +493,7 @@ bool SQVM::StartCall(SQClosure *closure, SQInteger target, SQInteger args, SQInt
 	}
 
 	if (closure->_function->_bgenerator) {
-		SQFunctionProto *f = closure->_function;
+		FunctionPrototype *f = closure->_function;
 		SQGenerator *gen = SQGenerator::Create(_ss(this), closure);
 		if (!gen->Yield(this, f->_stacksize))
 			return false;
@@ -646,7 +645,7 @@ bool SQVM::FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr
 
 #define _GUARD(exp) { if(!exp) { SQ_THROW();} }
 
-bool SQVM::CLOSURE_OP(SQObjectPtr& target, SQFunctionProto *func) {
+bool SQVM::CLOSURE_OP(SQObjectPtr& target, FunctionPrototype *func) {
 	SQInteger nouters;
 	SQClosure *closure = SQClosure::Create(_ss(this), func, _table(_roottable)->GetWeakRef(OT_TABLE));
 	if ((nouters = func->_noutervalues)) {
@@ -730,12 +729,16 @@ bool SQVM::IsFalse(SQObjectPtr& o) {
 	}
 	return false;
 }
+
 extern SQInstructionDesc g_InstrDesc[];
 bool SQVM::Execute(SQObjectPtr& closure, SQInteger nargs, SQInteger stackbase, SQObjectPtr& outres, SQBool raiseerror, ExecutionType et) {
 	if ((_nnativecalls + 1) > MAX_NATIVE_CALLS) {
 		Raise_Error(_SC("Native stack overflow"));
 		return false;
 	}
+
+	puts("Execute");
+
 	_nnativecalls++;
 	AutoDec ad(&_nnativecalls);
 	SQInteger traps = 0;
@@ -746,7 +749,8 @@ bool SQVM::Execute(SQObjectPtr& closure, SQInteger nargs, SQInteger stackbase, S
 			temp_reg = closure;
 			if (!StartCall(_closure(temp_reg), _top - nargs, nargs, stackbase, false)) {
 				//call the handler if there are no calls in the stack, if not relies on the previous node
-				if (ci == NULL) CallErrorHandler(_lasterror);
+				if (ci == NULL)
+					CallErrorHandler(_lasterror);
 				return false;
 			}
 			if (ci == prevci) {
@@ -777,11 +781,12 @@ exception_restore:
 	{
 		for (;;) {
 			const SQInstruction& _i_ = *ci->_ip++;
-			//dumpstack(_stackbase);
-			//scprintf("\n[%d] %s %d %d %d %d\n",ci->_ip-_closure(ci->_closure)->_function->_instructions,g_InstrDesc[_i_.op].name,arg0,arg1,arg2,arg3);
+			// dumpstack(_stackbase);
+			scprintf("\n[%d] %s %d %d %d %d\n", ci->_ip - _closure(ci->_closure)->_function->_instructions, g_InstrDesc[_i_.op].name, arg0, arg1, arg2, arg3);
 			switch (_i_.op) {
 				case _OP_LINE:
-					if (_debughook) CallDebugHook(_SC('l'), arg1);
+					if (_debughook)
+						CallDebugHook(_SC('l'), arg1);
 					continue;
 				case _OP_LOAD:
 					TARGET = ci->_literals[arg1];
@@ -1139,7 +1144,7 @@ exception_restore:
 					SQ_THROW();
 				case _OP_CLOSURE: {
 					SQClosure *c = ci->_closure._unVal.pClosure;
-					SQFunctionProto *fp = c->_function;
+					FunctionPrototype *fp = c->_function;
 					if (!CLOSURE_OP(TARGET, fp->_functions[arg1]._unVal.pFunctionProto)) {
 						SQ_THROW();
 					}
@@ -1285,7 +1290,7 @@ void SQVM::CallErrorHandler(SQObjectPtr& error) {
 
 void SQVM::CallDebugHook(SQInteger type, SQInteger forcedline) {
 	_debughook = false;
-	SQFunctionProto *func = _closure(ci->_closure)->_function;
+	FunctionPrototype *func = _closure(ci->_closure)->_function;
 	if (_debughook_native) {
 		const SQChar *src = type(func->_sourcename) == OT_STRING ? _stringval(func->_sourcename) : NULL;
 		const SQChar *fname = type(func->_name) == OT_STRING ? _stringval(func->_name) : NULL;
@@ -1331,7 +1336,8 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, SQInteger nargs, SQInteger newb
 		}
 	}
 
-	if (!EnterFrame(newbase, newtop, false)) return false;
+	if (!EnterFrame(newbase, newtop, false))
+		return false;
 	ci->_closure  = nclosure;
 
 	SQInteger outers = nclosure->_noutervalues;
@@ -1371,14 +1377,16 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, SQInteger nargs, SQInteger newb
 bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest, SQUnsignedInteger getflags, SQInteger selfidx) {
 	switch (type(self)) {
 		case OT_TABLE:
-			if (_table(self)->Get(key, dest))return true;
+			if (_table(self)->Get(key, dest))
+				return true;
 			break;
 		case OT_ARRAY:
 			if (sq_isnumeric(key)) {
 				if (_array(self)->Get(tointeger(key), dest)) {
 					return true;
 				}
-				if ((getflags & GET_FLAG_DO_NOT_RAISE_ERROR) == 0) Raise_IdxError(key);
+				if ((getflags & GET_FLAG_DO_NOT_RAISE_ERROR) == 0)
+					Raise_IdxError(key);
 				return false;
 			}
 			break;
@@ -1428,7 +1436,8 @@ bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& des
 
 	}
 	//#endif
-	if ((getflags & GET_FLAG_DO_NOT_RAISE_ERROR) == 0) Raise_IdxError(key);
+	if ((getflags & GET_FLAG_DO_NOT_RAISE_ERROR) == 0)
+		Raise_IdxError(key);
 	return false;
 }
 
@@ -1473,7 +1482,6 @@ bool SQVM::InvokeDefaultDelegate(const SQObjectPtr& self, const SQObjectPtr& key
 	}
 	return  ddel->Get(key, dest);
 }
-
 
 SQInteger SQVM::FallBackGet(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest) {
 	switch (type(self)) {
@@ -1749,12 +1757,15 @@ bool SQVM::Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQ
 
 	switch (type(closure)) {
 		case OT_CLOSURE:
+			puts("OT_CLOSURE");
 			return Execute(closure, nparams, stackbase, outres, raiseerror);
 		case OT_NATIVECLOSURE: {
+			puts("OT_NATIVECLOSURE");
 			bool suspend;
 			return CallNative(_nativeclosure(closure), nparams, stackbase, outres, suspend);
 		}
 		case OT_CLASS: {
+			puts("OT_CLASS");
 			SQObjectPtr constr;
 			SQObjectPtr temp;
 			CreateClassInstance(_class(closure), outres, constr);
@@ -1899,18 +1910,23 @@ void SQVM::Pop(SQInteger n) {
 void SQVM::PushNull() {
 	_stack[_top++].Null();
 }
+
 void SQVM::Push(const SQObjectPtr& o) {
 	_stack[_top++] = o;
 }
+
 SQObjectPtr& SQVM::Top() {
 	return _stack[_top - 1];
 }
+
 SQObjectPtr& SQVM::PopGet() {
 	return _stack[--_top];
 }
+
 SQObjectPtr& SQVM::GetUp(SQInteger n) {
 	return _stack[_top + n];
 }
+
 SQObjectPtr& SQVM::GetAt(SQInteger n) {
 	return _stack[n];
 }

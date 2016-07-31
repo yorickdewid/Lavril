@@ -7,7 +7,7 @@ struct FunctionState {
 	FunctionState(SQSharedState *ss, FunctionState *parent, CompilerErrorFunc efunc, void *ed);
 	~FunctionState();
 #ifdef _DEBUG_DUMP
-	void Dump(SQFunctionProto *func);
+	void Dump(FunctionPrototype *func);
 #endif
 	void Error(const SQChar *err);
 	FunctionState *PushChildState(SQSharedState *ss);
@@ -51,7 +51,7 @@ struct FunctionState {
 	SQInteger GetStackSize();
 	SQInteger CalcStackFrameSize();
 	void AddLineInfos(SQInteger line, bool lineop, bool force = false);
-	SQFunctionProto *BuildProto();
+	FunctionPrototype *BuildProto();
 	SQInteger AllocStackPos();
 	SQInteger PushTarget(SQInteger n = -1);
 	SQInteger PopTarget();

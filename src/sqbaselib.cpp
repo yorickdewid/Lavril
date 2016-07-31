@@ -858,7 +858,7 @@ static SQInteger closure_getinfos(HSQUIRRELVM v) {
 	SQObject o = stack_get(v, 1);
 	SQTable *res = SQTable::Create(_ss(v), 4);
 	if (type(o) == OT_CLOSURE) {
-		SQFunctionProto *f = _closure(o)->_function;
+		FunctionPrototype *f = _closure(o)->_function;
 		SQInteger nparams = f->_nparameters + (f->_varparams ? 1 : 0);
 		SQObjectPtr params = SQArray::Create(_ss(v), nparams);
 		SQObjectPtr defparams = SQArray::Create(_ss(v), f->_ndefaultparams);
