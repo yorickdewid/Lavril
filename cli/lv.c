@@ -345,6 +345,7 @@ int main(int argc, char *argv[]) {
 	sqstd_register_stringlib(v);
 
 	sqstd_seterrorhandlers(v);
+	sqstd_setunitloader(v);
 
 	switch (getargs(v, argc, argv, &retval)) {
 		case INTERACTIVE:

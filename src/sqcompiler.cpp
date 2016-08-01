@@ -183,8 +183,8 @@ class LVCompiler {
 		if (setjmp(_errorjmp) == 0) {
 			Lex();
 
-			printf("stacksize %lld\n", stacksize);
-			printf("_token %lld\n", _token);
+			// printf("stacksize %lld\n", stacksize);
+			// printf("_token %lld\n", _token);
 
 			while (_token > 0) {
 				Statement();
@@ -209,7 +209,7 @@ class LVCompiler {
 			return false;
 		}
 
-		printf("compiler out\n");
+		// printf("compiler out\n");
 
 		return true;
 	}
@@ -560,6 +560,7 @@ class LVCompiler {
 				return;
 			}
 	}
+
 	void BitwiseXorExp() {
 		BitwiseAndExp();
 		for (;;)
@@ -569,6 +570,7 @@ class LVCompiler {
 				return;
 			}
 	}
+
 	void BitwiseAndExp() {
 		EqExp();
 		for (;;)
@@ -578,6 +580,7 @@ class LVCompiler {
 				return;
 			}
 	}
+
 	void EqExp() {
 		CompExp();
 		for (;;)
@@ -595,6 +598,7 @@ class LVCompiler {
 					return;
 			}
 	}
+
 	void CompExp() {
 		ShiftExp();
 		for (;;)
@@ -621,6 +625,7 @@ class LVCompiler {
 					return;
 			}
 	}
+
 	void ShiftExp() {
 		PlusExp();
 		for (;;)
@@ -638,6 +643,7 @@ class LVCompiler {
 					return;
 			}
 	}
+
 	SQOpcode ChooseArithOpByToken(SQInteger tok) {
 		switch (tok) {
 			case TK_PLUSEQ:
@@ -660,6 +666,7 @@ class LVCompiler {
 		}
 		return _OP_ADD;
 	}
+
 	SQInteger ChooseCompArithCharByToken(SQInteger tok) {
 		SQInteger oper;
 		switch (tok) {
@@ -685,6 +692,7 @@ class LVCompiler {
 		};
 		return oper;
 	}
+
 	void PlusExp() {
 		MultExp();
 		for (;;)
@@ -1036,6 +1044,7 @@ class LVCompiler {
 		_es.etype = EXPR;
 		return -1;
 	}
+
 	void EmitLoadConstInt(SQInteger value, SQInteger target) {
 		if (target < 0) {
 			target = _fs->PushTarget();
@@ -1046,6 +1055,7 @@ class LVCompiler {
 			_fs->AddInstruction(_OP_LOAD, target, _fs->GetNumericConstant(value));
 		}
 	}
+
 	void EmitLoadConstFloat(SQFloat value, SQInteger target) {
 		if (target < 0) {
 			target = _fs->PushTarget();
@@ -1056,11 +1066,13 @@ class LVCompiler {
 			_fs->AddInstruction(_OP_LOAD, target, _fs->GetNumericConstant(value));
 		}
 	}
+
 	void UnaryOP(SQOpcode op) {
 		PrefixedExpr();
 		SQInteger src = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), src);
 	}
+
 	bool NeedGet() {
 		switch (_token) {
 			case _SC('='):
@@ -1081,6 +1093,7 @@ class LVCompiler {
 		}
 		return (!_es.donot_get || ( _es.donot_get && (_token == _SC('.') || _token == _SC('['))));
 	}
+
 	void FunctionCallArgs() {
 		SQInteger nargs = 1;//this
 		while (_token != _SC(')')) {
@@ -1089,15 +1102,18 @@ class LVCompiler {
 			nargs++;
 			if (_token == _SC(',')) {
 				Lex();
-				if (_token == ')') Error(_SC("expression expected, found ')'"));
+				if (_token == ')')
+					Error(_SC("expression expected, found ')'"));
 			}
 		}
 		Lex();
-		for (SQInteger i = 0; i < (nargs - 1); i++) _fs->PopTarget();
+		for (SQInteger i = 0; i < (nargs - 1); i++)
+			_fs->PopTarget();
 		SQInteger stackbase = _fs->PopTarget();
 		SQInteger closure = _fs->PopTarget();
 		_fs->AddInstruction(_OP_CALL, _fs->PushTarget(), closure, stackbase, nargs);
 	}
+
 	void ParseTableOrClass(SQInteger separator, SQInteger terminator) {
 		SQInteger tpos = _fs->GetCurrentPos(), nkeys = 0;
 		while (_token != terminator) {
@@ -1217,24 +1233,12 @@ class LVCompiler {
 		unitname = Expect(TK_STRING_LITERAL);
 		Expect(_SC(')'));
 
-		if (LV_SUCCEEDED(sqstd_loadfile(_vm, _stringval(unitname), SQTrue))) {
-			int callargs = 1;
-			sq_pushroottable(_vm);
-
-			if (LV_SUCCEEDED(sq_call(_vm, callargs, SQTrue, SQTrue))) {
-				/*SQObjectType type = sq_gettype(_vm, -1);
-				if (type == OT_INTEGER) {
-					*retval = type;
-					sq_getinteger(_vm, -1, retval);
-				}*/
-				return;// DONE;
-			}
-
-			return;// ERROR;
+		if (_ss(_vm)->_unitloaderhandler) {
+			if (LV_FAILED(_ss(_vm)->_unitloaderhandler(_vm, _stringval(unitname), SQTrue)))
+				Error(_SC("cannot load include"));
+		} else {
+			Error(_SC("unexpected 'include'"));
 		}
-
-		// if (LV_FAILED(sqstd_loadfile(_vm, _stringval(unitname), SQTrue)))
-		// Error(_SC("cannot load required unit"));
 	}
 
 	void IfBlock() {
@@ -1268,18 +1272,6 @@ class LVCompiler {
 		SQInteger jnepos = _fs->GetCurrentPos();
 
 		IfBlock();
-		//
-		/*static int n = 0;
-		if (_token != _SC('}') && _token != TK_ELSE) {
-			printf("IF %d-----------------------!!!!!!!!!\n", n);
-			if (n == 5)
-			{
-				printf("asd");
-			}
-			n++;
-			//OptionalSemicolon();
-		}*/
-
 
 		SQInteger endifblock = _fs->GetCurrentPos();
 		if (_token == TK_ELSE) {
@@ -1563,11 +1555,11 @@ class LVCompiler {
 						val._unVal.fFloat = -_lex._fvalue;
 						break;
 					default:
-						Error(_SC("scalar expected : integer,float"));
+						Error(_SC("scalar expected: integer, float"));
 				}
 				break;
 			default:
-				Error(_SC("scalar expected : integer,float or string"));
+				Error(_SC("scalar expected: integer, float or string"));
 		}
 		Lex();
 		return val;

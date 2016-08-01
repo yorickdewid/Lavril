@@ -14,7 +14,6 @@
 
 //squirrel stuff
 #include <lavril.h>
-#include <sqstdio.h>
 #include "sqobject.h"
 #include "sqstate.h"
 

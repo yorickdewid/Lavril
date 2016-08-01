@@ -171,9 +171,9 @@ typedef SQInteger (*SQRELEASEHOOK)(SQUserPointer, SQInteger size);
 typedef void (*SQCOMPILERERROR)(HSQUIRRELVM, const SQChar * /*desc*/, const SQChar * /*source*/, SQInteger /*line*/, SQInteger /*column*/);
 typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM, const SQChar *, ...);
 typedef void (*SQDEBUGHOOK)(HSQUIRRELVM /*v*/, SQInteger /*type*/, const SQChar * /*sourcename*/, SQInteger /*line*/, const SQChar * /*funcname*/);
+typedef SQInteger (*SQLOADUNIT)(HSQUIRRELVM /*v*/, const SQChar * /*sourcename*/, SQBool /*printerr*/);
 typedef SQInteger (*SQWRITEFUNC)(SQUserPointer, SQUserPointer, SQInteger);
 typedef SQInteger (*SQREADFUNC)(SQUserPointer, SQUserPointer, SQInteger);
-
 typedef SQInteger (*SQLEXREADFUNC)(SQUserPointer);
 
 typedef struct tagSQRegFunction {
@@ -217,6 +217,7 @@ LAVRIL_API SQRESULT sq_compilebuffer(HSQUIRRELVM v, const SQChar *s, SQInteger s
 LAVRIL_API void sq_enabledebuginfo(HSQUIRRELVM v, SQBool enable);
 LAVRIL_API void sq_notifyallexceptions(HSQUIRRELVM v, SQBool enable);
 LAVRIL_API void sq_setcompilererrorhandler(HSQUIRRELVM v, SQCOMPILERERROR f);
+LAVRIL_API void sq_setunitloader(HSQUIRRELVM v, SQLOADUNIT f);
 
 /*stack operations*/
 LAVRIL_API void sq_push(HSQUIRRELVM v, SQInteger idx);
@@ -338,7 +339,6 @@ LAVRIL_API SQFloat sq_objtofloat(const HSQOBJECT *o);
 LAVRIL_API SQUserPointer sq_objtouserpointer(const HSQOBJECT *o);
 LAVRIL_API SQRESULT sq_getobjtypetag(const HSQOBJECT *o, SQUserPointer *typetag);
 LAVRIL_API SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM v, const HSQOBJECT *po);
-
 
 /*GC*/
 LAVRIL_API SQInteger sq_collectgarbage(HSQUIRRELVM v);

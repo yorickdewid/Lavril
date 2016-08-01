@@ -44,6 +44,8 @@ LAVRIL_API SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v, const SQChar *filena
 
 LAVRIL_API SQRESULT sqstd_register_iolib(HSQUIRRELVM v);
 
+LAVRIL_API void sqstd_setunitloader(HSQUIRRELVM v);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

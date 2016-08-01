@@ -1161,6 +1161,10 @@ void sq_setcompilererrorhandler(HSQUIRRELVM v, SQCOMPILERERROR f) {
 	_ss(v)->_compilererrorhandler = f;
 }
 
+void sq_setunitloader(HSQUIRRELVM v, SQLOADUNIT f) {
+	_ss(v)->_unitloaderhandler = f;
+}
+
 SQRESULT sq_writeclosure(HSQUIRRELVM v, SQWRITEFUNC w, SQUserPointer up) {
 	SQObjectPtr *o = NULL;
 	_GETSAFE_OBJ(v, -1, OT_CLOSURE, o);

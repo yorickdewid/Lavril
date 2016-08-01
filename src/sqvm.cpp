@@ -737,7 +737,7 @@ bool SQVM::Execute(SQObjectPtr& closure, SQInteger nargs, SQInteger stackbase, S
 		return false;
 	}
 
-	puts("Execute");
+	// puts("Execute");
 
 	_nnativecalls++;
 	AutoDec ad(&_nnativecalls);
@@ -782,7 +782,7 @@ exception_restore:
 		for (;;) {
 			const SQInstruction& _i_ = *ci->_ip++;
 			// dumpstack(_stackbase);
-			scprintf("\n[%d] %s %d %d %d %d\n", ci->_ip - _closure(ci->_closure)->_function->_instructions, g_InstrDesc[_i_.op].name, arg0, arg1, arg2, arg3);
+			// scprintf("\n[%d] %s %d %d %d %d\n", ci->_ip - _closure(ci->_closure)->_function->_instructions, g_InstrDesc[_i_.op].name, arg0, arg1, arg2, arg3);
 			switch (_i_.op) {
 				case _OP_LINE:
 					if (_debughook)
@@ -1757,15 +1757,12 @@ bool SQVM::Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQ
 
 	switch (type(closure)) {
 		case OT_CLOSURE:
-			puts("OT_CLOSURE");
 			return Execute(closure, nparams, stackbase, outres, raiseerror);
 		case OT_NATIVECLOSURE: {
-			puts("OT_NATIVECLOSURE");
 			bool suspend;
 			return CallNative(_nativeclosure(closure), nparams, stackbase, outres, suspend);
 		}
 		case OT_CLASS: {
-			puts("OT_CLASS");
 			SQObjectPtr constr;
 			SQObjectPtr temp;
 			CreateClassInstance(_class(closure), outres, constr);
@@ -1844,7 +1841,7 @@ bool SQVM::EnterFrame(SQInteger newbase, SQInteger newtop, bool tailcall) {
 	_top = newtop;
 	if (newtop + MIN_STACK_OVERHEAD > (SQInteger)_stack.size()) {
 		if (_nmetamethodscall) {
-			Raise_Error(_SC("stack overflow, cannot resize stack while in  a metamethod"));
+			Raise_Error(_SC("stack overflow, cannot resize stack while in a metamethod"));
 			return false;
 		}
 		_stack.resize(newtop + (MIN_STACK_OVERHEAD << 2));

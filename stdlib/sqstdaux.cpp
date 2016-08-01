@@ -6,21 +6,25 @@ void sqstd_printcallstack(HSQUIRRELVM v) {
 	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
 	if (pf) {
 		SQStackInfos si;
-		SQInteger i;
-		SQFloat f;
-		const SQChar *s;
-		SQInteger level = 1; //1 is to skip this function that is level 0
-		const SQChar *name = 0;
-		SQInteger seq = 0;
-		pf(v, _SC("\nCALLSTACK\n"));
+		SQInteger level = 1; /* Skip native function */
+		pf(v, _SC("\nBacktrace: (most recent first)\n"));
 		while (LV_SUCCEEDED(sq_stackinfos(v, level, &si))) {
 			const SQChar *fn = _SC("unknown");
 			const SQChar *src = _SC("unknown");
-			if (si.funcname)fn = si.funcname;
-			if (si.source)src = si.source;
-			pf(v, _SC("*FUNCTION [%s()] %s line [%d]\n"), fn, src, si.line);
+			if (si.funcname)
+				fn = si.funcname;
+			if (si.source)
+				src = si.source;
+			pf(v, _SC("  [%d] %s:%s():%d\n"), level - 1, src, fn, si.line);
 			level++;
 		}
+
+#ifdef _DEBUG_DUMP
+		SQInteger i;
+		SQFloat f;
+		SQInteger seq = 0;
+		const SQChar *name = 0;
+		const SQChar *s;
 		level = 0;
 		pf(v, _SC("\nLOCALS\n"));
 
@@ -90,6 +94,7 @@ void sqstd_printcallstack(HSQUIRRELVM v) {
 				sq_pop(v, 1);
 			}
 		}
+#endif
 	}
 }
 
@@ -99,9 +104,9 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v) {
 		const SQChar *sErr = 0;
 		if (sq_gettop(v) >= 1) {
 			if (LV_SUCCEEDED(sq_getstring(v, 2, &sErr)))   {
-				pf(v, _SC("runtime error: %s\n"), sErr);
+				pf(v, _SC("fatal error: %s\n"), sErr);
 			} else {
-				pf(v, _SC("runtime error: [unknown]\n"));
+				pf(v, _SC("fatal error: [unknown]\n"));
 			}
 			sqstd_printcallstack(v);
 		}

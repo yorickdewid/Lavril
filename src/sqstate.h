@@ -105,6 +105,7 @@ struct SQSharedState {
 	static const SQRegFunction _weakref_default_delegate_funcz[];
 
 	SQCOMPILERERROR _compilererrorhandler;
+	SQLOADUNIT _unitloaderhandler;
 	SQPRINTFUNCTION _printfunc;
 	SQPRINTFUNCTION _errorfunc;
 	bool _debuginfo;

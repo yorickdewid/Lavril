@@ -473,3 +473,15 @@ SQRESULT sqstd_register_iolib(HSQUIRRELVM v) {
 	sq_settop(v, top);
 	return LV_OK;
 }
+
+SQInteger _sqstd_loadunit(HSQUIRRELVM v, const SQChar *sSource, SQBool printerror) {
+	if (LV_FAILED(sqstd_execfile(v, sSource, SQTrue, printerror))) {
+		return LV_ERROR;
+	}
+	return LV_OK;
+}
+
+void sqstd_setunitloader(HSQUIRRELVM v) {
+	sq_setunitloader(v, _sqstd_loadunit);
+}
+
