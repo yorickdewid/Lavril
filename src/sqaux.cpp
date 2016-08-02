@@ -1,7 +1,7 @@
 #include "sqpcheader.h"
 
 CALLBACK static void printcallstack(HSQUIRRELVM v) {
-	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
+	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		SQStackInfos si;
 		SQInteger level = 1; /* Skip native function */
@@ -97,7 +97,7 @@ CALLBACK static void printcallstack(HSQUIRRELVM v) {
 }
 
 CALLBACK static SQInteger callback_printerror(HSQUIRRELVM v) {
-	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
+	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		const SQChar *sErr = 0;
 		if (sq_gettop(v) >= 1) {
@@ -113,7 +113,7 @@ CALLBACK static SQInteger callback_printerror(HSQUIRRELVM v) {
 }
 
 CALLBACK void callback_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const SQChar *sSource, SQInteger line, SQInteger column) {
-	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
+	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		pf(v, _SC("%s:%d:%d: error %s\n"), sSource, line, column, sErr);
 	}
@@ -122,5 +122,5 @@ CALLBACK void callback_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const S
 void sq_registererrorhandlers(HSQUIRRELVM v) {
 	sq_setcompilererrorhandler(v, callback_compiler_error);
 	sq_newclosure(v, callback_printerror, 0);
-	sq_seterrorhandler(v);
+	lv_seterrorhandler(v);
 }

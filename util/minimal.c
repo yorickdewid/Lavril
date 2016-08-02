@@ -30,7 +30,7 @@ void error_func(HSQUIRRELVM v, const SQChar *s, ...) {
 	va_end(vl);
 }
 
-void call_main(HSQUIRRELVM v, int n, float f, const SQChar *s) {
+void call_test(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 	/* Save the stack size before the call */
 	SQInteger top = sq_gettop(v);
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	HSQUIRRELVM v;
 
 	/* Creates a VM with initial stack size 1024 */
-	v = sq_open(1024);
+	v = lv_open(1024);
 
 	{
 		/* Push the global table to store std */
@@ -72,21 +72,21 @@ int main(int argc, char *argv[]) {
 	sq_registererrorhandlers(v);
 
 	/* Sets the print function */
-	sq_setprintfunc(v, print_func, error_func);
+	lv_setprintfunc(v, print_func, error_func);
 
 	/* Push the root table(were the globals of the script will be stored) */
 	sq_pushroottable(v);
 
 	/* Print syntax errors if any */
 	if (LV_SUCCEEDED(sq_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
-		call_main(v, 1, 2.5, _SC("teststring"));
+		call_test(v, 1, 2.5, _SC("teststring"));
 	}
 
 	/* Pop the root table */
 	sq_pop(v, 1);
 
 	/* Release the VM */
-	sq_close(v);
+	lv_close(v);
 
 	return 0;
 }

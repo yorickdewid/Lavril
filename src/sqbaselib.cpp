@@ -76,7 +76,7 @@ static SQInteger base_setconsttable(HSQUIRRELVM v) {
 }
 
 static SQInteger base_seterrorhandler(HSQUIRRELVM v) {
-	sq_seterrorhandler(v);
+	lv_seterrorhandler(v);
 	return 0;
 }
 
@@ -175,6 +175,18 @@ static SQInteger base_print(HSQUIRRELVM v) {
 	return LV_ERROR;
 }
 
+static SQInteger base_println(HSQUIRRELVM v) {
+	const SQChar *str;
+	if (LV_SUCCEEDED(sq_tostring(v, 2))) {
+		if (LV_SUCCEEDED(sq_getstring(v, -1, &str))) {
+			if (_ss(v)->_printfunc)
+				_ss(v)->_printfunc(v, _SC("%s\n"), str);
+			return 0;
+		}
+	}
+	return LV_ERROR;
+}
+
 static SQInteger base_error(HSQUIRRELVM v) {
 	const SQChar *str;
 	if (LV_SUCCEEDED(sq_tostring(v, 2))) {
@@ -196,7 +208,7 @@ static SQInteger base_compilestring(HSQUIRRELVM v) {
 	if (nargs > 2) {
 		sq_getstring(v, 3, &name);
 	}
-	if (LV_SUCCEEDED(sq_compilebuffer(v, src, size, name, SQFalse)))
+	if (LV_SUCCEEDED(lv_compilebuffer(v, src, size, name, SQFalse)))
 		return 1;
 	else
 		return LV_ERROR;
@@ -205,13 +217,13 @@ static SQInteger base_compilestring(HSQUIRRELVM v) {
 static SQInteger base_newthread(HSQUIRRELVM v) {
 	SQObjectPtr& func = stack_get(v, 2);
 	SQInteger stksize = (_closure(func)->_function->_stacksize << 1) + 2;
-	HSQUIRRELVM newv = sq_newthread(v, (stksize < MIN_STACK_OVERHEAD + 2) ? MIN_STACK_OVERHEAD + 2 : stksize);
+	HSQUIRRELVM newv = lv_newthread(v, (stksize < MIN_STACK_OVERHEAD + 2) ? MIN_STACK_OVERHEAD + 2 : stksize);
 	sq_move(newv, v, -2);
 	return 1;
 }
 
 static SQInteger base_suspend(HSQUIRRELVM v) {
-	return sq_suspendvm(v);
+	return lv_suspendvm(v);
 }
 
 static SQInteger base_array(HSQUIRRELVM v) {
@@ -253,6 +265,7 @@ static const SQRegFunction base_funcs[] = {
 	{_SC("setconsttable"), base_setconsttable, 2, NULL},
 	{_SC("assert"), base_assert, 2, NULL},
 	{_SC("print"), base_print, 2, NULL},
+	{_SC("println"), base_println, 2, NULL},
 	{_SC("error"), base_error, 2, NULL},
 	{_SC("compilestring"), base_compilestring, -2, _SC(".ss")},
 	{_SC("newthread"), base_newthread, 2, _SC(".c")},
@@ -271,6 +284,7 @@ static const SQRegFunction base_funcs[] = {
 void sq_base_register(HSQUIRRELVM v) {
 	SQInteger i = 0;
 	sq_pushroottable(v);
+
 	while (base_funcs[i].name != 0) {
 		sq_pushstring(v, base_funcs[i].name, -1);
 		sq_newclosure(v, base_funcs[i].f, 0);
@@ -281,10 +295,10 @@ void sq_base_register(HSQUIRRELVM v) {
 	}
 
 	sq_pushstring(v, _SC("_versionnumber_"), -1);
-	sq_pushinteger(v, SQUIRREL_VERSION_NUMBER);
+	sq_pushinteger(v, LAVRIL_VERSION_NUMBER);
 	sq_newslot(v, -3, SQFalse);
 	sq_pushstring(v, _SC("_version_"), -1);
-	sq_pushstring(v, SQUIRREL_VERSION, -1);
+	sq_pushstring(v, LAVRIL_VERSION, -1);
 	sq_newslot(v, -3, SQFalse);
 	sq_pushstring(v, _SC("_charsize_"), -1);
 	sq_pushinteger(v, sizeof(SQChar));
@@ -957,7 +971,7 @@ static SQInteger thread_wakeup(HSQUIRRELVM v) {
 	SQObjectPtr o = stack_get(v, 1);
 	if (type(o) == OT_THREAD) {
 		SQVM *thread = _thread(o);
-		SQInteger state = sq_getvmstate(thread);
+		SQInteger state = lv_getvmstate(thread);
 		if (state != SQ_VMSTATE_SUSPENDED) {
 			switch (state) {
 				case SQ_VMSTATE_IDLE:
@@ -973,10 +987,10 @@ static SQInteger thread_wakeup(HSQUIRRELVM v) {
 		if (wakeupret) {
 			sq_move(thread, v, 2);
 		}
-		if (LV_SUCCEEDED(sq_wakeupvm(thread, wakeupret, SQTrue, SQTrue, SQFalse))) {
+		if (LV_SUCCEEDED(lv_wakeupvm(thread, wakeupret, SQTrue, SQTrue, SQFalse))) {
 			sq_move(v, thread, -1);
 			sq_pop(thread, 1); //pop retval
-			if (sq_getvmstate(thread) == SQ_VMSTATE_IDLE) {
+			if (lv_getvmstate(thread) == SQ_VMSTATE_IDLE) {
 				sq_settop(thread, 1); //pop roottable
 			}
 			return 1;
@@ -992,7 +1006,7 @@ static SQInteger thread_wakeupthrow(HSQUIRRELVM v) {
 	SQObjectPtr o = stack_get(v, 1);
 	if (type(o) == OT_THREAD) {
 		SQVM *thread = _thread(o);
-		SQInteger state = sq_getvmstate(thread);
+		SQInteger state = lv_getvmstate(thread);
 		if (state != SQ_VMSTATE_SUSPENDED) {
 			switch (state) {
 				case SQ_VMSTATE_IDLE:
@@ -1010,10 +1024,10 @@ static SQInteger thread_wakeupthrow(HSQUIRRELVM v) {
 		if (sq_gettop(v) > 2) {
 			sq_getbool(v, 3, &rethrow_error);
 		}
-		if (LV_SUCCEEDED(sq_wakeupvm(thread, SQFalse, SQTrue, SQTrue, SQTrue))) {
+		if (LV_SUCCEEDED(lv_wakeupvm(thread, SQFalse, SQTrue, SQTrue, SQTrue))) {
 			sq_move(v, thread, -1);
 			sq_pop(thread, 1); //pop retval
-			if (sq_getvmstate(thread) == SQ_VMSTATE_IDLE) {
+			if (lv_getvmstate(thread) == SQ_VMSTATE_IDLE) {
 				sq_settop(thread, 1); //pop roottable
 			}
 			return 1;
@@ -1030,7 +1044,7 @@ static SQInteger thread_wakeupthrow(HSQUIRRELVM v) {
 
 static SQInteger thread_getstatus(HSQUIRRELVM v) {
 	SQObjectPtr& o = stack_get(v, 1);
-	switch (sq_getvmstate(_thread(o))) {
+	switch (lv_getvmstate(_thread(o))) {
 		case SQ_VMSTATE_IDLE:
 			sq_pushstring(v, _SC("idle"), -1);
 			break;

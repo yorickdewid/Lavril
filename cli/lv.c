@@ -56,7 +56,7 @@ void error_func(HSQUIRRELVM SQ_UNUSED_ARG(v), const SQChar *s, ...) {
 }
 
 void print_version_info() {
-	scfprintf(stdout, _SC("%s %s (%d bits)\n"), SQUIRREL_VERSION, SQUIRREL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
+	scfprintf(stdout, _SC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
 }
 
 void print_interactive_console_info() {
@@ -140,7 +140,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			int i = scstrlen(statement);
 			if (i > 0) {
 				SQInteger oldtop = sq_gettop(v);
-				if (LV_SUCCEEDED(sq_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
+				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
 					sq_pushroottable(v);
 					if (LV_SUCCEEDED(sq_call(v, 1, _retval, SQTrue)) && _retval) {
 						scprintf(_SC("\n"));
@@ -221,15 +221,15 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			}
 
 			/* If this point is reached an error occured */
-			{
-				const SQChar *err;
-				sq_getlasterror(v);
-				if (LV_SUCCEEDED(sq_getstring(v, -1, &err))) {
-					scprintf(_SC("Error [%s]\n"), err);
-					*retval = -2;
-					return ERROR;
-				}
-			}
+			// {
+			// 	const SQChar *err;
+			// 	sq_getlasterror(v);
+			// 	if (LV_SUCCEEDED(sq_getstring(v, -1, &err))) {
+			// 		scprintf(_SC("Error [%s]\n"), err);
+			// 		*retval = -2;
+			// 		return ERROR;
+			// 	}
+			// }
 		}
 	}
 
@@ -299,7 +299,7 @@ void interactive(HSQUIRRELVM v) {
 		i = scstrlen(buffer);
 		if (i > 0) {
 			SQInteger oldtop = sq_gettop(v);
-			if (LV_SUCCEEDED(sq_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
+			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
 				sq_pushroottable(v);
 				if (LV_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) && retval) {
 					scprintf(_SC("\n"));
@@ -327,8 +327,8 @@ int main(int argc, char *argv[]) {
 	_CrtSetAllocHook(MemAllocHook);
 #endif
 
-	v = sq_open(1024);
-	sq_setprintfunc(v, print_func, error_func);
+	v = lv_open(1024);
+	lv_setprintfunc(v, print_func, error_func);
 
 	sq_pushroottable(v);
 
@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
 			break;
 	}
 
-	sq_close(v);
+	lv_close(v);
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 	_getch();

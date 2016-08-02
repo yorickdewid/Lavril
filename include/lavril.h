@@ -64,10 +64,10 @@ struct SQOuter;
 
 #include "sqconfig.h"
 
-#define SQUIRREL_VERSION    _SC("Lavril 1.0-beta")
-#define SQUIRREL_COPYRIGHT  _SC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
-#define SQUIRREL_AUTHOR     _SC("Yorick de Wid")
-#define SQUIRREL_VERSION_NUMBER 100
+#define LAVRIL_VERSION    _SC("Lavril 1.0-beta")
+#define LAVRIL_COPYRIGHT  _SC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
+#define LAVRIL_AUTHOR     _SC("Yorick de Wid")
+#define LAVRIL_VERSION_NUMBER 100
 
 #define SQ_VMSTATE_IDLE         0
 #define SQ_VMSTATE_RUNNING      1
@@ -216,29 +216,29 @@ typedef struct tagSQFunctionInfo {
 typedef void *SQFILE;
 
 /* VM */
-LAVRIL_API HSQUIRRELVM sq_open(SQInteger initialstacksize);
-LAVRIL_API HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize);
-LAVRIL_API void sq_seterrorhandler(HSQUIRRELVM v);
-LAVRIL_API void sq_close(HSQUIRRELVM v);
-LAVRIL_API void sq_setforeignptr(HSQUIRRELVM v, SQUserPointer p);
-LAVRIL_API SQUserPointer sq_getforeignptr(HSQUIRRELVM v);
-LAVRIL_API void sq_setsharedforeignptr(HSQUIRRELVM v, SQUserPointer p);
-LAVRIL_API SQUserPointer sq_getsharedforeignptr(HSQUIRRELVM v);
-LAVRIL_API void sq_setvmreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook);
-LAVRIL_API SQRELEASEHOOK sq_getvmreleasehook(HSQUIRRELVM v);
-LAVRIL_API void sq_setsharedreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook);
-LAVRIL_API SQRELEASEHOOK sq_getsharedreleasehook(HSQUIRRELVM v);
-LAVRIL_API void sq_setprintfunc(HSQUIRRELVM v, SQPRINTFUNCTION printfunc, SQPRINTFUNCTION errfunc);
-LAVRIL_API SQPRINTFUNCTION sq_getprintfunc(HSQUIRRELVM v);
-LAVRIL_API SQPRINTFUNCTION sq_geterrorfunc(HSQUIRRELVM v);
-LAVRIL_API SQRESULT sq_suspendvm(HSQUIRRELVM v);
-LAVRIL_API SQRESULT sq_wakeupvm(HSQUIRRELVM v, SQBool resumedret, SQBool retval, SQBool raiseerror, SQBool throwerror);
-LAVRIL_API SQInteger sq_getvmstate(HSQUIRRELVM v);
-LAVRIL_API SQInteger sq_getversion();
+LAVRIL_API HSQUIRRELVM lv_open(SQInteger initialstacksize);
+LAVRIL_API HSQUIRRELVM lv_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize);
+LAVRIL_API void lv_seterrorhandler(HSQUIRRELVM v);
+LAVRIL_API void lv_close(HSQUIRRELVM v);
+LAVRIL_API void lv_setforeignptr(HSQUIRRELVM v, SQUserPointer p);
+LAVRIL_API SQUserPointer lv_getforeignptr(HSQUIRRELVM v);
+LAVRIL_API void lv_setsharedforeignptr(HSQUIRRELVM v, SQUserPointer p);
+LAVRIL_API SQUserPointer lv_getsharedforeignptr(HSQUIRRELVM v);
+LAVRIL_API void lv_setvmreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook);
+LAVRIL_API SQRELEASEHOOK lv_getvmreleasehook(HSQUIRRELVM v);
+LAVRIL_API void lv_setsharedreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook);
+LAVRIL_API SQRELEASEHOOK lv_getsharedreleasehook(HSQUIRRELVM v);
+LAVRIL_API void lv_setprintfunc(HSQUIRRELVM v, SQPRINTFUNCTION printfunc, SQPRINTFUNCTION errfunc);
+LAVRIL_API SQPRINTFUNCTION lv_getprintfunc(HSQUIRRELVM v);
+LAVRIL_API SQPRINTFUNCTION lv_geterrorfunc(HSQUIRRELVM v);
+LAVRIL_API SQRESULT lv_suspendvm(HSQUIRRELVM v);
+LAVRIL_API SQRESULT lv_wakeupvm(HSQUIRRELVM v, SQBool resumedret, SQBool retval, SQBool raiseerror, SQBool throwerror);
+LAVRIL_API SQInteger lv_getvmstate(HSQUIRRELVM v);
+LAVRIL_API SQInteger lv_getversion();
 
 /* Compiler */
-LAVRIL_API SQRESULT sq_compile(HSQUIRRELVM v, SQLEXREADFUNC read, SQUserPointer p, const SQChar *sourcename, SQBool raiseerror);
-LAVRIL_API SQRESULT sq_compilebuffer(HSQUIRRELVM v, const SQChar *s, SQInteger size, const SQChar *sourcename, SQBool raiseerror);
+LAVRIL_API SQRESULT lv_compile(HSQUIRRELVM v, SQLEXREADFUNC read, SQUserPointer p, const SQChar *sourcename, SQBool raiseerror);
+LAVRIL_API SQRESULT lv_compilebuffer(HSQUIRRELVM v, const SQChar *s, SQInteger size, const SQChar *sourcename, SQBool raiseerror);
 LAVRIL_API void sq_enabledebuginfo(HSQUIRRELVM v, SQBool enable);
 LAVRIL_API void sq_notifyallexceptions(HSQUIRRELVM v, SQBool enable);
 LAVRIL_API void sq_setcompilererrorhandler(HSQUIRRELVM v, SQCOMPILERERROR f);

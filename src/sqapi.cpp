@@ -36,7 +36,8 @@ SQInteger sq_aux_invalidtype(HSQUIRRELVM v, SQObjectType type) {
 	return sq_throwerror(v, _ss(v)->GetScratchPad(-1));
 }
 
-HSQUIRRELVM sq_open(SQInteger initialstacksize) {
+/* Open new VM instance */
+HSQUIRRELVM lv_open(SQInteger initialstacksize) {
 	SQSharedState *ss = NULL;
 	SQVM *v = NULL;
 	sq_new(ss, SQSharedState);
@@ -53,7 +54,7 @@ HSQUIRRELVM sq_open(SQInteger initialstacksize) {
 	return v;
 }
 
-HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize) {
+HSQUIRRELVM lv_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize) {
 	SQSharedState *ss = NULL;
 	SQVM *v = NULL;
 	ss = _ss(friendvm);
@@ -70,7 +71,7 @@ HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize) {
 	}
 }
 
-SQInteger sq_getvmstate(HSQUIRRELVM v) {
+SQInteger lv_getvmstate(HSQUIRRELVM v) {
 	if (v->_suspended)
 		return SQ_VMSTATE_SUSPENDED;
 	else {
@@ -79,7 +80,8 @@ SQInteger sq_getvmstate(HSQUIRRELVM v) {
 	}
 }
 
-void sq_seterrorhandler(HSQUIRRELVM v) {
+/* Runtime error callback */
+void lv_seterrorhandler(HSQUIRRELVM v) {
 	SQObject o = stack_get(v, -1);
 	if (sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
 		v->_errorhandler = o;
@@ -103,17 +105,19 @@ void sq_setdebughook(HSQUIRRELVM v) {
 	}
 }
 
-void sq_close(HSQUIRRELVM v) {
+/* Release VM instance */
+void lv_close(HSQUIRRELVM v) {
 	SQSharedState *ss = _ss(v);
 	_thread(ss->_root_vm)->Finalize();
 	sq_delete(ss, SQSharedState);
 }
 
-SQInteger sq_getversion() {
-	return SQUIRREL_VERSION_NUMBER;
+SQInteger lv_getversion() {
+	return LAVRIL_VERSION_NUMBER;
 }
 
-SQRESULT sq_compile(HSQUIRRELVM v, SQLEXREADFUNC read, SQUserPointer p, const SQChar *sourcename, SQBool raiseerror) {
+/* Compile source */
+SQRESULT lv_compile(HSQUIRRELVM v, SQLEXREADFUNC read, SQUserPointer p, const SQChar *sourcename, SQBool raiseerror) {
 	SQObjectPtr o;
 #ifndef NO_COMPILER
 	if (RunCompiler(v, read, p, sourcename, o, raiseerror ? true : false, _ss(v)->_debuginfo)) {
@@ -210,7 +214,8 @@ void sq_pushnull(HSQUIRRELVM v) {
 void sq_pushstring(HSQUIRRELVM v, const SQChar *s, SQInteger len) {
 	if (s)
 		v->Push(SQObjectPtr(SQString::Create(_ss(v), s, len)));
-	else v->PushNull();
+	else
+		v->PushNull();
 }
 
 void sq_pushinteger(HSQUIRRELVM v, SQInteger n) {
@@ -517,35 +522,35 @@ SQRESULT sq_setconsttable(HSQUIRRELVM v) {
 	return sq_throwerror(v, _SC("ivalid type, expected table"));
 }
 
-void sq_setforeignptr(HSQUIRRELVM v, SQUserPointer p) {
+void lv_setforeignptr(HSQUIRRELVM v, SQUserPointer p) {
 	v->_foreignptr = p;
 }
 
-SQUserPointer sq_getforeignptr(HSQUIRRELVM v) {
+SQUserPointer lv_getforeignptr(HSQUIRRELVM v) {
 	return v->_foreignptr;
 }
 
-void sq_setsharedforeignptr(HSQUIRRELVM v, SQUserPointer p) {
+void lv_setsharedforeignptr(HSQUIRRELVM v, SQUserPointer p) {
 	_ss(v)->_foreignptr = p;
 }
 
-SQUserPointer sq_getsharedforeignptr(HSQUIRRELVM v) {
+SQUserPointer lv_getsharedforeignptr(HSQUIRRELVM v) {
 	return _ss(v)->_foreignptr;
 }
 
-void sq_setvmreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook) {
+void lv_setvmreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook) {
 	v->_releasehook = hook;
 }
 
-SQRELEASEHOOK sq_getvmreleasehook(HSQUIRRELVM v) {
+SQRELEASEHOOK lv_getvmreleasehook(HSQUIRRELVM v) {
 	return v->_releasehook;
 }
 
-void sq_setsharedreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook) {
+void lv_setsharedreleasehook(HSQUIRRELVM v, SQRELEASEHOOK hook) {
 	_ss(v)->_releasehook = hook;
 }
 
-SQRELEASEHOOK sq_getsharedreleasehook(HSQUIRRELVM v) {
+SQRELEASEHOOK lv_getsharedreleasehook(HSQUIRRELVM v) {
 	return _ss(v)->_releasehook;
 }
 
@@ -1092,11 +1097,11 @@ SQRESULT sq_call(HSQUIRRELVM v, SQInteger params, SQBool retval, SQBool raiseerr
 	return sq_throwerror(v, _SC("call failed"));
 }
 
-SQRESULT sq_suspendvm(HSQUIRRELVM v) {
+SQRESULT lv_suspendvm(HSQUIRRELVM v) {
 	return v->Suspend();
 }
 
-SQRESULT sq_wakeupvm(HSQUIRRELVM v, SQBool wakeupret, SQBool retval, SQBool raiseerror, SQBool throwerror) {
+SQRESULT lv_wakeupvm(HSQUIRRELVM v, SQBool wakeupret, SQBool retval, SQBool raiseerror, SQBool throwerror) {
 	SQObjectPtr ret;
 	if (!v->_suspended)
 		return sq_throwerror(v, _SC("cannot resume a vm that is not running any code"));
@@ -1487,28 +1492,29 @@ SQInteger buf_lexfeed(SQUserPointer file) {
 	return buf->buf[buf->ptr++];
 }
 
-SQRESULT sq_compilebuffer(HSQUIRRELVM v, const SQChar *s, SQInteger size, const SQChar *sourcename, SQBool raiseerror) {
+/* Compile buffer */
+SQRESULT lv_compilebuffer(HSQUIRRELVM v, const SQChar *s, SQInteger size, const SQChar *sourcename, SQBool raiseerror) {
 	BufState buf;
 	buf.buf = s;
 	buf.size = size;
 	buf.ptr = 0;
-	return sq_compile(v, buf_lexfeed, &buf, sourcename, raiseerror);
+	return lv_compile(v, buf_lexfeed, &buf, sourcename, raiseerror);
 }
 
 void sq_move(HSQUIRRELVM dest, HSQUIRRELVM src, SQInteger idx) {
 	dest->Push(stack_get(src, idx));
 }
 
-void sq_setprintfunc(HSQUIRRELVM v, SQPRINTFUNCTION printfunc, SQPRINTFUNCTION errfunc) {
+void lv_setprintfunc(HSQUIRRELVM v, SQPRINTFUNCTION printfunc, SQPRINTFUNCTION errfunc) {
 	_ss(v)->_printfunc = printfunc;
 	_ss(v)->_errorfunc = errfunc;
 }
 
-SQPRINTFUNCTION sq_getprintfunc(HSQUIRRELVM v) {
+SQPRINTFUNCTION lv_getprintfunc(HSQUIRRELVM v) {
 	return _ss(v)->_printfunc;
 }
 
-SQPRINTFUNCTION sq_geterrorfunc(HSQUIRRELVM v) {
+SQPRINTFUNCTION lv_geterrorfunc(HSQUIRRELVM v) {
 	return _ss(v)->_errorfunc;
 }
 

@@ -346,10 +346,10 @@ SQRESULT sq_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
 				//gotta swap the next 2 lines on BIG endian machines
 				case 0xFFFE:
 					func = _io_file_lexfeed_UCS2_BE;
-					break;//UTF-16 little endian;
+					break; // UTF-16 little endian
 				case 0xFEFF:
 					func = _io_file_lexfeed_UCS2_LE;
-					break;//UTF-16 big endian;
+					break; // UTF-16 big endian
 				case 0xBBEF:
 					if (sq_fread(&uc, 1, sizeof(uc), file) == 0) {
 						sq_fclose(file);
@@ -364,7 +364,7 @@ SQRESULT sq_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
 #else
 					func = _io_file_lexfeed_PLAIN;
 #endif
-					break;//UTF-8 ;
+					break; // UTF-8
 				default:
 					sq_fseek(file, 0, SQ_SEEK_SET);
 					break; // ascii
@@ -374,7 +374,7 @@ SQRESULT sq_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
 			buffer.ptr = 0;
 			buffer.size = 0;
 			buffer.file = file;
-			if (LV_SUCCEEDED(sq_compile(v, func, &buffer, filename, printerror))) {
+			if (LV_SUCCEEDED(lv_compile(v, func, &buffer, filename, printerror))) {
 				sq_fclose(file);
 				return LV_OK;
 			}
@@ -399,7 +399,8 @@ SQRESULT sq_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBoo
 
 SQRESULT sq_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename) {
 	SQFILE file = sq_fopen(filename, _SC("wb+"));
-	if (!file) return sq_throwerror(v, _SC("cannot open the file"));
+	if (!file)
+		return sq_throwerror(v, _SC("cannot open the file"));
 	if (LV_SUCCEEDED(sq_writeclosure(v, file_write, file))) {
 		sq_fclose(file);
 		return LV_OK;
