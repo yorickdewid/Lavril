@@ -2,7 +2,6 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sqstdsystem.h>
 
 #ifdef SQUNICODE
 #include <wchar.h>
@@ -116,7 +115,7 @@ static const SQRegFunction systemlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQInteger sqstd_register_systemlib(HSQUIRRELVM v) {
+SQInteger mod_init_system(HSQUIRRELVM v) {
 	SQInteger i = 0;
 	while (systemlib_funcs[i].name != 0) {
 		sq_pushstring(v, systemlib_funcs[i].name, -1);

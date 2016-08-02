@@ -8,12 +8,6 @@
 #include <conio.h>
 #endif
 #include <lavril.h>
-#include <sqstdblob.h>
-#include <sqstdsystem.h>
-#include <sqstdio.h>
-#include <sqstdmath.h>
-#include <sqstdstring.h>
-#include <sqstdaux.h>
 
 #ifdef SQUNICODE
 #define scfprintf fwprintf
@@ -179,7 +173,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			arg++;
 
 			if (compiles_only) {
-				if (LV_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(sq_loadfile(v, filename, SQTrue))) {
 					const SQChar *outfile = _SC("out.lavc");
 					if (output) {
 #ifdef SQUNICODE
@@ -190,12 +184,12 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 						outfile = output;
 #endif
 					}
-					if (LV_SUCCEEDED(sqstd_writeclosuretofile(v, outfile))) {
+					if (LV_SUCCEEDED(sq_writeclosuretofile(v, outfile))) {
 						return DONE;
 					}
 				}
 			} else {
-				if (LV_SUCCEEDED(sqstd_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(sq_loadfile(v, filename, SQTrue))) {
 					int callargs = 1;
 					sq_pushroottable(v);
 
@@ -338,14 +332,13 @@ int main(int argc, char *argv[]) {
 
 	sq_pushroottable(v);
 
-	sqstd_register_bloblib(v);
-	sqstd_register_iolib(v);
-	sqstd_register_systemlib(v);
-	sqstd_register_mathlib(v);
-	sqstd_register_stringlib(v);
+	register_module(blob, v);
+	register_module(io, v);
+	register_module(string, v);
+	register_module(system, v);
+	register_module(math, v);
 
-	sqstd_seterrorhandlers(v);
-	sqstd_setunitloader(v);
+	sq_register_error_handlers(v);
 
 	switch (getargs(v, argc, argv, &retval)) {
 		case INTERACTIVE:
@@ -361,7 +354,7 @@ int main(int argc, char *argv[]) {
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 	_getch();
-	_CrtMemDumpAllObjectsSince( NULL );
+	_CrtMemDumpAllObjectsSince(NULL);
 #endif
 
 	return retval;

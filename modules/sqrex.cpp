@@ -51,7 +51,6 @@ static const SQChar *g_nnames[] = {
 #define SQREX_SYMBOL_BEGINNING_OF_STRING ('^')
 #define SQREX_SYMBOL_ESCAPE_CHAR ('\\')
 
-
 typedef int SQRexNodeType;
 
 typedef struct tagSQRexNode {
@@ -712,4 +711,3 @@ SQBool sqstd_rex_getsubexp(SQRex *exp, SQInteger n, SQRexMatch *subexp) {
 	*subexp = exp->_matches[n];
 	return SQTrue;
 }
-

@@ -8,7 +8,7 @@ INCLUDE = -I../include -I. -Iinclude
 CXXFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
-OBJS= \
+OBJS = \
 	sqapi.o \
 	sqbaselib.o \
 	sqfuncstate.o \
@@ -20,6 +20,11 @@ OBJS= \
 	sqtable.o \
 	sqmem.o \
 	sqvm.o \
+	sqaux.o \
+	sqblob.o \
+	sqstream.o \
+	sqstring.o \
+	sqio.o \
 	sqclass.o
 
 all: $(OBJS)

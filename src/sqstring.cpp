@@ -1,10 +1,6 @@
-#include <lavril.h>
-#include <sqstdstring.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "sqpcheader.h"
+#include "sqstring.h"
 #include <ctype.h>
-#include <assert.h>
 
 #define MAX_FORMAT_LEN  20
 #define MAX_WFORMAT_LEN 3
@@ -367,6 +363,7 @@ static SQInteger _string_endswith(HSQUIRRELVM v) {
 	return 1;
 }
 
+#ifdef REGEX
 #define SETUP_REX(v) \
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
@@ -467,6 +464,7 @@ static const SQRegFunction rexobj_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 #undef _DECL_REX_FUNC
+#endif
 
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_string_##name,nparams,pmask}
 static const SQRegFunction stringlib_funcs[] = {
@@ -482,11 +480,12 @@ static const SQRegFunction stringlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
+SQInteger mod_init_string(HSQUIRRELVM v) {
+	SQInteger i = 0;
 
-SQInteger sqstd_register_stringlib(HSQUIRRELVM v) {
+#ifdef REGEX
 	sq_pushstring(v, _SC("regexp"), -1);
 	sq_newclass(v, SQFalse);
-	SQInteger i = 0;
 	while (rexobj_funcs[i].name != 0) {
 		const SQRegFunction& f = rexobj_funcs[i];
 		sq_pushstring(v, f.name, -1);
@@ -497,6 +496,7 @@ SQInteger sqstd_register_stringlib(HSQUIRRELVM v) {
 		i++;
 	}
 	sq_newslot(v, -3, SQFalse);
+#endif
 
 	i = 0;
 	while (stringlib_funcs[i].name != 0) {

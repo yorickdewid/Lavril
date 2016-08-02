@@ -1,16 +1,9 @@
-#include <new>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <lavril.h>
-#include <sqstdio.h>
-#include <sqstdblob.h>
-#include "sqstdstream.h"
-#include "sqstdblobimpl.h"
+#include "sqpcheader.h"
+#include "sqstream.h"
 
 #define SETUP_STREAM(v) \
 	SQStream *self = NULL; \
-	if(LV_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_STREAM_TYPE_TAG))) \
+	if(LV_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQ_STREAM_TYPE_TAG))) \
 		return sq_throwerror(v,_SC("invalid type tag")); \
 	if(!self || !self->IsValid())  \
 		return sq_throwerror(v,_SC("the stream is invalid"));
@@ -27,7 +20,7 @@ SQInteger _stream_readblob(HSQUIRRELVM v) {
 	res = self->Read(data, size);
 	if (res <= 0)
 		return sq_throwerror(v, _SC("no data left to read"));
-	blobp = sqstd_createblob(v, res);
+	blobp = sq_createblob(v, res);
 	memcpy(blobp, data, res);
 	return 1;
 }
@@ -98,9 +91,9 @@ SQInteger _stream_writeblob(HSQUIRRELVM v) {
 	SQUserPointer data;
 	SQInteger size;
 	SETUP_STREAM(v);
-	if (LV_FAILED(sqstd_getblob(v, 2, &data)))
+	if (LV_FAILED(sq_getblob(v, 2, &data)))
 		return sq_throwerror(v, _SC("invalid parameter"));
-	size = sqstd_getblobsize(v, 2);
+	size = sq_getblobsize(v, 2);
 	if (self->Write(data, size) != size)
 		return sq_throwerror(v, _SC("io error"));
 	sq_pushinteger(v, size);
@@ -254,7 +247,7 @@ void init_streamclass(HSQUIRRELVM v) {
 	if (LV_FAILED(sq_get(v, -2))) {
 		sq_pushstring(v, _SC("std_stream"), -1);
 		sq_newclass(v, SQFalse);
-		sq_settypetag(v, -1, (SQUserPointer)SQSTD_STREAM_TYPE_TAG);
+		sq_settypetag(v, -1, (SQUserPointer)SQ_STREAM_TYPE_TAG);
 		SQInteger i = 0;
 		while (_stream_methods[i].name != 0) {
 			const SQRegFunction& f = _stream_methods[i];

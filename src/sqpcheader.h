@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <new>
 
-//squirrel stuff
+/* Local definitions */
 #include <lavril.h>
 #include "sqobject.h"
 #include "sqstate.h"

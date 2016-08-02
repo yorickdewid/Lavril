@@ -1,7 +1,6 @@
 #include <lavril.h>
 #include <math.h>
 #include <stdlib.h>
-#include <sqstdmath.h>
 
 #define SINGLE_ARG_FUNC(_funcname) static SQInteger math_##_funcname(HSQUIRRELVM v){ \
 	SQFloat f; \
@@ -88,7 +87,7 @@ static const SQRegFunction mathlib_funcs[] = {
 #define M_PI (3.14159265358979323846)
 #endif
 
-SQRESULT sqstd_register_mathlib(HSQUIRRELVM v) {
+SQRESULT mod_init_math(HSQUIRRELVM v) {
 	SQInteger i = 0;
 	while (mathlib_funcs[i].name != 0) {
 		sq_pushstring(v, mathlib_funcs[i].name, -1);

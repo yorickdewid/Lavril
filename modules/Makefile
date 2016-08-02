@@ -1,5 +1,5 @@
 CC = g++
-BIN = ../lib/liblvstdlib.a
+BIN = ../lib/liblvmods.a
 DEBUG = -g -O0
 LIBS =
 DEFINE = -D_SQ64
@@ -8,14 +8,8 @@ CXXFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-stric
 LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 OBJS= \
-	sqstdblob.o \
-	sqstdio.o \
-	sqstdstream.o \
-	sqstdmath.o \
-	sqstdsystem.o \
-	sqstdstring.o \
-	sqstdaux.o \
-	sqstdrex.o
+	math/module.o \
+	system/module.o
 
 all: $(OBJS)
 	$(AR) rc $(BIN) $(OBJS)

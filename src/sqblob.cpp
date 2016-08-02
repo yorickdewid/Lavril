@@ -1,16 +1,128 @@
-#include <new>
-#include <lavril.h>
-#include <sqstdio.h>
-#include <string.h>
-#include <sqstdblob.h>
-#include "sqstdstream.h"
-#include "sqstdblobimpl.h"
+// #include <new>
+// #include <lavril.h>
+// #include <sqstdio.h>
+// #include <string.h>
+// #include <sqstdblob.h>
+// #include "sqstream.h"
+// #include "sqblobimpl.h"
+#include "sqpcheader.h"
+#include "sqstream.h"
 
-#define SQSTD_BLOB_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000002)
+#define SQ_BLOB_TYPE_TAG (SQ_STREAM_TYPE_TAG | 0x00000002)
+
+struct SQBlob : public SQStream {
+	SQBlob(SQInteger size) {
+		_size = size;
+		_allocated = size;
+		_buf = (unsigned char *)sq_malloc(size);
+		memset(_buf, 0, _size);
+		_ptr = 0;
+		_owns = true;
+	}
+	virtual ~SQBlob() {
+		sq_free(_buf, _allocated);
+	}
+	SQInteger Write(void *buffer, SQInteger size) {
+		if (!CanAdvance(size)) {
+			GrowBufOf(_ptr + size - _size);
+		}
+		memcpy(&_buf[_ptr], buffer, size);
+		_ptr += size;
+		return size;
+	}
+	SQInteger Read(void *buffer, SQInteger size) {
+		SQInteger n = size;
+		if (!CanAdvance(size)) {
+			if ((_size - _ptr) > 0)
+				n = _size - _ptr;
+			else return 0;
+		}
+		memcpy(buffer, &_buf[_ptr], n);
+		_ptr += n;
+		return n;
+	}
+	bool Resize(SQInteger n) {
+		if (!_owns) return false;
+		if (n != _allocated) {
+			unsigned char *newbuf = (unsigned char *)sq_malloc(n);
+			memset(newbuf, 0, n);
+			if (_size > n)
+				memcpy(newbuf, _buf, n);
+			else
+				memcpy(newbuf, _buf, _size);
+			sq_free(_buf, _allocated);
+			_buf = newbuf;
+			_allocated = n;
+			if (_size > _allocated)
+				_size = _allocated;
+			if (_ptr > _allocated)
+				_ptr = _allocated;
+		}
+		return true;
+	}
+	bool GrowBufOf(SQInteger n) {
+		bool ret = true;
+		if (_size + n > _allocated) {
+			if (_size + n > _size * 2)
+				ret = Resize(_size + n);
+			else
+				ret = Resize(_size * 2);
+		}
+		_size = _size + n;
+		return ret;
+	}
+	bool CanAdvance(SQInteger n) {
+		if (_ptr + n > _size)return false;
+		return true;
+	}
+	SQInteger Seek(SQInteger offset, SQInteger origin) {
+		switch (origin) {
+			case SQ_SEEK_SET:
+				if (offset > _size || offset < 0) return -1;
+				_ptr = offset;
+				break;
+			case SQ_SEEK_CUR:
+				if (_ptr + offset > _size || _ptr + offset < 0) return -1;
+				_ptr += offset;
+				break;
+			case SQ_SEEK_END:
+				if (_size + offset > _size || _size + offset < 0) return -1;
+				_ptr = _size + offset;
+				break;
+			default:
+				return -1;
+		}
+		return 0;
+	}
+	bool IsValid() {
+		return _buf ? true : false;
+	}
+	bool EOS() {
+		return _ptr == _size;
+	}
+	SQInteger Flush() {
+		return 0;
+	}
+	SQInteger Tell() {
+		return _ptr;
+	}
+	SQInteger Len() {
+		return _size;
+	}
+	SQUserPointer GetBuf() {
+		return _buf;
+	}
+  private:
+	SQInteger _size;
+	SQInteger _allocated;
+	SQInteger _ptr;
+	unsigned char *_buf;
+	bool _owns;
+};
 
 #define SETUP_BLOB(v) \
 	SQBlob *self = NULL; \
-	{ if(LV_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_BLOB_TYPE_TAG))) \
+	{ if(LV_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQ_BLOB_TYPE_TAG))) \
 		return sq_throwerror(v,_SC("invalid type tag"));  } \
 	if(!self || !self->IsValid())  \
 		return sq_throwerror(v,_SC("the blob is invalid"));
@@ -130,7 +242,7 @@ static SQInteger _blob_constructor(HSQUIRRELVM v) {
 static SQInteger _blob__cloned(HSQUIRRELVM v) {
 	SQBlob *other = NULL;
 	{
-		if (LV_FAILED(sq_getinstanceup(v, 2, (SQUserPointer *)&other, (SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
+		if (LV_FAILED(sq_getinstanceup(v, 2, (SQUserPointer *)&other, (SQUserPointer)SQ_BLOB_TYPE_TAG)))
 			return LV_ERROR;
 	}
 	//SQBlob *thisone = new SQBlob(other->Len());
@@ -158,8 +270,6 @@ static const SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(_cloned, 2, _SC("xx")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
-
-
 
 //GLOBAL FUNCTIONS
 
@@ -212,22 +322,22 @@ static const SQRegFunction bloblib_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-SQRESULT sqstd_getblob(HSQUIRRELVM v, SQInteger idx, SQUserPointer *ptr) {
+SQRESULT sq_getblob(HSQUIRRELVM v, SQInteger idx, SQUserPointer *ptr) {
 	SQBlob *blob;
-	if (LV_FAILED(sq_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
+	if (LV_FAILED(sq_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG)))
 		return -1;
 	*ptr = blob->GetBuf();
 	return LV_OK;
 }
 
-SQInteger sqstd_getblobsize(HSQUIRRELVM v, SQInteger idx) {
+SQInteger sq_getblobsize(HSQUIRRELVM v, SQInteger idx) {
 	SQBlob *blob;
-	if (LV_FAILED(sq_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
+	if (LV_FAILED(sq_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG)))
 		return -1;
 	return blob->Len();
 }
 
-SQUserPointer sqstd_createblob(HSQUIRRELVM v, SQInteger size) {
+SQUserPointer sq_createblob(HSQUIRRELVM v, SQInteger size) {
 	SQInteger top = sq_gettop(v);
 	sq_pushregistrytable(v);
 	sq_pushstring(v, _SC("std_blob"), -1);
@@ -237,7 +347,7 @@ SQUserPointer sqstd_createblob(HSQUIRRELVM v, SQInteger size) {
 		sq_pushinteger(v, size); //size
 		SQBlob *blob = NULL;
 		if (LV_SUCCEEDED(sq_call(v, 2, SQTrue, SQFalse))
-		        && LV_SUCCEEDED(sq_getinstanceup(v, -1, (SQUserPointer *)&blob, (SQUserPointer)SQSTD_BLOB_TYPE_TAG))) {
+		        && LV_SUCCEEDED(sq_getinstanceup(v, -1, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG))) {
 			sq_remove(v, -2);
 			return blob->GetBuf();
 		}
@@ -246,7 +356,6 @@ SQUserPointer sqstd_createblob(HSQUIRRELVM v, SQInteger size) {
 	return NULL;
 }
 
-SQRESULT sqstd_register_bloblib(HSQUIRRELVM v) {
-	return declare_stream(v, _SC("blob"), (SQUserPointer)SQSTD_BLOB_TYPE_TAG, _SC("std_blob"), _blob_methods, bloblib_funcs);
+SQRESULT mod_init_blob(HSQUIRRELVM v) {
+	return declare_stream(v, _SC("blob"), (SQUserPointer)SQ_BLOB_TYPE_TAG, _SC("std_blob"), _blob_methods, bloblib_funcs);
 }
-

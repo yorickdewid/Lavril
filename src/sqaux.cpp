@@ -1,8 +1,6 @@
-#include <lavril.h>
-#include <sqstdaux.h>
-#include <assert.h>
+#include "sqpcheader.h"
 
-void sqstd_printcallstack(HSQUIRRELVM v) {
+CALLBACK static void printcallstack(HSQUIRRELVM v) {
 	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
 	if (pf) {
 		SQStackInfos si;
@@ -98,7 +96,7 @@ void sqstd_printcallstack(HSQUIRRELVM v) {
 	}
 }
 
-static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v) {
+CALLBACK static SQInteger callback_printerror(HSQUIRRELVM v) {
 	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
 	if (pf) {
 		const SQChar *sErr = 0;
@@ -108,21 +106,21 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v) {
 			} else {
 				pf(v, _SC("fatal error: [unknown]\n"));
 			}
-			sqstd_printcallstack(v);
+			printcallstack(v);
 		}
 	}
 	return 0;
 }
 
-void _sqstd_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const SQChar *sSource, SQInteger line, SQInteger column) {
+CALLBACK void callback_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const SQChar *sSource, SQInteger line, SQInteger column) {
 	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
 	if (pf) {
 		pf(v, _SC("%s:%d:%d: error %s\n"), sSource, line, column, sErr);
 	}
 }
 
-void sqstd_seterrorhandlers(HSQUIRRELVM v) {
-	sq_setcompilererrorhandler(v, _sqstd_compiler_error);
-	sq_newclosure(v, _sqstd_aux_printerror, 0);
+void sq_register_error_handlers(HSQUIRRELVM v) {
+	sq_setcompilererrorhandler(v, callback_compiler_error);
+	sq_newclosure(v, callback_printerror, 0);
 	sq_seterrorhandler(v);
 }
