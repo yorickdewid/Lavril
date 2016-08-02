@@ -32,7 +32,7 @@ void error_func(HSQUIRRELVM v, const SQChar *s, ...) {
 
 void call_test(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 	/* Save the stack size before the call */
-	SQInteger top = sq_gettop(v);
+	SQInteger top = lv_gettop(v);
 
 	/* Push the global table */
 	sq_pushroottable(v);
@@ -48,7 +48,7 @@ void call_test(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 	}
 
 	/* Restore the original stack size */
-	sq_settop(v, top);
+	lv_settop(v, top);
 }
 
 int main(int argc, char *argv[]) {
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 		init_module(math, v);
 
 		/* Pop the root table */
-		sq_pop(v, 1);
+		lv_pop(v, 1);
 	}
 
 	/* Registers the default error handlers */
@@ -78,12 +78,12 @@ int main(int argc, char *argv[]) {
 	sq_pushroottable(v);
 
 	/* Print syntax errors if any */
-	if (LV_SUCCEEDED(sq_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
+	if (LV_SUCCEEDED(lv_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
 		call_test(v, 1, 2.5, _SC("teststring"));
 	}
 
 	/* Pop the root table */
-	sq_pop(v, 1);
+	lv_pop(v, 1);
 
 	/* Release the VM */
 	lv_close(v);

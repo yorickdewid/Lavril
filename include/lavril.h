@@ -66,7 +66,7 @@ struct SQOuter;
 
 #define LAVRIL_VERSION    _SC("Lavril 1.0-beta")
 #define LAVRIL_COPYRIGHT  _SC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
-#define LAVRIL_AUTHOR     _SC("Yorick de Wid")
+#define LAVRIL_AUTHOR     _SC("Quenza Inc.")
 #define LAVRIL_VERSION_NUMBER 100
 
 #define SQ_VMSTATE_IDLE         0
@@ -239,21 +239,21 @@ LAVRIL_API SQInteger lv_getversion();
 /* Compiler */
 LAVRIL_API SQRESULT lv_compile(HSQUIRRELVM v, SQLEXREADFUNC read, SQUserPointer p, const SQChar *sourcename, SQBool raiseerror);
 LAVRIL_API SQRESULT lv_compilebuffer(HSQUIRRELVM v, const SQChar *s, SQInteger size, const SQChar *sourcename, SQBool raiseerror);
-LAVRIL_API void sq_enabledebuginfo(HSQUIRRELVM v, SQBool enable);
-LAVRIL_API void sq_notifyallexceptions(HSQUIRRELVM v, SQBool enable);
-LAVRIL_API void sq_setcompilererrorhandler(HSQUIRRELVM v, SQCOMPILERERROR f);
-LAVRIL_API void sq_setunitloader(HSQUIRRELVM v, SQLOADUNIT f);
+LAVRIL_API void lv_enabledebuginfo(HSQUIRRELVM v, SQBool enable);
+LAVRIL_API void lv_notifyallexceptions(HSQUIRRELVM v, SQBool enable);
+LAVRIL_API void lv_setcompilererrorhandler(HSQUIRRELVM v, SQCOMPILERERROR f);
+LAVRIL_API void lv_setunitloader(HSQUIRRELVM v, SQLOADUNIT f);
 
 /* Stack operations */
-LAVRIL_API void sq_push(HSQUIRRELVM v, SQInteger idx);
-LAVRIL_API void sq_pop(HSQUIRRELVM v, SQInteger nelemstopop);
-LAVRIL_API void sq_poptop(HSQUIRRELVM v);
-LAVRIL_API void sq_remove(HSQUIRRELVM v, SQInteger idx);
-LAVRIL_API SQInteger sq_gettop(HSQUIRRELVM v);
-LAVRIL_API void sq_settop(HSQUIRRELVM v, SQInteger newtop);
-LAVRIL_API SQRESULT sq_reservestack(HSQUIRRELVM v, SQInteger nsize);
-LAVRIL_API SQInteger sq_cmp(HSQUIRRELVM v);
-LAVRIL_API void sq_move(HSQUIRRELVM dest, HSQUIRRELVM src, SQInteger idx);
+LAVRIL_API void lv_push(HSQUIRRELVM v, SQInteger idx);
+LAVRIL_API void lv_pop(HSQUIRRELVM v, SQInteger nelemstopop);
+LAVRIL_API void lv_poptop(HSQUIRRELVM v);
+LAVRIL_API void lv_remove(HSQUIRRELVM v, SQInteger idx);
+LAVRIL_API SQInteger lv_gettop(HSQUIRRELVM v);
+LAVRIL_API void lv_settop(HSQUIRRELVM v, SQInteger newtop);
+LAVRIL_API SQRESULT lv_reservestack(HSQUIRRELVM v, SQInteger nsize);
+LAVRIL_API SQInteger lv_cmp(HSQUIRRELVM v);
+LAVRIL_API void lv_move(HSQUIRRELVM dest, HSQUIRRELVM src, SQInteger idx);
 
 /* Object creation handling */
 LAVRIL_API SQUserPointer sq_newuserdata(HSQUIRRELVM v, SQUnsignedInteger size);
@@ -367,8 +367,8 @@ LAVRIL_API SQRESULT sq_getobjtypetag(const HSQOBJECT *o, SQUserPointer *typetag)
 LAVRIL_API SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM v, const HSQOBJECT *po);
 
 /* GC */
-LAVRIL_API SQInteger sq_collectgarbage(HSQUIRRELVM v);
-LAVRIL_API SQRESULT sq_resurrectunreachable(HSQUIRRELVM v);
+LAVRIL_API SQInteger lv_collectgarbage(HSQUIRRELVM v);
+LAVRIL_API SQRESULT lv_resurrectunreachable(HSQUIRRELVM v);
 
 /* Serialization */
 LAVRIL_API SQRESULT sq_writeclosure(HSQUIRRELVM vm, SQWRITEFUNC writef, SQUserPointer up);
@@ -380,9 +380,9 @@ LAVRIL_API void *sq_realloc(void *p, SQUnsignedInteger oldsize, SQUnsignedIntege
 LAVRIL_API void sq_free(void *p, SQUnsignedInteger size);
 
 /* Debug */
-LAVRIL_API SQRESULT sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si);
-LAVRIL_API void sq_setdebughook(HSQUIRRELVM v);
-LAVRIL_API void sq_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook);
+LAVRIL_API SQRESULT lv_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si);
+LAVRIL_API void lv_setdebughook(HSQUIRRELVM v);
+LAVRIL_API void lv_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook);
 
 /* IO */
 LAVRIL_API SQFILE sq_fopen(const SQChar *, const SQChar *);
@@ -397,9 +397,9 @@ LAVRIL_API SQRESULT sq_createfile(HSQUIRRELVM v, SQFILE file, SQBool own);
 LAVRIL_API SQRESULT sq_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file);
 
 /* IO compiler helpers */
-LAVRIL_API SQRESULT sq_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror);
-LAVRIL_API SQRESULT sq_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror);
-LAVRIL_API SQRESULT sq_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename);
+LAVRIL_API SQRESULT lv_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror);
+LAVRIL_API SQRESULT lv_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror);
+LAVRIL_API SQRESULT lv_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename);
 
 /* Blob */
 LAVRIL_API SQUserPointer sq_createblob(HSQUIRRELVM v, SQInteger size);
@@ -453,9 +453,9 @@ LAVRIL_API SQRESULT mod_init_string(HSQUIRRELVM v);
 #define LV_SUCCEEDED(res) (res>=0)
 
 #ifdef __GNUC__
-# define SQ_UNUSED_ARG(x) __attribute__((unused)) x
+# define LV_UNUSED_ARG(x) __attribute__((unused)) x
 #else
-# define SQ_UNUSED_ARG(x) ((void)x)
+# define LV_UNUSED_ARG(x) ((void)x)
 #endif
 
 #ifdef __cplusplus

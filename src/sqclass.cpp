@@ -170,7 +170,7 @@ SQInstance::~SQInstance() {
 	}
 }
 
-bool SQInstance::GetMetaMethod(SQVM SQ_UNUSED_ARG(*v), SQMetaMethod mm, SQObjectPtr& res) {
+bool SQInstance::GetMetaMethod(SQVM LV_UNUSED_ARG(*v), SQMetaMethod mm, SQObjectPtr& res) {
 	if (type(_class->_metamethods[mm]) != OT_NULL) {
 		res = _class->_metamethods[mm];
 		return true;

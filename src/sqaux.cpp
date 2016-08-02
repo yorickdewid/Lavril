@@ -6,7 +6,7 @@ CALLBACK static void printcallstack(HSQUIRRELVM v) {
 		SQStackInfos si;
 		SQInteger level = 1; /* Skip native function */
 		pf(v, _SC("\nBacktrace: (most recent first)\n"));
-		while (LV_SUCCEEDED(sq_stackinfos(v, level, &si))) {
+		while (LV_SUCCEEDED(lv_stackinfos(v, level, &si))) {
 			const SQChar *fn = _SC("unknown");
 			const SQChar *src = _SC("unknown");
 			if (si.funcname)
@@ -100,7 +100,7 @@ CALLBACK static SQInteger callback_printerror(HSQUIRRELVM v) {
 	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		const SQChar *sErr = 0;
-		if (sq_gettop(v) >= 1) {
+		if (lv_gettop(v) >= 1) {
 			if (LV_SUCCEEDED(sq_getstring(v, 2, &sErr)))   {
 				pf(v, _SC("fatal error: %s\n"), sErr);
 			} else {
@@ -120,7 +120,7 @@ CALLBACK void callback_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const S
 }
 
 void sq_registererrorhandlers(HSQUIRRELVM v) {
-	sq_setcompilererrorhandler(v, callback_compiler_error);
+	lv_setcompilererrorhandler(v, callback_compiler_error);
 	sq_newclosure(v, callback_printerror, 0);
 	lv_seterrorhandler(v);
 }

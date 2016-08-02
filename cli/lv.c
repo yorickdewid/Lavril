@@ -41,14 +41,14 @@ SQInteger quit(HSQUIRRELVM v) {
 	return 0;
 }
 
-void print_func(HSQUIRRELVM SQ_UNUSED_ARG(v), const SQChar *s, ...) {
+void print_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(HSQUIRRELVM SQ_UNUSED_ARG(v), const SQChar *s, ...) {
+void error_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
@@ -92,7 +92,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			if (argv[arg][0] == '-') {
 				switch (argv[arg][1]) {
 					case 'd':
-						sq_enabledebuginfo(v, 1);
+						lv_enabledebuginfo(v, 1);
 						break;
 					case 'c':
 						compiles_only = 1;
@@ -139,7 +139,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 
 			int i = scstrlen(statement);
 			if (i > 0) {
-				SQInteger oldtop = sq_gettop(v);
+				SQInteger oldtop = lv_gettop(v);
 				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
 					sq_pushroottable(v);
 					if (LV_SUCCEEDED(sq_call(v, 1, _retval, SQTrue)) && _retval) {
@@ -148,14 +148,14 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 						sq_pushstring(v, _SC("print"), -1);
 						sq_get(v, -2);
 						sq_pushroottable(v);
-						sq_push(v, -4);
+						lv_push(v, -4);
 						sq_call(v, 2, SQFalse, SQTrue);
 						_retval = 0;
 						scprintf(_SC("\n"));
 					}
 				}
 
-				sq_settop(v, oldtop);
+				lv_settop(v, oldtop);
 			}
 
 			return DONE;
@@ -173,7 +173,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			arg++;
 
 			if (compiles_only) {
-				if (LV_SUCCEEDED(sq_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(lv_loadfile(v, filename, SQTrue))) {
 					const SQChar *outfile = _SC("out.lavc");
 					if (output) {
 #ifdef SQUNICODE
@@ -184,12 +184,12 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 						outfile = output;
 #endif
 					}
-					if (LV_SUCCEEDED(sq_writeclosuretofile(v, outfile))) {
+					if (LV_SUCCEEDED(lv_writeclosuretofile(v, outfile))) {
 						return DONE;
 					}
 				}
 			} else {
-				if (LV_SUCCEEDED(sq_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(lv_loadfile(v, filename, SQTrue))) {
 					int callargs = 1;
 					sq_pushroottable(v);
 
@@ -252,7 +252,7 @@ void interactive(HSQUIRRELVM v) {
 	sq_newclosure(v, quit, 1);
 	sq_setparamscheck(v, 1, NULL);
 	sq_newslot(v, -3, SQFalse);
-	sq_pop(v, 1);
+	lv_pop(v, 1);
 
 	while (!done) {
 		SQInteger i = 0;
@@ -298,7 +298,7 @@ void interactive(HSQUIRRELVM v) {
 
 		i = scstrlen(buffer);
 		if (i > 0) {
-			SQInteger oldtop = sq_gettop(v);
+			SQInteger oldtop = lv_gettop(v);
 			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
 				sq_pushroottable(v);
 				if (LV_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) && retval) {
@@ -307,14 +307,14 @@ void interactive(HSQUIRRELVM v) {
 					sq_pushstring(v, _SC("print"), -1);
 					sq_get(v, -2);
 					sq_pushroottable(v);
-					sq_push(v, -4);
+					lv_push(v, -4);
 					sq_call(v, 2, SQFalse, SQTrue);
 					retval = 0;
 					scprintf(_SC("\n"));
 				}
 			}
 
-			sq_settop(v, oldtop);
+			lv_settop(v, oldtop);
 		}
 	}
 }

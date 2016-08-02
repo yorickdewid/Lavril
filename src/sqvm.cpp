@@ -578,7 +578,7 @@ SQRESULT SQVM::Suspend() {
 
 #define _FINISH(howmuchtojump) {jump = howmuchtojump; return true; }
 bool SQVM::FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr
-                      &o3, SQObjectPtr& o4, SQInteger SQ_UNUSED_ARG(arg_2), int exitpos, int& jump) {
+                      &o3, SQObjectPtr& o4, SQInteger LV_UNUSED_ARG(arg_2), int exitpos, int& jump) {
 	SQInteger nrefidx;
 	switch (type(o1)) {
 		case OT_TABLE:
@@ -1786,7 +1786,7 @@ bool SQVM::Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQ
 	return true;
 }
 
-bool SQVM::CallMetaMethod(SQObjectPtr& closure, SQMetaMethod SQ_UNUSED_ARG(mm), SQInteger nparams, SQObjectPtr& outres) {
+bool SQVM::CallMetaMethod(SQObjectPtr& closure, SQMetaMethod LV_UNUSED_ARG(mm), SQInteger nparams, SQObjectPtr& outres) {
 	//SQObjectPtr closure;
 
 	_nmetamethodscall++;

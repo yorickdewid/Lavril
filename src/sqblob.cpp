@@ -176,7 +176,7 @@ static SQInteger _blob__set(HSQUIRRELVM v) {
 	if (idx < 0 || idx >= self->Len())
 		return sq_throwerror(v, _SC("index out of range"));
 	((unsigned char *)self->GetBuf())[idx] = (unsigned char) val;
-	sq_push(v, 3);
+	lv_push(v, 3);
 	return 1;
 }
 
@@ -213,7 +213,7 @@ static SQInteger _blob__typeof(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _blob_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size)) {
+static SQInteger _blob_releasehook(SQUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
 	SQBlob *self = (SQBlob *)p;
 	self->~SQBlob();
 	sq_free(self, sizeof(SQBlob));
@@ -221,7 +221,7 @@ static SQInteger _blob_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size
 }
 
 static SQInteger _blob_constructor(HSQUIRRELVM v) {
-	SQInteger nparam = sq_gettop(v);
+	SQInteger nparam = lv_gettop(v);
 	SQInteger size = 0;
 	if (nparam == 2) {
 		sq_getinteger(v, 2, &size);
@@ -338,21 +338,21 @@ SQInteger sq_getblobsize(HSQUIRRELVM v, SQInteger idx) {
 }
 
 SQUserPointer sq_createblob(HSQUIRRELVM v, SQInteger size) {
-	SQInteger top = sq_gettop(v);
+	SQInteger top = lv_gettop(v);
 	sq_pushregistrytable(v);
 	sq_pushstring(v, _SC("std_blob"), -1);
 	if (LV_SUCCEEDED(sq_get(v, -2))) {
-		sq_remove(v, -2); //removes the registry
-		sq_push(v, 1); // push the this
+		lv_remove(v, -2); //removes the registry
+		lv_push(v, 1); // push the this
 		sq_pushinteger(v, size); //size
 		SQBlob *blob = NULL;
 		if (LV_SUCCEEDED(sq_call(v, 2, SQTrue, SQFalse))
 		        && LV_SUCCEEDED(sq_getinstanceup(v, -1, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG))) {
-			sq_remove(v, -2);
+			lv_remove(v, -2);
 			return blob->GetBuf();
 		}
 	}
-	sq_settop(v, top);
+	lv_settop(v, top);
 	return NULL;
 }
 

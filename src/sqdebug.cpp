@@ -22,7 +22,7 @@ SQRESULT sq_getfunctioninfo(HSQUIRRELVM v, SQInteger level, SQFunctionInfo *fi) 
 	return sq_throwerror(v, _SC("the object is not a closure"));
 }
 
-SQRESULT sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si) {
+SQRESULT lv_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si) {
 	SQInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
 		memset(si, 0, sizeof(SQStackInfos));

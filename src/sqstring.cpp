@@ -81,7 +81,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v, SQInteger nformatstringidx, SQInteger *outl
 			n += 2;
 		} else {
 			n++;
-			if ( nparam > sq_gettop(v) )
+			if ( nparam > lv_gettop(v) )
 				return sq_throwerror(v, _SC("not enough paramters for the given format string"));
 			n = validate_format(v, fmt, format, n, w);
 			if (n < 0) return -1;
@@ -254,7 +254,7 @@ static SQInteger _string_escape(HSQUIRRELVM v) {
 	sq_getstring(v, 2, &str);
 	size = sq_getsize(v, 2);
 	if (size == 0) {
-		sq_push(v, 2);
+		lv_push(v, 2);
 		return 1;
 	}
 #ifdef SQUNICODE
@@ -330,7 +330,7 @@ static SQInteger _string_escape(HSQUIRRELVM v) {
 	if (escaped) {
 		sq_pushstring(v, resstr, dest - resstr);
 	} else {
-		sq_push(v, 2); //nothing escaped
+		lv_push(v, 2); //nothing escaped
 	}
 	return 1;
 }
@@ -401,7 +401,8 @@ static SQInteger _regexp_search(HSQUIRRELVM v) {
 	const SQChar *str, *begin, *end;
 	SQInteger start = 0;
 	sq_getstring(v, 2, &str);
-	if (sq_gettop(v) > 2) sq_getinteger(v, 3, &start);
+	if (lv_gettop(v) > 2)
+		sq_getinteger(v, 3, &start);
 	if (sqstd_rex_search(self, str + start, &begin, &end) == SQTrue) {
 		_addrexmatch(v, str, begin, end);
 		return 1;
@@ -414,7 +415,8 @@ static SQInteger _regexp_capture(HSQUIRRELVM v) {
 	const SQChar *str, *begin, *end;
 	SQInteger start = 0;
 	sq_getstring(v, 2, &str);
-	if (sq_gettop(v) > 2) sq_getinteger(v, 3, &start);
+	if (lv_gettop(v) > 2)
+		sq_getinteger(v, 3, &start);
 	if (sqstd_rex_search(self, str + start, &begin, &end) == SQTrue) {
 		SQInteger n = sqstd_rex_getsubexpcount(self);
 		SQRexMatch match;

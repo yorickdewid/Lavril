@@ -74,10 +74,10 @@ static SQInteger _system_date(HSQUIRRELVM v) {
 	time_t t;
 	SQInteger it;
 	SQInteger format = 'l';
-	if (sq_gettop(v) > 1) {
+	if (lv_gettop(v) > 1) {
 		sq_getinteger(v, 2, &it);
 		t = it;
-		if (sq_gettop(v) > 2) {
+		if (lv_gettop(v) > 2) {
 			sq_getinteger(v, 3, (SQInteger *)&format);
 		}
 	} else {

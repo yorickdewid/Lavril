@@ -26,7 +26,10 @@ static bool sq_aux_gettypedarg(HSQUIRRELVM v, SQInteger idx, SQObjectType type, 
     }
 
 #define sq_aux_paramscheck(v,count) { \
-    if(sq_gettop(v) < count){ v->Raise_Error(_SC("not enough params in the stack")); return LV_ERROR; }\
+    if(lv_gettop(v) < count) { \
+    	v->Raise_Error(_SC("not enough params in the stack")); \
+    	return LV_ERROR; \
+    }\
 }
 
 
@@ -89,13 +92,13 @@ void lv_seterrorhandler(HSQUIRRELVM v) {
 	}
 }
 
-void sq_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook) {
+void lv_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook) {
 	v->_debughook_native = hook;
 	v->_debughook_closure.Null();
 	v->_debughook = hook ? true : false;
 }
 
-void sq_setdebughook(HSQUIRRELVM v) {
+void lv_setdebughook(HSQUIRRELVM v) {
 	SQObject o = stack_get(v, -1);
 	if (sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
 		v->_debughook_closure = o;
@@ -130,11 +133,11 @@ SQRESULT lv_compile(HSQUIRRELVM v, SQLEXREADFUNC read, SQUserPointer p, const SQ
 #endif
 }
 
-void sq_enabledebuginfo(HSQUIRRELVM v, SQBool enable) {
+void lv_enabledebuginfo(HSQUIRRELVM v, SQBool enable) {
 	_ss(v)->_debuginfo = enable ? true : false;
 }
 
-void sq_notifyallexceptions(HSQUIRRELVM v, SQBool enable) {
+void lv_notifyallexceptions(HSQUIRRELVM v, SQBool enable) {
 	_ss(v)->_notifyallexceptions = enable ? true : false;
 }
 
@@ -167,7 +170,7 @@ SQBool sq_release(HSQUIRRELVM v, HSQOBJECT *po) {
 #endif
 }
 
-SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM SQ_UNUSED_ARG(v), const HSQOBJECT *po) {
+SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM LV_UNUSED_ARG(v), const HSQOBJECT *po) {
 	if (!ISREFCOUNTED(type(*po))) return 0;
 	return po->_unVal.pRefCounted->_uiRef;
 }
@@ -554,7 +557,8 @@ SQRELEASEHOOK lv_getsharedreleasehook(HSQUIRRELVM v) {
 	return _ss(v)->_releasehook;
 }
 
-void sq_push(HSQUIRRELVM v, SQInteger idx) {
+/* Push new item onto the stack */
+void lv_push(HSQUIRRELVM v, SQInteger idx) {
 	v->Push(stack_get(v, idx));
 }
 
@@ -750,34 +754,34 @@ SQRESULT sq_getinstanceup(HSQUIRRELVM v, SQInteger idx, SQUserPointer *p, SQUser
 	return LV_OK;
 }
 
-SQInteger sq_gettop(HSQUIRRELVM v) {
+SQInteger lv_gettop(HSQUIRRELVM v) {
 	return (v->_top) - v->_stackbase;
 }
 
-void sq_settop(HSQUIRRELVM v, SQInteger newtop) {
-	SQInteger top = sq_gettop(v);
+void lv_settop(HSQUIRRELVM v, SQInteger newtop) {
+	SQInteger top = lv_gettop(v);
 	if (top > newtop)
-		sq_pop(v, top - newtop);
+		lv_pop(v, top - newtop);
 	else
 		while (top++ < newtop) sq_pushnull(v);
 }
 
-void sq_pop(HSQUIRRELVM v, SQInteger nelemstopop) {
+/* Pop items from stack */
+void lv_pop(HSQUIRRELVM v, SQInteger nelemstopop) {
 	assert(v->_top >= nelemstopop);
 	v->Pop(nelemstopop);
 }
 
-void sq_poptop(HSQUIRRELVM v) {
+void lv_poptop(HSQUIRRELVM v) {
 	assert(v->_top >= 1);
 	v->Pop();
 }
 
-
-void sq_remove(HSQUIRRELVM v, SQInteger idx) {
+void lv_remove(HSQUIRRELVM v, SQInteger idx) {
 	v->Remove(idx);
 }
 
-SQInteger sq_cmp(HSQUIRRELVM v) {
+SQInteger lv_cmp(HSQUIRRELVM v) {
 	SQInteger res;
 	v->ObjCmp(stack_get(v, -1), stack_get(v, -2), res);
 	return res;
@@ -1045,7 +1049,7 @@ void sq_getlasterror(HSQUIRRELVM v) {
 	v->Push(v->_lasterror);
 }
 
-SQRESULT sq_reservestack(HSQUIRRELVM v, SQInteger nsize) {
+SQRESULT lv_reservestack(HSQUIRRELVM v, SQInteger nsize) {
 	if (((SQUnsignedInteger)v->_top + nsize) > v->_stack.size()) {
 		if (v->_nmetamethodscall) {
 			return sq_throwerror(v, _SC("cannot resize stack while in  a metamethod"));
@@ -1124,7 +1128,7 @@ SQRESULT lv_wakeupvm(HSQUIRRELVM v, SQBool wakeupret, SQBool retval, SQBool rais
 }
 
 void sq_setreleasehook(HSQUIRRELVM v, SQInteger idx, SQRELEASEHOOK hook) {
-	if (sq_gettop(v) >= 1) {
+	if (lv_gettop(v) >= 1) {
 		SQObjectPtr& ud = stack_get(v, idx);
 		switch ( type(ud) ) {
 			case OT_USERDATA:
@@ -1143,7 +1147,7 @@ void sq_setreleasehook(HSQUIRRELVM v, SQInteger idx, SQRELEASEHOOK hook) {
 }
 
 SQRELEASEHOOK sq_getreleasehook(HSQUIRRELVM v, SQInteger idx) {
-	if (sq_gettop(v) >= 1) {
+	if (lv_gettop(v) >= 1) {
 		SQObjectPtr& ud = stack_get(v, idx);
 		switch ( type(ud) ) {
 			case OT_USERDATA:
@@ -1162,11 +1166,11 @@ SQRELEASEHOOK sq_getreleasehook(HSQUIRRELVM v, SQInteger idx) {
 	return NULL;
 }
 
-void sq_setcompilererrorhandler(HSQUIRRELVM v, SQCOMPILERERROR f) {
+void lv_setcompilererrorhandler(HSQUIRRELVM v, SQCOMPILERERROR f) {
 	_ss(v)->_compilererrorhandler = f;
 }
 
-void sq_setunitloader(HSQUIRRELVM v, SQLOADUNIT f) {
+void lv_setunitloader(HSQUIRRELVM v, SQLOADUNIT f) {
 	_ss(v)->_unitloaderhandler = f;
 }
 
@@ -1201,7 +1205,7 @@ SQChar *sq_getscratchpad(HSQUIRRELVM v, SQInteger minsize) {
 	return _ss(v)->GetScratchPad(minsize);
 }
 
-SQRESULT sq_resurrectunreachable(HSQUIRRELVM v) {
+SQRESULT lv_resurrectunreachable(HSQUIRRELVM v) {
 #ifndef NO_GARBAGE_COLLECTOR
 	_ss(v)->ResurrectUnreachable(v);
 	return LV_OK;
@@ -1210,7 +1214,7 @@ SQRESULT sq_resurrectunreachable(HSQUIRRELVM v) {
 #endif
 }
 
-SQInteger sq_collectgarbage(HSQUIRRELVM v) {
+SQInteger lv_collectgarbage(HSQUIRRELVM v) {
 #ifndef NO_GARBAGE_COLLECTOR
 	return _ss(v)->CollectGarbage(v);
 #else
@@ -1501,7 +1505,7 @@ SQRESULT lv_compilebuffer(HSQUIRRELVM v, const SQChar *s, SQInteger size, const 
 	return lv_compile(v, buf_lexfeed, &buf, sourcename, raiseerror);
 }
 
-void sq_move(HSQUIRRELVM dest, HSQUIRRELVM src, SQInteger idx) {
+void lv_move(HSQUIRRELVM dest, HSQUIRRELVM src, SQInteger idx) {
 	dest->Push(stack_get(src, idx));
 }
 

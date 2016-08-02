@@ -172,7 +172,7 @@ SQInteger _stream_seek(HSQUIRRELVM v) {
 	SETUP_STREAM(v);
 	SQInteger offset, origin = SQ_SEEK_SET;
 	sq_getinteger(v, 2, &offset);
-	if (sq_gettop(v) > 2) {
+	if (lv_gettop(v) > 2) {
 		SQInteger t;
 		sq_getinteger(v, 3, &t);
 		switch (t) {
@@ -263,17 +263,17 @@ void init_streamclass(HSQUIRRELVM v) {
 		sq_pushstring(v, _SC("std_stream"), -1);
 		sq_get(v, -4);
 		sq_newslot(v, -3, SQFalse);
-		sq_pop(v, 1);
+		lv_pop(v, 1);
 	} else {
-		sq_pop(v, 1); //result
+		lv_pop(v, 1); //result
 	}
-	sq_pop(v, 1);
+	lv_pop(v, 1);
 }
 
 SQRESULT declare_stream(HSQUIRRELVM v, const SQChar *name, SQUserPointer typetag, const SQChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals) {
 	if (sq_gettype(v, -1) != OT_TABLE)
 		return sq_throwerror(v, _SC("table expected"));
-	SQInteger top = sq_gettop(v);
+	SQInteger top = lv_gettop(v);
 	//create delegate
 	init_streamclass(v);
 	sq_pushregistrytable(v);
@@ -293,7 +293,7 @@ SQRESULT declare_stream(HSQUIRRELVM v, const SQChar *name, SQUserPointer typetag
 			i++;
 		}
 		sq_newslot(v, -3, SQFalse);
-		sq_pop(v, 1);
+		lv_pop(v, 1);
 
 		i = 0;
 		while (globals[i].name != 0) {
@@ -310,12 +310,12 @@ SQRESULT declare_stream(HSQUIRRELVM v, const SQChar *name, SQUserPointer typetag
 		sq_pushregistrytable(v);
 		sq_pushstring(v, reg_name, -1);
 		sq_get(v, -2);
-		sq_remove(v, -2);
+		lv_remove(v, -2);
 		sq_newslot(v, -3, SQFalse);
 
-		sq_settop(v, top);
+		lv_settop(v, top);
 		return LV_OK;
 	}
-	sq_settop(v, top);
+	lv_settop(v, top);
 	return LV_ERROR;
 }
