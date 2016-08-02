@@ -32,6 +32,7 @@ all: $(OBJS)
 
 clean:
 	$(RM) *.o
+	$(RM) $(BIN)
 
 # OLD
 #sq64:

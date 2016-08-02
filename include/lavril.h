@@ -107,7 +107,8 @@ struct SQOuter;
 
 #define SQ_STREAM_TYPE_TAG 0x80000000
 
-#define register_module(mod,v) mod_init_##mod(v)
+#define init_module(mod,v) mod_init_##mod(v)
+#define register_module(mod) LAVRIL_API SQRESULT mod_init_##mod(HSQUIRRELVM v)
 
 struct SQStream {
 	virtual SQInteger Read(void *buffer, SQInteger size) = 0;
@@ -348,7 +349,7 @@ LAVRIL_API SQRESULT sq_throwerror(HSQUIRRELVM v, const SQChar *err);
 LAVRIL_API SQRESULT sq_throwobject(HSQUIRRELVM v);
 LAVRIL_API void sq_reseterror(HSQUIRRELVM v);
 LAVRIL_API void sq_getlasterror(HSQUIRRELVM v);
-LAVRIL_API void sq_register_error_handlers(HSQUIRRELVM v);
+LAVRIL_API void sq_registererrorhandlers(HSQUIRRELVM v);
 
 /* Raw object handling */
 LAVRIL_API SQRESULT sq_getstackobj(HSQUIRRELVM v, SQInteger idx, HSQOBJECT *po);

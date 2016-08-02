@@ -332,13 +332,13 @@ int main(int argc, char *argv[]) {
 
 	sq_pushroottable(v);
 
-	register_module(blob, v);
-	register_module(io, v);
-	register_module(string, v);
-	register_module(system, v);
-	register_module(math, v);
+	init_module(blob, v);
+	init_module(io, v);
+	init_module(string, v);
+	init_module(system, v);
+	init_module(math, v);
 
-	sq_register_error_handlers(v);
+	sq_registererrorhandlers(v);
 
 	switch (getargs(v, argc, argv, &retval)) {
 		case INTERACTIVE:

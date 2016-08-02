@@ -1,18 +1,18 @@
 MAKE = make
 SRC = src
-LIB = stdlib
+MOD = modules
 CLI = cli
 UTIL = util
 
 la64: folders
 	$(MAKE) -C $(SRC)
-	$(MAKE) -C $(LIB)
+	$(MAKE) -C $(MOD)
 	$(MAKE) -C $(CLI)
 	$(MAKE) -C $(UTIL)
 
 clean:
 	$(MAKE) -C $(SRC) clean
-	$(MAKE) -C $(LIB) clean
+	$(MAKE) -C $(MOD) clean
 	$(MAKE) -C $(CLI) clean
 	$(MAKE) -C $(UTIL) clean
 

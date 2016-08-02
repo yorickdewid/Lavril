@@ -1,8 +1,8 @@
 #ifndef _MODULES_H_
 #define _MODULES_H_
 
-/* External modules */
-LAVRIL_API SQRESULT mod_init_math(HSQUIRRELVM v);
-LAVRIL_API SQRESULT mod_init_system(HSQUIRRELVM v);
+/* Register external modules */
+register_module(math);
+register_module(system);
 
 #endif // _MODULES_H_

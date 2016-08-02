@@ -119,7 +119,7 @@ CALLBACK void callback_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const S
 	}
 }
 
-void sq_register_error_handlers(HSQUIRRELVM v) {
+void sq_registererrorhandlers(HSQUIRRELVM v) {
 	sq_setcompilererrorhandler(v, callback_compiler_error);
 	sq_newclosure(v, callback_printerror, 0);
 	sq_seterrorhandler(v);

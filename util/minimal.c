@@ -2,9 +2,6 @@
 #include <stdio.h>
 
 #include <lavril.h>
-#include <sqstdmath.h>
-#include <sqstdio.h>
-#include <sqstdaux.h>
 
 #ifdef _MSC_VER
 #pragma comment (lib ,"squirrel.lib")
@@ -64,15 +61,15 @@ int main(int argc, char *argv[]) {
 		/* Push the global table to store std */
 		sq_pushroottable(v);
 
-		/* Register library */
-		sqstd_register_mathlib(v);
+		/* Load modules */
+		init_module(math, v);
 
 		/* Pop the root table */
 		sq_pop(v, 1);
 	}
 
 	/* Registers the default error handlers */
-	sqstd_seterrorhandlers(v);
+	sq_registererrorhandlers(v);
 
 	/* Sets the print function */
 	sq_setprintfunc(v, print_func, error_func);
@@ -81,7 +78,7 @@ int main(int argc, char *argv[]) {
 	sq_pushroottable(v);
 
 	/* Print syntax errors if any */
-	if (LV_SUCCEEDED(sqstd_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
+	if (LV_SUCCEEDED(sq_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
 		call_main(v, 1, 2.5, _SC("teststring"));
 	}
 
