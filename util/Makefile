@@ -5,9 +5,15 @@ DEBUG = -g -O0
 LIBS = -llvcore -llvmods
 DEFINE =
 INCLUDE = -I../include -I. -Iinclude
-CXXFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
-CFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
+CXXFLAGS = -c $(DEBUG) $(DEFINE) -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
+CFLAGS = -c $(DEBUG) $(DEFINE) -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
 LFLAGS = -Wall $(DEBUG) $(LIBDIR) $(LIBS)
+
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+   DEFINE += -D_SQ64
+   CXXFLAGS += -m64
+endif
 
 OBJS= \
 	minimal.o
@@ -24,3 +30,4 @@ runner: runner.o
 clean:
 	$(RM) *.o
 	$(RM) $(BIN)
+	$(RM) compiler runner 

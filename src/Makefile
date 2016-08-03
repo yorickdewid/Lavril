@@ -2,11 +2,16 @@ CC = g++
 BIN = ../lib/liblvcore.a
 DEBUG = -g -O0
 LIBS =
-#DEFINE = -D_DEBUG_DUMP -D_SQ64
-DEFINE = -D_SQ64
+DEFINE =
 INCLUDE = -I../include -I. -Iinclude
-CXXFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
+CXXFLAGS = -c $(DEBUG) $(DEFINE) -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
 LFLAGS = -Wall $(DEBUG) $(LIBS)
+
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+   DEFINE += -D_SQ64
+   CXXFLAGS += -m64
+endif
 
 OBJS = \
 	sqapi.o \
@@ -33,20 +38,3 @@ all: $(OBJS)
 clean:
 	$(RM) *.o
 	$(RM) $(BIN)
-
-# OLD
-#sq64:
-#	gcc -O2 -m64 -D_SQ64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
-#	ar rc $(OUT) *.o
-#	rm *.o
-
-#sq32:
-#	gcc -O2 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
-#	ar rc $(OUT) *.o
-#	rm *.o
-
-#sqprof:
-#	gcc -O2 -pg -fno-exceptions -fno-rtti -pie -gstabs -g3 -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
-#	ar rc $(OUT) *.o
-#	rm *.o
-

@@ -1,11 +1,16 @@
 CC = g++
-BIN = ../lib/liblvmods.a
 DEBUG = -g -O0
 LIBS =
-DEFINE = -D_SQ64
+DEFINE =
 INCLUDE = -I../../include -I. -Iinclude
-CXXFLAGS = -c $(DEBUG) $(DEFINE) -m64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
+CXXFLAGS = -c $(DEBUG) $(DEFINE) -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
 LFLAGS = -Wall $(DEBUG) $(LIBS)
+
+LBITS := $(shell getconf LONG_BIT)
+ifeq ($(LBITS),64)
+   DEFINE += -D_SQ64
+   CXXFLAGS += -m64
+endif
 
 OBJS= \
 	sha1.o \
