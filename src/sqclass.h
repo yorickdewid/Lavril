@@ -72,6 +72,7 @@ struct SQClass : public CHAINABLE_OBJ {
 		return OT_CLASS;
 	}
 #endif
+
 	SQInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval);
 	SQInstance *CreateInstance();
 	SQTable *_members;

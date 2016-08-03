@@ -101,7 +101,7 @@ struct SQWeakRef : SQRefCounted {
 	SQObject _obj;
 };
 
-#define _realval(o) (type((o)) != OT_WEAKREF?(SQObject)o:_weakref(o)->_obj)
+#define _realval(o) (type((o)) != OT_WEAKREF ? (SQObject)o : _weakref(o)->_obj)
 
 struct SQObjectPtr;
 
@@ -290,6 +290,10 @@ struct SQObjectPtr : public SQObject {
 		_unVal.raw = (SQRawObjectVal)NULL;
 		__Release(tOldType , unOldVal);
 	}
+
+#ifdef _DEBUG_DUMP
+	void dump();
+#endif
 
   private:
 	SQObjectPtr(const SQChar *) {} //safety

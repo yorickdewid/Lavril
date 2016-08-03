@@ -671,3 +671,62 @@ void SQCollectable::UnMark() {
 
 #endif
 
+#ifdef _DEBUG_DUMP
+void SQObjectPtr::dump() {
+	scprintf(_SC("DELEGABLE %s\n"), is_delegable(*this) ? "true" : "false");
+	switch (type(*this)) {
+		case OT_FLOAT:
+			scprintf(_SC("FLOAT %.3f"), _float(*this));
+			break;
+		case OT_INTEGER:
+			scprintf(_SC("INTEGER " LVFORMATINT), _integer(*this));
+			break;
+		case OT_BOOL:
+			scprintf(_SC("BOOL %s"), _integer(*this) ? "true" : "false");
+			break;
+		case OT_STRING:
+			scprintf(_SC("STRING %s"), _stringval(*this));
+			break;
+		case OT_NULL:
+			scprintf(_SC("NULL"));
+			break;
+		case OT_TABLE:
+			scprintf(_SC("TABLE %p[%p]"), _table(*this), _table(*this)->_delegate);
+			break;
+		case OT_ARRAY:
+			scprintf(_SC("ARRAY %p"), _array(*this));
+			break;
+		case OT_CLOSURE:
+			scprintf(_SC("CLOSURE [%p]"), _closure(*this));
+			break;
+		case OT_NATIVECLOSURE:
+			scprintf(_SC("NATIVECLOSURE"));
+			break;
+		case OT_USERDATA:
+			scprintf(_SC("USERDATA %p[%p]"), _userdataval(*this), _userdata(*this)->_delegate);
+			break;
+		case OT_GENERATOR:
+			scprintf(_SC("GENERATOR %p"), _generator(*this));
+			break;
+		case OT_THREAD:
+			scprintf(_SC("THREAD [%p]"), _thread(*this));
+			break;
+		case OT_USERPOINTER:
+			scprintf(_SC("USERPOINTER %p"), _userpointer(*this));
+			break;
+		case OT_CLASS:
+			scprintf(_SC("CLASS %p"), _class(*this));
+			break;
+		case OT_INSTANCE:
+			scprintf(_SC("INSTANCE %p"), _instance(*this));
+			break;
+		case OT_WEAKREF:
+			scprintf(_SC("WEAKERF %p"), _weakref(*this));
+			break;
+		default:
+			assert(0);
+			break;
+	};
+	scprintf(_SC("\n"));
+}
+#endif
