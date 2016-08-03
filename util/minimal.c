@@ -35,16 +35,16 @@ void call_test(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 	SQInteger top = lv_gettop(v);
 
 	/* Push the global table */
-	sq_pushroottable(v);
-	sq_pushstring(v, _SC("test"), -1);
+	lv_pushroottable(v);
+	lv_pushstring(v, _SC("test"), -1);
 
 	/* Get the routine 'test' from the global table */
-	if (LV_SUCCEEDED(sq_get(v, -2))) {
-		sq_pushroottable(v);
-		sq_pushinteger(v, n);
-		sq_pushfloat(v, f);
-		sq_pushstring(v, s, -1);
-		sq_call(v, 4, SQFalse, SQTrue);
+	if (LV_SUCCEEDED(lv_get(v, -2))) {
+		lv_pushroottable(v);
+		lv_pushinteger(v, n);
+		lv_pushfloat(v, f);
+		lv_pushstring(v, s, -1);
+		lv_call(v, 4, SQFalse, SQTrue);
 	}
 
 	/* Restore the original stack size */
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
 	{
 		/* Push the global table to store std */
-		sq_pushroottable(v);
+		lv_pushroottable(v);
 
 		/* Load modules */
 		init_module(math, v);
@@ -69,13 +69,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Registers the default error handlers */
-	sq_registererrorhandlers(v);
+	lv_registererrorhandlers(v);
 
 	/* Sets the print function */
 	lv_setprintfunc(v, print_func, error_func);
 
 	/* Push the root table(were the globals of the script will be stored) */
-	sq_pushroottable(v);
+	lv_pushroottable(v);
 
 	/* Print syntax errors if any */
 	if (LV_SUCCEEDED(lv_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {

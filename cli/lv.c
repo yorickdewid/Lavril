@@ -36,7 +36,7 @@ int MemAllocHook(int allocType, void *userData, size_t size, int blockType,
 
 SQInteger quit(HSQUIRRELVM v) {
 	int *done;
-	sq_getuserpointer(v, -1, (SQUserPointer *)&done);
+	lv_getuserpointer(v, -1, (SQUserPointer *)&done);
 	*done = 1;
 	return 0;
 }
@@ -141,15 +141,15 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			if (i > 0) {
 				SQInteger oldtop = lv_gettop(v);
 				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
-					sq_pushroottable(v);
-					if (LV_SUCCEEDED(sq_call(v, 1, _retval, SQTrue)) && _retval) {
+					lv_pushroottable(v);
+					if (LV_SUCCEEDED(lv_call(v, 1, _retval, SQTrue)) && _retval) {
 						scprintf(_SC("\n"));
-						sq_pushroottable(v);
-						sq_pushstring(v, _SC("print"), -1);
-						sq_get(v, -2);
-						sq_pushroottable(v);
+						lv_pushroottable(v);
+						lv_pushstring(v, _SC("print"), -1);
+						lv_get(v, -2);
+						lv_pushroottable(v);
 						lv_push(v, -4);
-						sq_call(v, 2, SQFalse, SQTrue);
+						lv_call(v, 2, SQFalse, SQTrue);
 						_retval = 0;
 						scprintf(_SC("\n"));
 					}
@@ -178,8 +178,8 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 					if (output) {
 #ifdef SQUNICODE
 						int len = (int)(strlen(output) + 1);
-						mbstowcs(sq_getscratchpad(v, len * sizeof(SQChar)), output, len);
-						outfile = sq_getscratchpad(v, -1);
+						mbstowcs(lv_getscratchpad(v, len * sizeof(SQChar)), output, len);
+						outfile = lv_getscratchpad(v, -1);
 #else
 						outfile = output;
 #endif
@@ -191,27 +191,27 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			} else {
 				if (LV_SUCCEEDED(lv_loadfile(v, filename, SQTrue))) {
 					int callargs = 1;
-					sq_pushroottable(v);
+					lv_pushroottable(v);
 
 					for (i = arg; i < argc; ++i) {
 						const SQChar *a;
 #ifdef SQUNICODE
 						int alen = (int)strlen(argv[i]);
-						a = sq_getscratchpad(v, (int)(alen * sizeof(SQChar)));
-						mbstowcs(sq_getscratchpad(v, -1), argv[i], alen);
-						sq_getscratchpad(v, -1)[alen] = _SC('\0');
+						a = lv_getscratchpad(v, (int)(alen * sizeof(SQChar)));
+						mbstowcs(lv_getscratchpad(v, -1), argv[i], alen);
+						lv_getscratchpad(v, -1)[alen] = _SC('\0');
 #else
 						a = argv[i];
 #endif
-						sq_pushstring(v, a, -1);
+						lv_pushstring(v, a, -1);
 						callargs++;
 					}
 
-					if (LV_SUCCEEDED(sq_call(v, callargs, SQTrue, SQTrue))) {
-						SQObjectType type = sq_gettype(v, -1);
+					if (LV_SUCCEEDED(lv_call(v, callargs, SQTrue, SQTrue))) {
+						SQObjectType type = lv_gettype(v, -1);
 						if (type == OT_INTEGER) {
 							*retval = type;
-							sq_getinteger(v, -1, retval);
+							lv_getinteger(v, -1, retval);
 						}
 						return DONE;
 					}
@@ -246,12 +246,12 @@ void interactive(HSQUIRRELVM v) {
 	print_version_info();
 	print_interactive_console_info();
 
-	sq_pushroottable(v);
-	sq_pushstring(v, _SC("quit"), -1);
-	sq_pushuserpointer(v, &done);
-	sq_newclosure(v, quit, 1);
-	sq_setparamscheck(v, 1, NULL);
-	sq_newslot(v, -3, SQFalse);
+	lv_pushroottable(v);
+	lv_pushstring(v, _SC("quit"), -1);
+	lv_pushuserpointer(v, &done);
+	lv_newclosure(v, quit, 1);
+	lv_setparamscheck(v, 1, NULL);
+	lv_newslot(v, -3, SQFalse);
 	lv_pop(v, 1);
 
 	while (!done) {
@@ -291,8 +291,8 @@ void interactive(HSQUIRRELVM v) {
 		buffer[i] = _SC('\0');
 
 		if (buffer[0] == _SC('=')) {
-			scsprintf(sq_getscratchpad(v, CLI_MAXINPUT), (size_t)CLI_MAXINPUT, _SC("return (%s)"), &buffer[1]);
-			memcpy(buffer, sq_getscratchpad(v, -1), (scstrlen(sq_getscratchpad(v, -1)) + 1)*sizeof(SQChar));
+			scsprintf(lv_getscratchpad(v, CLI_MAXINPUT), (size_t)CLI_MAXINPUT, _SC("return (%s)"), &buffer[1]);
+			memcpy(buffer, lv_getscratchpad(v, -1), (scstrlen(lv_getscratchpad(v, -1)) + 1)*sizeof(SQChar));
 			retval = 1;
 		}
 
@@ -300,15 +300,15 @@ void interactive(HSQUIRRELVM v) {
 		if (i > 0) {
 			SQInteger oldtop = lv_gettop(v);
 			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
-				sq_pushroottable(v);
-				if (LV_SUCCEEDED(sq_call(v, 1, retval, SQTrue)) && retval) {
+				lv_pushroottable(v);
+				if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue)) && retval) {
 					scprintf(_SC("\n"));
-					sq_pushroottable(v);
-					sq_pushstring(v, _SC("print"), -1);
-					sq_get(v, -2);
-					sq_pushroottable(v);
+					lv_pushroottable(v);
+					lv_pushstring(v, _SC("print"), -1);
+					lv_get(v, -2);
+					lv_pushroottable(v);
 					lv_push(v, -4);
-					sq_call(v, 2, SQFalse, SQTrue);
+					lv_call(v, 2, SQFalse, SQTrue);
 					retval = 0;
 					scprintf(_SC("\n"));
 				}
@@ -330,15 +330,16 @@ int main(int argc, char *argv[]) {
 	v = lv_open(1024);
 	lv_setprintfunc(v, print_func, error_func);
 
-	sq_pushroottable(v);
+	lv_pushroottable(v);
 
 	init_module(blob, v);
 	init_module(io, v);
 	init_module(string, v);
 	init_module(system, v);
 	init_module(math, v);
+	init_module(crypto, v);
 
-	sq_registererrorhandlers(v);
+	lv_registererrorhandlers(v);
 
 	switch (getargs(v, argc, argv, &retval)) {
 		case INTERACTIVE:

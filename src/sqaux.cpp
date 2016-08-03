@@ -46,7 +46,7 @@ CALLBACK static void printcallstack(HSQUIRRELVM v) {
 						pf(v, _SC("[%s] USERPOINTER\n"), name);
 						break;
 					case OT_STRING:
-						sq_getstring(v, -1, &s);
+						lv_getstring(v, -1, &s);
 						pf(v, _SC("[%s] \"%s\"\n"), name, s);
 						break;
 					case OT_TABLE:
@@ -101,7 +101,7 @@ CALLBACK static SQInteger callback_printerror(HSQUIRRELVM v) {
 	if (pf) {
 		const SQChar *sErr = 0;
 		if (lv_gettop(v) >= 1) {
-			if (LV_SUCCEEDED(sq_getstring(v, 2, &sErr)))   {
+			if (LV_SUCCEEDED(lv_getstring(v, 2, &sErr)))   {
 				pf(v, _SC("fatal error: %s\n"), sErr);
 			} else {
 				pf(v, _SC("fatal error: [unknown]\n"));
@@ -119,8 +119,8 @@ CALLBACK void callback_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const S
 	}
 }
 
-void sq_registererrorhandlers(HSQUIRRELVM v) {
+void lv_registererrorhandlers(HSQUIRRELVM v) {
 	lv_setcompilererrorhandler(v, callback_compiler_error);
-	sq_newclosure(v, callback_printerror, 0);
+	lv_newclosure(v, callback_printerror, 0);
 	lv_seterrorhandler(v);
 }

@@ -20,8 +20,8 @@
 
 static SQInteger _system_getenv(HSQUIRRELVM v) {
 	const SQChar *s;
-	if (LV_SUCCEEDED(sq_getstring(v, 2, &s))) {
-		sq_pushstring(v, scgetenv(s), -1);
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		lv_pushstring(v, scgetenv(s), -1);
 		return 1;
 	}
 	return 0;
@@ -29,45 +29,45 @@ static SQInteger _system_getenv(HSQUIRRELVM v) {
 
 static SQInteger _system_system(HSQUIRRELVM v) {
 	const SQChar *s;
-	if (LV_SUCCEEDED(sq_getstring(v, 2, &s))) {
-		sq_pushinteger(v, scsystem(s));
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		lv_pushinteger(v, scsystem(s));
 		return 1;
 	}
-	return sq_throwerror(v, _SC("wrong param"));
+	return lv_throwerror(v, _SC("wrong param"));
 }
 
 static SQInteger _system_clock(HSQUIRRELVM v) {
-	sq_pushfloat(v, ((SQFloat)clock()) / (SQFloat)CLOCKS_PER_SEC);
+	lv_pushfloat(v, ((SQFloat)clock()) / (SQFloat)CLOCKS_PER_SEC);
 	return 1;
 }
 
 static SQInteger _system_time(HSQUIRRELVM v) {
 	SQInteger t = (SQInteger)time(NULL);
-	sq_pushinteger(v, t);
+	lv_pushinteger(v, t);
 	return 1;
 }
 
 static SQInteger _system_remove(HSQUIRRELVM v) {
 	const SQChar *s;
-	sq_getstring(v, 2, &s);
+	lv_getstring(v, 2, &s);
 	if (scremove(s) == -1)
-		return sq_throwerror(v, _SC("remove() failed"));
+		return lv_throwerror(v, _SC("remove() failed"));
 	return 0;
 }
 
 static SQInteger _system_rename(HSQUIRRELVM v) {
 	const SQChar *oldn, *newn;
-	sq_getstring(v, 2, &oldn);
-	sq_getstring(v, 3, &newn);
+	lv_getstring(v, 2, &oldn);
+	lv_getstring(v, 3, &newn);
 	if (screname(oldn, newn) == -1)
-		return sq_throwerror(v, _SC("rename() failed"));
+		return lv_throwerror(v, _SC("rename() failed"));
 	return 0;
 }
 
 static void _set_integer_slot(HSQUIRRELVM v, const SQChar *name, SQInteger val) {
-	sq_pushstring(v, name, -1);
-	sq_pushinteger(v, val);
-	sq_rawset(v, -3);
+	lv_pushstring(v, name, -1);
+	lv_pushinteger(v, val);
+	lv_rawset(v, -3);
 }
 
 static SQInteger _system_date(HSQUIRRELVM v) {
@@ -75,10 +75,10 @@ static SQInteger _system_date(HSQUIRRELVM v) {
 	SQInteger it;
 	SQInteger format = 'l';
 	if (lv_gettop(v) > 1) {
-		sq_getinteger(v, 2, &it);
+		lv_getinteger(v, 2, &it);
 		t = it;
 		if (lv_gettop(v) > 2) {
-			sq_getinteger(v, 3, (SQInteger *)&format);
+			lv_getinteger(v, 3, (SQInteger *)&format);
 		}
 	} else {
 		time(&t);
@@ -89,8 +89,8 @@ static SQInteger _system_date(HSQUIRRELVM v) {
 	else
 		date = localtime(&t);
 	if (!date)
-		return sq_throwerror(v, _SC("crt api failure"));
-	sq_newtable(v);
+		return lv_throwerror(v, _SC("crt api failure"));
+	lv_newtable(v);
 	_set_integer_slot(v, _SC("sec"), date->tm_sec);
 	_set_integer_slot(v, _SC("min"), date->tm_min);
 	_set_integer_slot(v, _SC("hour"), date->tm_hour);
@@ -118,11 +118,11 @@ static const SQRegFunction systemlib_funcs[] = {
 SQInteger mod_init_system(HSQUIRRELVM v) {
 	SQInteger i = 0;
 	while (systemlib_funcs[i].name != 0) {
-		sq_pushstring(v, systemlib_funcs[i].name, -1);
-		sq_newclosure(v, systemlib_funcs[i].f, 0);
-		sq_setparamscheck(v, systemlib_funcs[i].nparamscheck, systemlib_funcs[i].typemask);
-		sq_setnativeclosurename(v, -1, systemlib_funcs[i].name);
-		sq_newslot(v, -3, SQFalse);
+		lv_pushstring(v, systemlib_funcs[i].name, -1);
+		lv_newclosure(v, systemlib_funcs[i].f, 0);
+		lv_setparamscheck(v, systemlib_funcs[i].nparamscheck, systemlib_funcs[i].typemask);
+		lv_setnativeclosurename(v, -1, systemlib_funcs[i].name);
+		lv_newslot(v, -3, SQFalse);
 		i++;
 	}
 	return 1;

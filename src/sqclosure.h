@@ -211,7 +211,7 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 		SQInteger size = _CALC_NATVIVECLOSURE_SIZE(_noutervalues);
 		_DESTRUCT_VECTOR(SQObjectPtr, _noutervalues, _outervalues);
 		this->~SQNativeClosure();
-		sq_free(this, size);
+		lv_free(this, size);
 	}
 
 #ifndef NO_GARBAGE_COLLECTOR

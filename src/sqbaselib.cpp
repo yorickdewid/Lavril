@@ -41,7 +41,7 @@ static SQInteger base_dummy(HSQUIRRELVM LV_UNUSED_ARG(v)) {
 
 #ifndef NO_GARBAGE_COLLECTOR
 static SQInteger base_collectgarbage(HSQUIRRELVM v) {
-	sq_pushinteger(v, lv_collectgarbage(v));
+	lv_pushinteger(v, lv_collectgarbage(v));
 	return 1;
 }
 static SQInteger base_resurectureachable(HSQUIRRELVM v) {
@@ -63,7 +63,7 @@ static SQInteger base_getconsttable(HSQUIRRELVM v) {
 
 static SQInteger base_setroottable(HSQUIRRELVM v) {
 	SQObjectPtr o = v->_roottable;
-	if (LV_FAILED(sq_setroottable(v)))
+	if (LV_FAILED(lv_setroottable(v)))
 		return LV_ERROR;
 	v->Push(o);
 	return 1;
@@ -71,7 +71,7 @@ static SQInteger base_setroottable(HSQUIRRELVM v) {
 
 static SQInteger base_setconsttable(HSQUIRRELVM v) {
 	SQObjectPtr o = _ss(v)->_consts;
-	if (LV_FAILED(sq_setconsttable(v)))
+	if (LV_FAILED(lv_setconsttable(v)))
 		return LV_ERROR;
 	v->Push(o);
 	return 1;
@@ -102,29 +102,31 @@ static SQInteger __getcallstackinfos(HSQUIRRELVM v, SQInteger level) {
 	if (LV_SUCCEEDED(lv_stackinfos(v, level, &si))) {
 		const SQChar *fn = _SC("unknown");
 		const SQChar *src = _SC("unknown");
-		if (si.funcname)fn = si.funcname;
-		if (si.source)src = si.source;
-		sq_newtable(v);
-		sq_pushstring(v, _SC("func"), -1);
-		sq_pushstring(v, fn, -1);
-		sq_newslot(v, -3, SQFalse);
-		sq_pushstring(v, _SC("src"), -1);
-		sq_pushstring(v, src, -1);
-		sq_newslot(v, -3, SQFalse);
-		sq_pushstring(v, _SC("line"), -1);
-		sq_pushinteger(v, si.line);
-		sq_newslot(v, -3, SQFalse);
-		sq_pushstring(v, _SC("locals"), -1);
-		sq_newtable(v);
+		if (si.funcname)
+			fn = si.funcname;
+		if (si.source)
+			src = si.source;
+		lv_newtable(v);
+		lv_pushstring(v, _SC("func"), -1);
+		lv_pushstring(v, fn, -1);
+		lv_newslot(v, -3, SQFalse);
+		lv_pushstring(v, _SC("src"), -1);
+		lv_pushstring(v, src, -1);
+		lv_newslot(v, -3, SQFalse);
+		lv_pushstring(v, _SC("line"), -1);
+		lv_pushinteger(v, si.line);
+		lv_newslot(v, -3, SQFalse);
+		lv_pushstring(v, _SC("locals"), -1);
+		lv_newtable(v);
 		seq = 0;
-		while ((name = sq_getlocal(v, level, seq))) {
-			sq_pushstring(v, name, -1);
+		while ((name = lv_getlocal(v, level, seq))) {
+			lv_pushstring(v, name, -1);
 			lv_push(v, -2);
-			sq_newslot(v, -4, SQFalse);
+			lv_newslot(v, -4, SQFalse);
 			lv_pop(v, 1);
 			seq++;
 		}
-		sq_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, SQFalse);
 		return 1;
 	}
 
@@ -132,13 +134,13 @@ static SQInteger __getcallstackinfos(HSQUIRRELVM v, SQInteger level) {
 }
 static SQInteger base_getstackinfos(HSQUIRRELVM v) {
 	SQInteger level;
-	sq_getinteger(v, -1, &level);
+	lv_getinteger(v, -1, &level);
 	return __getcallstackinfos(v, level);
 }
 
 static SQInteger base_assert(HSQUIRRELVM v) {
 	if (SQVM::IsFalse(stack_get(v, 2))) {
-		return sq_throwerror(v, _SC("assertion failed"));
+		return lv_throwerror(v, _SC("assertion failed"));
 	}
 	return 0;
 }
@@ -160,15 +162,15 @@ static SQInteger get_slice_params(HSQUIRRELVM v, SQInteger& sidx, SQInteger& eid
 			eidx = tointeger(end);
 		}
 	} else {
-		eidx = sq_getsize(v, 1);
+		eidx = lv_getsize(v, 1);
 	}
 	return 1;
 }
 
 static SQInteger base_print(HSQUIRRELVM v) {
 	const SQChar *str;
-	if (LV_SUCCEEDED(sq_tostring(v, 2))) {
-		if (LV_SUCCEEDED(sq_getstring(v, -1, &str))) {
+	if (LV_SUCCEEDED(lv_tostring(v, 2))) {
+		if (LV_SUCCEEDED(lv_getstring(v, -1, &str))) {
 			if (_ss(v)->_printfunc)
 				_ss(v)->_printfunc(v, _SC("%s"), str);
 			return 0;
@@ -179,8 +181,8 @@ static SQInteger base_print(HSQUIRRELVM v) {
 
 static SQInteger base_println(HSQUIRRELVM v) {
 	const SQChar *str;
-	if (LV_SUCCEEDED(sq_tostring(v, 2))) {
-		if (LV_SUCCEEDED(sq_getstring(v, -1, &str))) {
+	if (LV_SUCCEEDED(lv_tostring(v, 2))) {
+		if (LV_SUCCEEDED(lv_getstring(v, -1, &str))) {
 			if (_ss(v)->_printfunc)
 				_ss(v)->_printfunc(v, _SC("%s\n"), str);
 			return 0;
@@ -191,8 +193,8 @@ static SQInteger base_println(HSQUIRRELVM v) {
 
 static SQInteger base_error(HSQUIRRELVM v) {
 	const SQChar *str;
-	if (LV_SUCCEEDED(sq_tostring(v, 2))) {
-		if (LV_SUCCEEDED(sq_getstring(v, -1, &str))) {
+	if (LV_SUCCEEDED(lv_tostring(v, 2))) {
+		if (LV_SUCCEEDED(lv_getstring(v, -1, &str))) {
 			if (_ss(v)->_errorfunc)
 				_ss(v)->_errorfunc(v, _SC("%s"), str);
 			return 0;
@@ -205,10 +207,10 @@ static SQInteger base_compilestring(HSQUIRRELVM v) {
 	SQInteger nargs = lv_gettop(v);
 	const SQChar *src = NULL, *name = _SC("unnamedbuffer");
 	SQInteger size;
-	sq_getstring(v, 2, &src);
-	size = sq_getsize(v, 2);
+	lv_getstring(v, 2, &src);
+	size = lv_getsize(v, 2);
 	if (nargs > 2) {
-		sq_getstring(v, 3, &name);
+		lv_getstring(v, 3, &name);
 	}
 	if (LV_SUCCEEDED(lv_compilebuffer(v, src, size, name, SQFalse)))
 		return 1;
@@ -252,7 +254,7 @@ static SQInteger base_callee(HSQUIRRELVM v) {
 		v->Push(v->_callsstack[v->_callsstacksize - 2]._closure);
 		return 1;
 	}
-	return sq_throwerror(v, _SC("no closure in the calls stack"));
+	return lv_throwerror(v, _SC("no closure in the calls stack"));
 }
 
 static const SQRegFunction base_funcs[] = {
@@ -284,37 +286,37 @@ static const SQRegFunction base_funcs[] = {
 
 void sq_base_register(HSQUIRRELVM v) {
 	SQInteger i = 0;
-	sq_pushroottable(v);
+	lv_pushroottable(v);
 
 	while (base_funcs[i].name != 0) {
-		sq_pushstring(v, base_funcs[i].name, -1);
-		sq_newclosure(v, base_funcs[i].f, 0);
-		sq_setnativeclosurename(v, -1, base_funcs[i].name);
-		sq_setparamscheck(v, base_funcs[i].nparamscheck, base_funcs[i].typemask);
-		sq_newslot(v, -3, SQFalse);
+		lv_pushstring(v, base_funcs[i].name, -1);
+		lv_newclosure(v, base_funcs[i].f, 0);
+		lv_setnativeclosurename(v, -1, base_funcs[i].name);
+		lv_setparamscheck(v, base_funcs[i].nparamscheck, base_funcs[i].typemask);
+		lv_newslot(v, -3, SQFalse);
 		i++;
 	}
 
-	sq_pushstring(v, _SC("_versionnumber_"), -1);
-	sq_pushinteger(v, LAVRIL_VERSION_NUMBER);
-	sq_newslot(v, -3, SQFalse);
-	sq_pushstring(v, _SC("_version_"), -1);
-	sq_pushstring(v, LAVRIL_VERSION, -1);
-	sq_newslot(v, -3, SQFalse);
-	sq_pushstring(v, _SC("_charsize_"), -1);
-	sq_pushinteger(v, sizeof(SQChar));
-	sq_newslot(v, -3, SQFalse);
-	sq_pushstring(v, _SC("_intsize_"), -1);
-	sq_pushinteger(v, sizeof(SQInteger));
-	sq_newslot(v, -3, SQFalse);
-	sq_pushstring(v, _SC("_floatsize_"), -1);
-	sq_pushinteger(v, sizeof(SQFloat));
-	sq_newslot(v, -3, SQFalse);
+	lv_pushstring(v, _SC("_versionnumber_"), -1);
+	lv_pushinteger(v, LAVRIL_VERSION_NUMBER);
+	lv_newslot(v, -3, SQFalse);
+	lv_pushstring(v, _SC("_version_"), -1);
+	lv_pushstring(v, LAVRIL_VERSION, -1);
+	lv_newslot(v, -3, SQFalse);
+	lv_pushstring(v, _SC("_charsize_"), -1);
+	lv_pushinteger(v, sizeof(SQChar));
+	lv_newslot(v, -3, SQFalse);
+	lv_pushstring(v, _SC("_intsize_"), -1);
+	lv_pushinteger(v, sizeof(SQInteger));
+	lv_newslot(v, -3, SQFalse);
+	lv_pushstring(v, _SC("_floatsize_"), -1);
+	lv_pushinteger(v, sizeof(SQFloat));
+	lv_newslot(v, -3, SQFalse);
 	lv_pop(v, 1);
 }
 
 static SQInteger default_delegate_len(HSQUIRRELVM v) {
-	v->Push(SQInteger(sq_getsize(v, 1)));
+	v->Push(SQInteger(lv_getsize(v, 1)));
 	return 1;
 }
 
@@ -328,7 +330,7 @@ static SQInteger default_delegate_tofloat(HSQUIRRELVM v) {
 				break;
 			}
 		}
-		return sq_throwerror(v, _SC("cannot convert the string"));
+		return lv_throwerror(v, _SC("cannot convert the string"));
 		break;
 		case OT_INTEGER:
 		case OT_FLOAT:
@@ -348,7 +350,7 @@ static SQInteger default_delegate_tointeger(HSQUIRRELVM v) {
 	SQObjectPtr& o = stack_get(v, 1);
 	SQInteger base = 10;
 	if (lv_gettop(v) > 1) {
-		sq_getinteger(v, 2, &base);
+		lv_getinteger(v, 2, &base);
 	}
 	switch (type(o)) {
 		case OT_STRING: {
@@ -358,7 +360,7 @@ static SQInteger default_delegate_tointeger(HSQUIRRELVM v) {
 				break;
 			}
 		}
-		return sq_throwerror(v, _SC("cannot convert the string"));
+		return lv_throwerror(v, _SC("cannot convert the string"));
 		break;
 		case OT_INTEGER:
 		case OT_FLOAT:
@@ -375,20 +377,19 @@ static SQInteger default_delegate_tointeger(HSQUIRRELVM v) {
 }
 
 static SQInteger default_delegate_tostring(HSQUIRRELVM v) {
-	if (LV_FAILED(sq_tostring(v, 1)))
+	if (LV_FAILED(lv_tostring(v, 1)))
 		return LV_ERROR;
 	return 1;
 }
 
 static SQInteger obj_delegate_weakref(HSQUIRRELVM v) {
-	sq_weakref(v, 1);
+	lv_weakref(v, 1);
 	return 1;
 }
 
 static SQInteger obj_clear(HSQUIRRELVM v) {
-	return sq_clear(v, -1);
+	return lv_clear(v, -1);
 }
-
 
 static SQInteger number_delegate_tochar(HSQUIRRELVM v) {
 	SQObject& o = stack_get(v, 1);
@@ -401,39 +402,37 @@ static SQInteger number_delegate_tochar(HSQUIRRELVM v) {
 //TABLE DEFAULT DELEGATE
 
 static SQInteger table_rawdelete(HSQUIRRELVM v) {
-	if (LV_FAILED(sq_rawdeleteslot(v, 1, SQTrue)))
+	if (LV_FAILED(lv_rawdeleteslot(v, 1, SQTrue)))
 		return LV_ERROR;
 	return 1;
 }
 
-
 static SQInteger container_rawexists(HSQUIRRELVM v) {
-	if (LV_SUCCEEDED(sq_rawget(v, -2))) {
-		sq_pushbool(v, SQTrue);
+	if (LV_SUCCEEDED(lv_rawget(v, -2))) {
+		lv_pushbool(v, SQTrue);
 		return 1;
 	}
-	sq_pushbool(v, SQFalse);
+	lv_pushbool(v, SQFalse);
 	return 1;
 }
 
 static SQInteger container_rawset(HSQUIRRELVM v) {
-	return sq_rawset(v, -3);
+	return lv_rawset(v, -3);
 }
 
-
 static SQInteger container_rawget(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_rawget(v, -2)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_rawget(v, -2)) ? 1 : LV_ERROR;
 }
 
 static SQInteger table_setdelegate(HSQUIRRELVM v) {
-	if (LV_FAILED(sq_setdelegate(v, -2)))
+	if (LV_FAILED(lv_setdelegate(v, -2)))
 		return LV_ERROR;
 	lv_push(v, -1); // -1 because sq_setdelegate pops 1
 	return 1;
 }
 
 static SQInteger table_getdelegate(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_getdelegate(v, -1)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_getdelegate(v, -1)) ? 1 : LV_ERROR;
 }
 
 const SQRegFunction SQSharedState::_table_default_delegate_funcz[] = {
@@ -453,7 +452,7 @@ const SQRegFunction SQSharedState::_table_default_delegate_funcz[] = {
 //ARRAY DEFAULT DELEGATE///////////////////////////////////////
 
 static SQInteger array_append(HSQUIRRELVM v) {
-	return sq_arrayappend(v, -2);
+	return lv_arrayappend(v, -2);
 }
 
 static SQInteger array_extend(HSQUIRRELVM v) {
@@ -462,11 +461,11 @@ static SQInteger array_extend(HSQUIRRELVM v) {
 }
 
 static SQInteger array_reverse(HSQUIRRELVM v) {
-	return sq_arrayreverse(v, -1);
+	return lv_arrayreverse(v, -1);
 }
 
 static SQInteger array_pop(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_arraypop(v, 1, SQTrue)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_arraypop(v, 1, SQTrue)) ? 1 : LV_ERROR;
 }
 
 static SQInteger array_top(HSQUIRRELVM v) {
@@ -474,7 +473,7 @@ static SQInteger array_top(HSQUIRRELVM v) {
 	if (_array(o)->Size() > 0) {
 		v->Push(_array(o)->Top());
 		return 1;
-	} else return sq_throwerror(v, _SC("top() on a empty array"));
+	} else return lv_throwerror(v, _SC("top() on a empty array"));
 }
 
 static SQInteger array_insert(HSQUIRRELVM v) {
@@ -482,21 +481,21 @@ static SQInteger array_insert(HSQUIRRELVM v) {
 	SQObject& idx = stack_get(v, 2);
 	SQObject& val = stack_get(v, 3);
 	if (!_array(o)->Insert(tointeger(idx), val))
-		return sq_throwerror(v, _SC("index out of range"));
+		return lv_throwerror(v, _SC("index out of range"));
 	return 0;
 }
 
 static SQInteger array_remove(HSQUIRRELVM v) {
 	SQObject& o = stack_get(v, 1);
 	SQObject& idx = stack_get(v, 2);
-	if (!sq_isnumeric(idx)) return sq_throwerror(v, _SC("wrong type"));
+	if (!sq_isnumeric(idx)) return lv_throwerror(v, _SC("wrong type"));
 	SQObjectPtr val;
 	if (_array(o)->Get(tointeger(idx), val)) {
 		_array(o)->Remove(tointeger(idx));
 		v->Push(val);
 		return 1;
 	}
-	return sq_throwerror(v, _SC("idx out of range"));
+	return lv_throwerror(v, _SC("idx out of range"));
 }
 
 static SQInteger array_resize(HSQUIRRELVM v) {
@@ -509,7 +508,7 @@ static SQInteger array_resize(HSQUIRRELVM v) {
 		_array(o)->Resize(tointeger(nsize), fill);
 		return 0;
 	}
-	return sq_throwerror(v, _SC("size must be a number"));
+	return lv_throwerror(v, _SC("size must be a number"));
 }
 
 static SQInteger __map_array(SQArray *dest, SQArray *src, HSQUIRRELVM v) {
@@ -519,7 +518,7 @@ static SQInteger __map_array(SQArray *dest, SQArray *src, HSQUIRRELVM v) {
 		src->Get(n, temp);
 		v->Push(src);
 		v->Push(temp);
-		if (LV_FAILED(sq_call(v, 2, SQTrue, SQFalse))) {
+		if (LV_FAILED(lv_call(v, 2, SQTrue, SQFalse))) {
 			return LV_ERROR;
 		}
 		dest->Set(n, v->GetUp(-1));
@@ -561,7 +560,7 @@ static SQInteger array_reduce(HSQUIRRELVM v) {
 			v->Push(o);
 			v->Push(res);
 			v->Push(other);
-			if (LV_FAILED(sq_call(v, 3, SQTrue, SQFalse))) {
+			if (LV_FAILED(lv_call(v, 3, SQTrue, SQFalse))) {
 				return LV_ERROR;
 			}
 			res = v->GetUp(-1);
@@ -583,7 +582,7 @@ static SQInteger array_filter(HSQUIRRELVM v) {
 		v->Push(o);
 		v->Push(n);
 		v->Push(val);
-		if (LV_FAILED(sq_call(v, 3, SQTrue, SQFalse))) {
+		if (LV_FAILED(lv_call(v, 3, SQTrue, SQFalse))) {
 			return LV_ERROR;
 		}
 		if (!SQVM::IsFalse(v->GetUp(-1))) {
@@ -618,15 +617,15 @@ static bool _sort_compare(HSQUIRRELVM v, SQObjectPtr& a, SQObjectPtr& b, SQInteg
 	} else {
 		SQInteger top = lv_gettop(v);
 		lv_push(v, func);
-		sq_pushroottable(v);
+		lv_pushroottable(v);
 		v->Push(a);
 		v->Push(b);
-		if (LV_FAILED(sq_call(v, 3, SQTrue, SQFalse))) {
+		if (LV_FAILED(lv_call(v, 3, SQTrue, SQFalse))) {
 			if (!sq_isstring( v->_lasterror))
 				v->Raise_Error(_SC("compare func failed"));
 			return false;
 		}
-		if (LV_FAILED(sq_getinteger(v, -1, &ret))) {
+		if (LV_FAILED(lv_getinteger(v, -1, &ret))) {
 			v->Raise_Error(_SC("numeric value expected as return value of the compare function"));
 			return false;
 		}
@@ -706,8 +705,8 @@ static SQInteger array_slice(HSQUIRRELVM v) {
 	SQInteger alen = _array(o)->Size();
 	if (sidx < 0)sidx = alen + sidx;
 	if (eidx < 0)eidx = alen + eidx;
-	if (eidx < sidx)return sq_throwerror(v, _SC("wrong indexes"));
-	if (eidx > alen || sidx < 0)return sq_throwerror(v, _SC("slice out of range"));
+	if (eidx < sidx)return lv_throwerror(v, _SC("wrong indexes"));
+	if (eidx > alen || sidx < 0)return lv_throwerror(v, _SC("slice out of range"));
 	SQArray *arr = SQArray::Create(_ss(v), eidx - sidx);
 	SQObjectPtr t;
 	SQInteger count = 0;
@@ -757,9 +756,9 @@ static SQInteger string_slice(HSQUIRRELVM v) {
 	if (eidx < 0)
 		eidx = slen + eidx;
 	if (eidx < sidx)
-		return sq_throwerror(v, _SC("wrong indexes"));
+		return lv_throwerror(v, _SC("wrong indexes"));
 	if (eidx > slen || sidx < 0)
-		return sq_throwerror(v, _SC("slice out of range"));
+		return lv_throwerror(v, _SC("slice out of range"));
 
 	v->Push(SQString::Create(_ss(v), &_stringval(o)[sidx], eidx - sidx));
 	return 1;
@@ -768,19 +767,19 @@ static SQInteger string_slice(HSQUIRRELVM v) {
 static SQInteger string_find(HSQUIRRELVM v) {
 	SQInteger top, start_idx = 0;
 	const SQChar *str, *substr, *ret;
-	if (((top = lv_gettop(v)) > 1) && LV_SUCCEEDED(sq_getstring(v, 1, &str)) && LV_SUCCEEDED(sq_getstring(v, 2, &substr))) {
+	if (((top = lv_gettop(v)) > 1) && LV_SUCCEEDED(lv_getstring(v, 1, &str)) && LV_SUCCEEDED(lv_getstring(v, 2, &substr))) {
 		if (top > 2)
-			sq_getinteger(v, 3, &start_idx);
-		if ((sq_getsize(v, 1) > start_idx) && (start_idx >= 0)) {
+			lv_getinteger(v, 3, &start_idx);
+		if ((lv_getsize(v, 1) > start_idx) && (start_idx >= 0)) {
 			ret = scstrstr(&str[start_idx], substr);
 			if (ret) {
-				sq_pushinteger(v, (SQInteger)(ret - str));
+				lv_pushinteger(v, (SQInteger)(ret - str));
 				return 1;
 			}
 		}
 		return 0;
 	}
-	return sq_throwerror(v, _SC("invalid param"));
+	return lv_throwerror(v, _SC("invalid param"));
 }
 
 #define STRING_TOFUNCZ(func) static SQInteger string_##func(HSQUIRRELVM v) \
@@ -791,8 +790,8 @@ static SQInteger string_find(HSQUIRRELVM v) {
 	SQInteger slen = _string(str)->_len; \
 	if(sidx < 0)sidx = slen + sidx; \
 	if(eidx < 0)eidx = slen + eidx; \
-	if(eidx < sidx) return sq_throwerror(v,_SC("wrong indexes")); \
-	if(eidx > slen || sidx < 0) return sq_throwerror(v,_SC("slice out of range")); \
+	if(eidx < sidx) return lv_throwerror(v,_SC("wrong indexes")); \
+	if(eidx > slen || sidx < 0) return lv_throwerror(v,_SC("slice out of range")); \
 	SQInteger len=_string(str)->_len; \
 	const SQChar *sthis=_stringval(str); \
 	SQChar *snew=(_ss(v)->GetScratchPad(sq_rsl(len))); \
@@ -830,11 +829,11 @@ const SQRegFunction SQSharedState::_number_default_delegate_funcz[] = {
 
 //CLOSURE DEFAULT DELEGATE//////////////////////////
 static SQInteger closure_pcall(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_call(v, lv_gettop(v) - 1, SQTrue, SQFalse)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, SQTrue, SQFalse)) ? 1 : LV_ERROR;
 }
 
 static SQInteger closure_call(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_call(v, lv_gettop(v) - 1, SQTrue, SQTrue)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, SQTrue, SQTrue)) ? 1 : LV_ERROR;
 }
 
 static SQInteger _closure_acall(HSQUIRRELVM v, SQBool raiseerror) {
@@ -842,7 +841,7 @@ static SQInteger _closure_acall(HSQUIRRELVM v, SQBool raiseerror) {
 	SQInteger nparams = aparams->Size();
 	v->Push(stack_get(v, 1));
 	for (SQInteger i = 0; i < nparams; i++)v->Push(aparams->_values[i]);
-	return LV_SUCCEEDED(sq_call(v, nparams, SQTrue, raiseerror)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_call(v, nparams, SQTrue, raiseerror)) ? 1 : LV_ERROR;
 }
 
 static SQInteger closure_acall(HSQUIRRELVM v) {
@@ -854,19 +853,19 @@ static SQInteger closure_pacall(HSQUIRRELVM v) {
 }
 
 static SQInteger closure_bindenv(HSQUIRRELVM v) {
-	if (LV_FAILED(sq_bindenv(v, 1)))
+	if (LV_FAILED(lv_bindenv(v, 1)))
 		return LV_ERROR;
 	return 1;
 }
 
 static SQInteger closure_getroot(HSQUIRRELVM v) {
-	if (LV_FAILED(sq_getclosureroot(v, -1)))
+	if (LV_FAILED(lv_getclosureroot(v, -1)))
 		return LV_ERROR;
 	return 1;
 }
 
 static SQInteger closure_setroot(HSQUIRRELVM v) {
-	if (LV_FAILED(sq_setclosureroot(v, -2)))
+	if (LV_FAILED(lv_setclosureroot(v, -2)))
 		return LV_ERROR;
 	return 1;
 }
@@ -959,7 +958,7 @@ static SQInteger thread_call(HSQUIRRELVM v) {
 		_thread(o)->Push(_thread(o)->_roottable);
 		for (SQInteger i = 2; i < (nparams + 1); i++)
 			lv_move(_thread(o), v, i);
-		if (LV_SUCCEEDED(sq_call(_thread(o), nparams, SQTrue, SQTrue))) {
+		if (LV_SUCCEEDED(lv_call(_thread(o), nparams, SQTrue, SQTrue))) {
 			lv_move(v, _thread(o), -1);
 			lv_pop(_thread(o), 1);
 			return 1;
@@ -967,7 +966,7 @@ static SQInteger thread_call(HSQUIRRELVM v) {
 		v->_lasterror = _thread(o)->_lasterror;
 		return LV_ERROR;
 	}
-	return sq_throwerror(v, _SC("wrong parameter"));
+	return lv_throwerror(v, _SC("wrong parameter"));
 }
 
 static SQInteger thread_wakeup(HSQUIRRELVM v) {
@@ -978,10 +977,10 @@ static SQInteger thread_wakeup(HSQUIRRELVM v) {
 		if (state != SQ_VMSTATE_SUSPENDED) {
 			switch (state) {
 				case SQ_VMSTATE_IDLE:
-					return sq_throwerror(v, _SC("cannot wakeup a idle thread"));
+					return lv_throwerror(v, _SC("cannot wakeup a idle thread"));
 					break;
 				case SQ_VMSTATE_RUNNING:
-					return sq_throwerror(v, _SC("cannot wakeup a running thread"));
+					return lv_throwerror(v, _SC("cannot wakeup a running thread"));
 					break;
 			}
 		}
@@ -1002,7 +1001,7 @@ static SQInteger thread_wakeup(HSQUIRRELVM v) {
 		v->_lasterror = thread->_lasterror;
 		return LV_ERROR;
 	}
-	return sq_throwerror(v, _SC("wrong parameter"));
+	return lv_throwerror(v, _SC("wrong parameter"));
 }
 
 static SQInteger thread_wakeupthrow(HSQUIRRELVM v) {
@@ -1013,19 +1012,19 @@ static SQInteger thread_wakeupthrow(HSQUIRRELVM v) {
 		if (state != SQ_VMSTATE_SUSPENDED) {
 			switch (state) {
 				case SQ_VMSTATE_IDLE:
-					return sq_throwerror(v, _SC("cannot wakeup a idle thread"));
+					return lv_throwerror(v, _SC("cannot wakeup a idle thread"));
 					break;
 				case SQ_VMSTATE_RUNNING:
-					return sq_throwerror(v, _SC("cannot wakeup a running thread"));
+					return lv_throwerror(v, _SC("cannot wakeup a running thread"));
 					break;
 			}
 		}
 
 		lv_move(thread, v, 2);
-		sq_throwobject(thread);
+		lv_throwobject(thread);
 		SQBool rethrow_error = SQTrue;
 		if (lv_gettop(v) > 2) {
-			sq_getbool(v, 3, &rethrow_error);
+			lv_getbool(v, 3, &rethrow_error);
 		}
 		if (LV_SUCCEEDED(lv_wakeupvm(thread, SQFalse, SQTrue, SQTrue, SQTrue))) {
 			lv_move(v, thread, -1);
@@ -1042,23 +1041,23 @@ static SQInteger thread_wakeupthrow(HSQUIRRELVM v) {
 		}
 		return LV_OK;
 	}
-	return sq_throwerror(v, _SC("wrong parameter"));
+	return lv_throwerror(v, _SC("wrong parameter"));
 }
 
 static SQInteger thread_getstatus(HSQUIRRELVM v) {
 	SQObjectPtr& o = stack_get(v, 1);
 	switch (lv_getvmstate(_thread(o))) {
 		case SQ_VMSTATE_IDLE:
-			sq_pushstring(v, _SC("idle"), -1);
+			lv_pushstring(v, _SC("idle"), -1);
 			break;
 		case SQ_VMSTATE_RUNNING:
-			sq_pushstring(v, _SC("running"), -1);
+			lv_pushstring(v, _SC("running"), -1);
 			break;
 		case SQ_VMSTATE_SUSPENDED:
-			sq_pushstring(v, _SC("suspended"), -1);
+			lv_pushstring(v, _SC("suspended"), -1);
 			break;
 		default:
-			return sq_throwerror(v, _SC("internal VM error"));
+			return lv_throwerror(v, _SC("internal VM error"));
 	}
 	return 1;
 }
@@ -1069,14 +1068,14 @@ static SQInteger thread_getstackinfos(HSQUIRRELVM v) {
 		SQVM *thread = _thread(o);
 		SQInteger threadtop = lv_gettop(thread);
 		SQInteger level;
-		sq_getinteger(v, -1, &level);
+		lv_getinteger(v, -1, &level);
 		SQRESULT res = __getcallstackinfos(thread, level);
 		if (LV_FAILED(res)) {
 			lv_settop(thread, threadtop);
 			if (type(thread->_lasterror) == OT_STRING) {
-				sq_throwerror(v, _stringval(thread->_lasterror));
+				lv_throwerror(v, _stringval(thread->_lasterror));
 			} else {
-				sq_throwerror(v, _SC("unknown error"));
+				lv_throwerror(v, _SC("unknown error"));
 			}
 		}
 		if (res > 0) {
@@ -1090,7 +1089,7 @@ static SQInteger thread_getstackinfos(HSQUIRRELVM v) {
 		return 0;
 
 	}
-	return sq_throwerror(v, _SC("wrong parameter"));
+	return lv_throwerror(v, _SC("wrong parameter"));
 }
 
 const SQRegFunction SQSharedState::_thread_default_delegate_funcz[] = {
@@ -1105,47 +1104,47 @@ const SQRegFunction SQSharedState::_thread_default_delegate_funcz[] = {
 };
 
 static SQInteger class_getattributes(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_getattributes(v, -2)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_getattributes(v, -2)) ? 1 : LV_ERROR;
 }
 
 static SQInteger class_setattributes(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_setattributes(v, -3)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_setattributes(v, -3)) ? 1 : LV_ERROR;
 }
 
 static SQInteger class_instance(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_createinstance(v, -1)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_createinstance(v, -1)) ? 1 : LV_ERROR;
 }
 
 static SQInteger class_getbase(HSQUIRRELVM v) {
-	return LV_SUCCEEDED(sq_getbase(v, -1)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_getbase(v, -1)) ? 1 : LV_ERROR;
 }
 
 static SQInteger class_newmember(HSQUIRRELVM v) {
 	SQInteger top = lv_gettop(v);
 	SQBool bstatic = SQFalse;
 	if (top == 5) {
-		sq_tobool(v, -1, &bstatic);
+		lv_tobool(v, -1, &bstatic);
 		lv_pop(v, 1);
 	}
 
 	if (top < 4) {
-		sq_pushnull(v);
+		lv_pushnull(v);
 	}
-	return LV_SUCCEEDED(sq_newmember(v, -4, bstatic)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_newmember(v, -4, bstatic)) ? 1 : LV_ERROR;
 }
 
 static SQInteger class_rawnewmember(HSQUIRRELVM v) {
 	SQInteger top = lv_gettop(v);
 	SQBool bstatic = SQFalse;
 	if (top == 5) {
-		sq_tobool(v, -1, &bstatic);
+		lv_tobool(v, -1, &bstatic);
 		lv_pop(v, 1);
 	}
 
 	if (top < 4) {
-		sq_pushnull(v);
+		lv_pushnull(v);
 	}
-	return LV_SUCCEEDED(sq_rawnewmember(v, -4, bstatic)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_rawnewmember(v, -4, bstatic)) ? 1 : LV_ERROR;
 }
 
 const SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
@@ -1164,7 +1163,7 @@ const SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
 };
 
 static SQInteger instance_getclass(HSQUIRRELVM v) {
-	if (LV_SUCCEEDED(sq_getclass(v, 1)))
+	if (LV_SUCCEEDED(lv_getclass(v, 1)))
 		return 1;
 	return LV_ERROR;
 }
@@ -1180,7 +1179,7 @@ const SQRegFunction SQSharedState::_instance_default_delegate_funcz[] = {
 };
 
 static SQInteger weakref_ref(HSQUIRRELVM v) {
-	if (LV_FAILED(sq_getweakrefval(v, 1)))
+	if (LV_FAILED(lv_getweakrefval(v, 1)))
 		return LV_ERROR;
 	return 1;
 }

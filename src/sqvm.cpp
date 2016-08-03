@@ -369,7 +369,23 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res) {
 		case OT_BOOL:
 			scsprintf(_sp(sq_rsl(6)), sq_rsl(6), _integer(o) ? _SC("true") : _SC("false"));
 			break;
-		case OT_TABLE:
+		case OT_TABLE: {
+			// SQObjectPtr refidx, key, val, res;
+			// SQInteger idx;
+
+			// scsprintf(_sp(sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR)), sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR), _SC("(%s) {"), GetTypeName(o));
+			// scprintf("(table) {\n");
+
+			// while ((idx = _table(o)->Next(false, refidx, key, val)) != -1) {
+			// 	refidx = idx;
+			// 	this->ToString(val, res);
+			// 	scprintf("  \"%s\": %s\n", _string(key)->_val, _string(res)->_val);
+			// }
+
+			// scprintf("}\n");
+			// scsprintf(_sp(sq_rsl(2)), sq_rsl(2), "}");
+			// break;
+		}
 		case OT_USERDATA:
 		case OT_INSTANCE:
 			if (_delegable(o)->_delegate) {
@@ -377,7 +393,6 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res) {
 				if (_delegable(o)->GetMetaMethod(this, MT_TOSTRING, closure)) {
 					Push(o);
 					if (CallMetaMethod(closure, MT_TOSTRING, 1, res)) {
-						;
 						if (type(res) == OT_STRING)
 							return true;
 					} else {
@@ -386,18 +401,20 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res) {
 				}
 			}
 		default:
-			scsprintf(_sp(sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR)), sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR), _SC("(%s : 0x%p)"), GetTypeName(o), (void *)_rawval(o));
+			scsprintf(_sp(sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR)), sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR), _SC("(%s)"), GetTypeName(o));
 	}
 	res = SQString::Create(_ss(this), _spval);
 	return true;
 }
 
-
 bool SQVM::StringCat(const SQObjectPtr& str, const SQObjectPtr& obj, SQObjectPtr& dest) {
 	SQObjectPtr a, b;
-	if (!ToString(str, a)) return false;
-	if (!ToString(obj, b)) return false;
-	SQInteger l = _string(a)->_len , ol = _string(b)->_len;
+	if (!ToString(str, a))
+		return false;
+	if (!ToString(obj, b))
+		return false;
+	SQInteger l = _string(a)->_len;
+	SQInteger ol = _string(b)->_len;
 	SQChar *s = _sp(sq_rsl(l + ol + 1));
 	memcpy(s, _stringval(a), sq_rsl(l));
 	memcpy(s + l, _stringval(b), sq_rsl(ol));
@@ -569,9 +586,9 @@ bool SQVM::DerefInc(SQInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObje
 
 SQRESULT SQVM::Suspend() {
 	if (_suspended)
-		return sq_throwerror(this, _SC("cannot suspend an already suspended vm"));
+		return lv_throwerror(this, _SC("cannot suspend an already suspended vm"));
 	if (_nnativecalls != 2)
-		return sq_throwerror(this, _SC("cannot suspend through native calls/metamethods"));
+		return lv_throwerror(this, _SC("cannot suspend through native calls/metamethods"));
 	return SQ_SUSPEND_FLAG;
 }
 

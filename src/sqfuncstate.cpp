@@ -631,7 +631,7 @@ FunctionPrototype *FunctionState::BuildProto() {
 }
 
 FunctionState *FunctionState::PushChildState(SQSharedState *ss) {
-	FunctionState *child = (FunctionState *)sq_malloc(sizeof(FunctionState));
+	FunctionState *child = (FunctionState *)lv_malloc(sizeof(FunctionState));
 	new (child) FunctionState(ss, this, _errfunc, _errtarget);
 	_childstates.push_back(child);
 	return child;
