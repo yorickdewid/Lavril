@@ -1,0 +1,19 @@
+class testcase {
+	tests = [];
+
+	constructor(name) {
+		println("Run testcase " + name);
+	}
+
+	function register(test) {
+		tests.append(test);
+	}
+
+	function setup() {}
+	function run() {
+		foreach(test in tests) {
+			test();
+		}
+	}
+	function teardown() {}	
+}

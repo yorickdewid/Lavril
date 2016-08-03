@@ -1,0 +1,79 @@
+include("testcase.lav");
+
+var cases = [];
+
+class baselib_case extends testcase {
+	constructor() {
+		base("baselib");
+	}
+
+	function setup() {
+		register(this.othertest);
+		register(this.outputtest);
+		register(this.closuretest);
+		register(this.arraytest);
+		register(this.stringtest);
+	}
+
+	function othertest() {
+		println(">> " + type(this));
+		println(">> " + callee());
+
+		/* Dummy function */
+		dummy();
+	}
+
+	function outputtest() {
+		print(">> default output\n");
+		println(">> newline");
+		error(">> some error\n");
+	}
+
+	function closuretest() {
+		var lg = {
+			"indexes": [1, 2, 3],
+			"options": [
+				"C",
+				"C++",
+				"C#",
+			]
+		}
+
+		assert(lg.indexes[2] == 3);
+		assert(lg.options[2] == "C#");
+	}
+
+	function arraytest() {
+		var ar = array(2);
+		ar.append(true);
+		ar.insert(0, 1);
+		ar[1] = false;
+		assert(ar.length() == 4);
+	}
+
+	function stringtest() {
+		var str = "Foo";
+		println(str.tolower().size());
+		assert(str.size() == 3);
+	}
+}
+
+cases.append(baselib_case);
+
+/* Basic info */
+function main() {
+	print("Version " + _version_ + " (build: " + _versionnumber_ + ")\n");
+	print("char size\t" + _charsize_ + "\n");
+	print("int size\t" + _intsize_ + "\n");
+	print("float size\t" + _floatsize_ + "\n");
+
+	/* Call each case */
+	foreach(_case in cases) {
+		_case();
+		_case.setup();
+		_case.run();
+		_case.teardown();
+	}
+}
+
+main();
