@@ -18,6 +18,9 @@ all: $(OBJS)
 compiler: compiler.o
 	$(CC) compiler.o $(LFLAGS) -o compiler
 
+runner: runner.o
+	$(CC) runner.o $(LFLAGS) -o runner
+
 clean:
 	$(RM) *.o
 	$(RM) $(BIN)

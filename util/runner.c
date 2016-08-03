@@ -31,22 +31,41 @@ void error_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_end(vl);
 }
 
-const char *get_file_out(char *filename) {
-	strcat(filename, "c");
-	return filename;
-}
-
 int main(int argc, char *argv[]) {
 	HSQUIRRELVM v;
 	SQInteger retval = 0;
 
 	v = lv_open(1024);
+
 	lv_setprintfunc(v, print_func, error_func);
+
 	lv_pushroottable(v);
+
+	init_module(blob, v);
+	init_module(io, v);
+	init_module(string, v);
+	init_module(system, v);
+	init_module(math, v);
+	init_module(crypto, v);
+
 	lv_registererrorhandlers(v);
 
 	if (LV_SUCCEEDED(lv_loadfile(v, argv[1], SQTrue))) {
-		lv_writeclosuretofile(v, get_file_out(argv[1]));
+		int callargs = 1;
+		lv_pushroottable(v);
+
+		for (int i = 1; i < argc; ++i) {
+			lv_pushstring(v, argv[i], -1);
+			callargs++;
+		}
+
+		if (LV_SUCCEEDED(lv_call(v, callargs, SQTrue, SQTrue))) {
+			SQObjectType type = lv_gettype(v, -1);
+			if (type == OT_INTEGER) {
+				retval = type;
+				lv_getinteger(v, -1, &retval);
+			}
+		}
 	}
 
 	lv_close(v);
