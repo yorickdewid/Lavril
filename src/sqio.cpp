@@ -3,24 +3,24 @@
 
 #define SQ_FILE_TYPE_TAG (SQ_STREAM_TYPE_TAG | 0x00000001)
 
-SQFILE lv_fopen(const SQChar *filename , const SQChar *mode) {
+LVFILE lv_fopen(const SQChar *filename , const SQChar *mode) {
 #ifndef SQUNICODE
-	return (SQFILE)fopen(filename, mode);
+	return (LVFILE)fopen(filename, mode);
 #else
-	return (SQFILE)_wfopen(filename, mode);
+	return (LVFILE)_wfopen(filename, mode);
 #endif
 }
 
-SQInteger lv_fread(void *buffer, SQInteger size, SQInteger count, SQFILE file) {
+SQInteger lv_fread(void *buffer, SQInteger size, SQInteger count, LVFILE file) {
 	SQInteger ret = (SQInteger)fread(buffer, size, count, (FILE *)file);
 	return ret;
 }
 
-SQInteger lv_fwrite(const SQUserPointer buffer, SQInteger size, SQInteger count, SQFILE file) {
+SQInteger lv_fwrite(const SQUserPointer buffer, SQInteger size, SQInteger count, LVFILE file) {
 	return (SQInteger)fwrite(buffer, size, count, (FILE *)file);
 }
 
-SQInteger lv_fseek(SQFILE file, SQInteger offset, SQInteger origin) {
+SQInteger lv_fseek(LVFILE file, SQInteger offset, SQInteger origin) {
 	SQInteger realorigin;
 	switch (origin) {
 		case SQ_SEEK_CUR:
@@ -38,19 +38,19 @@ SQInteger lv_fseek(SQFILE file, SQInteger offset, SQInteger origin) {
 	return fseek((FILE *)file, (long)offset, (int)realorigin);
 }
 
-SQInteger lv_ftell(SQFILE file) {
+SQInteger lv_ftell(LVFILE file) {
 	return ftell((FILE *)file);
 }
 
-SQInteger lv_fflush(SQFILE file) {
+SQInteger lv_fflush(LVFILE file) {
 	return fflush((FILE *)file);
 }
 
-SQInteger lv_fclose(SQFILE file) {
+SQInteger lv_fclose(LVFILE file) {
 	return fclose((FILE *)file);
 }
 
-SQInteger lv_feof(SQFILE file) {
+SQInteger lv_feof(LVFILE file) {
 	return feof((FILE *)file);
 }
 
@@ -60,7 +60,7 @@ struct SQFile : public SQStream {
 		_handle = NULL;
 		_owns = false;
 	}
-	SQFile(SQFILE file, bool owns) {
+	SQFile(LVFILE file, bool owns) {
 		_handle = file;
 		_owns = owns;
 	}
@@ -110,11 +110,11 @@ struct SQFile : public SQStream {
 	bool EOS() {
 		return Tell() == Len() ? true : false;
 	}
-	SQFILE GetHandle() {
+	LVFILE GetHandle() {
 		return _handle;
 	}
   private:
-	SQFILE _handle;
+	LVFILE _handle;
 	bool _owns;
 };
 
@@ -134,7 +134,7 @@ static SQInteger _file_constructor(HSQUIRRELVM v) {
 	const SQChar *filename, *mode;
 	bool owns = true;
 	SQFile *f;
-	SQFILE newf;
+	LVFILE newf;
 	if (lv_gettype(v, 2) == OT_STRING && lv_gettype(v, 3) == OT_STRING) {
 		lv_getstring(v, 2, &filename);
 		lv_getstring(v, 3, &mode);
@@ -175,7 +175,7 @@ static const SQRegFunction _file_methods[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-SQRESULT lv_createfile(HSQUIRRELVM v, SQFILE file, SQBool own) {
+SQRESULT lv_createfile(HSQUIRRELVM v, LVFILE file, SQBool own) {
 	SQInteger top = lv_gettop(v);
 	lv_pushregistrytable(v);
 	lv_pushstring(v, _SC("std_file"), -1);
@@ -197,7 +197,7 @@ SQRESULT lv_createfile(HSQUIRRELVM v, SQFILE file, SQBool own) {
 	return LV_ERROR;
 }
 
-SQRESULT lv_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file) {
+SQRESULT lv_getfile(HSQUIRRELVM v, SQInteger idx, LVFILE *file) {
 	SQFile *fileobj = NULL;
 	if (LV_SUCCEEDED(lv_getinstanceup(v, idx, (SQUserPointer *)&fileobj, (SQUserPointer)SQ_FILE_TYPE_TAG))) {
 		*file = fileobj->GetHandle();
@@ -210,7 +210,7 @@ struct IOBuffer {
 	unsigned char buffer[IO_BUFFER_SIZE];
 	SQInteger size;
 	SQInteger ptr;
-	SQFILE file;
+	LVFILE file;
 };
 
 SQInteger _read_byte(IOBuffer *iobuffer) {
@@ -312,17 +312,17 @@ static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf) {
 
 SQInteger file_read(SQUserPointer file, SQUserPointer buf, SQInteger size) {
 	SQInteger ret;
-	if ((ret = lv_fread(buf, 1, size, (SQFILE)file )) != 0)
+	if ((ret = lv_fread(buf, 1, size, (LVFILE)file )) != 0)
 		return ret;
 	return -1;
 }
 
 SQInteger file_write(SQUserPointer file, SQUserPointer p, SQInteger size) {
-	return lv_fwrite(p, 1, size, (SQFILE)file);
+	return lv_fwrite(p, 1, size, (LVFILE)file);
 }
 
 SQRESULT lv_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
-	SQFILE file = lv_fopen(filename, _SC("rb"));
+	LVFILE file = lv_fopen(filename, _SC("rb"));
 
 	SQInteger ret;
 	unsigned short us;
@@ -398,7 +398,7 @@ SQRESULT lv_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBoo
 }
 
 SQRESULT lv_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename) {
-	SQFILE file = lv_fopen(filename, _SC("wb+"));
+	LVFILE file = lv_fopen(filename, _SC("wb+"));
 	if (!file)
 		return lv_throwerror(v, _SC("cannot open the file"));
 	if (LV_SUCCEEDED(lv_writeclosure(v, file_write, file))) {

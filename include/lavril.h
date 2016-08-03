@@ -213,7 +213,7 @@ typedef struct tagSQFunctionInfo {
 	SQInteger line;
 } SQFunctionInfo;
 
-typedef void *SQFILE;
+typedef void *LVFILE;
 
 /* VM */
 LAVRIL_API HSQUIRRELVM lv_open(SQInteger initialstacksize);
@@ -385,16 +385,16 @@ LAVRIL_API void lv_setdebughook(HSQUIRRELVM v);
 LAVRIL_API void lv_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook);
 
 /* IO */
-LAVRIL_API SQFILE lv_fopen(const SQChar *, const SQChar *);
-LAVRIL_API SQInteger lv_fread(SQUserPointer, SQInteger, SQInteger, SQFILE);
-LAVRIL_API SQInteger lv_fwrite(const SQUserPointer, SQInteger, SQInteger, SQFILE);
-LAVRIL_API SQInteger lv_fseek(SQFILE , SQInteger , SQInteger);
-LAVRIL_API SQInteger lv_ftell(SQFILE);
-LAVRIL_API SQInteger lv_fflush(SQFILE);
-LAVRIL_API SQInteger lv_fclose(SQFILE);
-LAVRIL_API SQInteger lv_feof(SQFILE);
-LAVRIL_API SQRESULT lv_createfile(HSQUIRRELVM v, SQFILE file, SQBool own);
-LAVRIL_API SQRESULT lv_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file);
+LAVRIL_API LVFILE lv_fopen(const SQChar *, const SQChar *);
+LAVRIL_API SQInteger lv_fread(SQUserPointer, SQInteger, SQInteger, LVFILE);
+LAVRIL_API SQInteger lv_fwrite(const SQUserPointer, SQInteger, SQInteger, LVFILE);
+LAVRIL_API SQInteger lv_fseek(LVFILE , SQInteger , SQInteger);
+LAVRIL_API SQInteger lv_ftell(LVFILE);
+LAVRIL_API SQInteger lv_fflush(LVFILE);
+LAVRIL_API SQInteger lv_fclose(LVFILE);
+LAVRIL_API SQInteger lv_feof(LVFILE);
+LAVRIL_API SQRESULT lv_createfile(HSQUIRRELVM v, LVFILE file, SQBool own);
+LAVRIL_API SQRESULT lv_getfile(HSQUIRRELVM v, SQInteger idx, LVFILE *file);
 
 /* IO compiler helpers */
 LAVRIL_API SQRESULT lv_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror);
