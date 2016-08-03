@@ -436,7 +436,8 @@ static SQInteger table_getdelegate(HSQUIRRELVM v) {
 }
 
 const SQRegFunction SQSharedState::_table_default_delegate_funcz[] = {
-	{_SC("len"), default_delegate_len, 1, _SC("t")},
+	{_SC("length"), default_delegate_len, 1, _SC("t")},
+	{_SC("size"), default_delegate_len, 1, _SC("t")},
 	{_SC("rawget"), container_rawget, 2, _SC("t")},
 	{_SC("rawset"), container_rawset, 3, _SC("t")},
 	{_SC("rawdelete"), table_rawdelete, 2, _SC("t")},
@@ -701,12 +702,17 @@ static SQInteger array_sort(HSQUIRRELVM v) {
 static SQInteger array_slice(HSQUIRRELVM v) {
 	SQInteger sidx, eidx;
 	SQObjectPtr o;
-	if (get_slice_params(v, sidx, eidx, o) == -1)return -1;
+	if (get_slice_params(v, sidx, eidx, o) == -1)
+		return -1;
 	SQInteger alen = _array(o)->Size();
-	if (sidx < 0)sidx = alen + sidx;
-	if (eidx < 0)eidx = alen + eidx;
-	if (eidx < sidx)return lv_throwerror(v, _SC("wrong indexes"));
-	if (eidx > alen || sidx < 0)return lv_throwerror(v, _SC("slice out of range"));
+	if (sidx < 0)
+		sidx = alen + sidx;
+	if (eidx < 0)
+		eidx = alen + eidx;
+	if (eidx < sidx)
+		return lv_throwerror(v, _SC("wrong indexes"));
+	if (eidx > alen || sidx < 0)
+		return lv_throwerror(v, _SC("slice out of range"));
 	SQArray *arr = SQArray::Create(_ss(v), eidx - sidx);
 	SQObjectPtr t;
 	SQInteger count = 0;
@@ -716,11 +722,11 @@ static SQInteger array_slice(HSQUIRRELVM v) {
 	}
 	v->Push(arr);
 	return 1;
-
 }
 
 const SQRegFunction SQSharedState::_array_default_delegate_funcz[] = {
-	{_SC("len"), default_delegate_len, 1, _SC("a")},
+	{_SC("length"), default_delegate_len, 1, _SC("a")},
+	{_SC("size"), default_delegate_len, 1, _SC("a")},
 	{_SC("append"), array_append, 2, _SC("a")},
 	{_SC("extend"), array_extend, 2, _SC("aa")},
 	{_SC("push"), array_append, 2, _SC("a")},
@@ -805,7 +811,8 @@ STRING_TOFUNCZ(tolower)
 STRING_TOFUNCZ(toupper)
 
 const SQRegFunction SQSharedState::_string_default_delegate_funcz[] = {
-	{_SC("len"), default_delegate_len, 1, _SC("s")},
+	{_SC("length"), default_delegate_len, 1, _SC("s")},
+	{_SC("size"), default_delegate_len, 1, _SC("s")},
 	{_SC("tointeger"), default_delegate_tointeger, -1, _SC("sn")},
 	{_SC("tofloat"), default_delegate_tofloat, 1, _SC("s")},
 	{_SC("tostring"), default_delegate_tostring, 1, _SC(".")},

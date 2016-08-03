@@ -194,7 +194,6 @@ void SQSharedState::Init() {
 	_class_default_delegate = CreateDefaultDelegate(this, _class_default_delegate_funcz);
 	_instance_default_delegate = CreateDefaultDelegate(this, _instance_default_delegate_funcz);
 	_weakref_default_delegate = CreateDefaultDelegate(this, _weakref_default_delegate_funcz);
-
 }
 
 SQSharedState::~SQSharedState() {
