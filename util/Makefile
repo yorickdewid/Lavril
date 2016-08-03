@@ -15,6 +15,9 @@ OBJS= \
 all: $(OBJS)
 	$(CC) $(OBJS) $(LFLAGS) -o $(BIN)
 
+compiler: compiler.o
+	$(CC) compiler.o $(LFLAGS) -o compiler
+
 clean:
 	$(RM) *.o
 	$(RM) $(BIN)
