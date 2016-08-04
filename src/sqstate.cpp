@@ -40,7 +40,6 @@ bool CompileTypemask(SQIntVec& res, const SQChar *typemask) {
 
 	SQInteger mask = 0;
 	while (typemask[i] != 0) {
-
 		switch (typemask[i]) {
 			case 'o':
 				mask |= _RT_NULL;

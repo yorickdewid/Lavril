@@ -27,7 +27,10 @@ compiler: compiler.o
 runner: runner.o
 	$(CC) runner.o $(LFLAGS) -o runner
 
+vmext: vmext.o
+	$(CC) vmext.o $(LFLAGS) -o vmext
+
 clean:
 	$(RM) *.o
 	$(RM) $(BIN)
-	$(RM) compiler runner 
+	$(RM) compiler runner vmext

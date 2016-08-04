@@ -1304,7 +1304,6 @@ void SQVM::CallErrorHandler(SQObjectPtr& error) {
 	}
 }
 
-
 void SQVM::CallDebugHook(SQInteger type, SQInteger forcedline) {
 	_debughook = false;
 	FunctionPrototype *func = _closure(ci->_closure)->_function;
@@ -1692,7 +1691,8 @@ bool SQVM::NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObje
 					}
 				}
 			}
-			if (rawcall) _table(self)->NewSlot(key, val); //cannot fail
+			if (rawcall)
+				_table(self)->NewSlot(key, val); //cannot fail
 
 			break;
 		}

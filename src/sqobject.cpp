@@ -671,7 +671,7 @@ void SQCollectable::UnMark() {
 
 #endif
 
-#ifdef _DEBUG_DUMP
+// #ifdef _DEBUG_DUMP
 void SQObjectPtr::dump() {
 	scprintf(_SC("DELEGABLE %s\n"), is_delegable(*this) ? "true" : "false");
 	switch (type(*this)) {
@@ -729,4 +729,4 @@ void SQObjectPtr::dump() {
 	};
 	scprintf(_SC("\n"));
 }
-#endif
+// #endif

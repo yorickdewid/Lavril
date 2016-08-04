@@ -35,7 +35,7 @@ static bool str2num(const SQChar *s, SQObjectPtr& res, SQInteger base) {
 	return true;
 }
 
-static SQInteger base_dummy(HSQUIRRELVM LV_UNUSED_ARG(v)) {
+static SQInteger base_blub(HSQUIRRELVM LV_UNUSED_ARG(v)) {
 	return 0;
 }
 
@@ -116,7 +116,7 @@ static SQInteger __getcallstackinfos(HSQUIRRELVM v, SQInteger level) {
 		lv_pushstring(v, _SC("line"), -1);
 		lv_pushinteger(v, si.line);
 		lv_newslot(v, -3, SQFalse);
-		lv_pushstring(v, _SC("locals"), -1);
+		lv_pushstring(v, _SC("variables"), -1);
 		lv_newtable(v);
 		seq = 0;
 		while ((name = lv_getlocal(v, level, seq))) {
@@ -276,7 +276,7 @@ static const SQRegFunction base_funcs[] = {
 	{_SC("array"), base_array, -2, _SC(".n")},
 	{_SC("type"), base_type, 2, NULL},
 	{_SC("callee"), base_callee, 0, NULL},
-	{_SC("dummy"), base_dummy, 0, NULL},
+	{_SC("blub"), base_blub, 0, NULL},
 #ifndef NO_GARBAGE_COLLECTOR
 	{_SC("collectgarbage"), base_collectgarbage, 0, NULL},
 	{_SC("resurrectunreachable"), base_resurectureachable, 0, NULL},

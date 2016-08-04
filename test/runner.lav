@@ -20,7 +20,7 @@ class baselib_case extends testcase {
 		println(">> " + callee());
 
 		/* Dummy function */
-		dummy();
+		blub();
 	}
 
 	function outputtest() {
@@ -53,7 +53,7 @@ class baselib_case extends testcase {
 
 	function stringtest() {
 		var str = "Foo";
-		println(str.tolower().size());
+		assert(str.tolower() == "foo");
 		assert(str.size() == 3);
 	}
 }

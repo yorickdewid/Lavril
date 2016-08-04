@@ -25,7 +25,7 @@ static bool sq_aux_gettypedarg(HSQUIRRELVM v, SQInteger idx, SQObjectType type, 
         return LV_ERROR; \
     }
 
-#define sq_aux_paramscheck(v,count) { \
+#define lv_aux_paramscheck(v,count) { \
     if(lv_gettop(v) < count) { \
     	v->Raise_Error(_SC("not enough params in the stack")); \
     	return LV_ERROR; \
@@ -282,7 +282,7 @@ SQBool lv_instanceof(HSQUIRRELVM v) {
 }
 
 SQRESULT lv_arrayappend(HSQUIRRELVM v, SQInteger idx) {
-	sq_aux_paramscheck(v, 2);
+	lv_aux_paramscheck(v, 2);
 	SQObjectPtr *arr;
 	_GETSAFE_OBJ(v, idx, OT_ARRAY, arr);
 	_array(*arr)->Append(v->GetUp(-1));
@@ -291,7 +291,7 @@ SQRESULT lv_arrayappend(HSQUIRRELVM v, SQInteger idx) {
 }
 
 SQRESULT lv_arraypop(HSQUIRRELVM v, SQInteger idx, SQBool pushval) {
-	sq_aux_paramscheck(v, 1);
+	lv_aux_paramscheck(v, 1);
 	SQObjectPtr *arr;
 	_GETSAFE_OBJ(v, idx, OT_ARRAY, arr);
 	if (_array(*arr)->Size() > 0) {
@@ -305,7 +305,7 @@ SQRESULT lv_arraypop(HSQUIRRELVM v, SQInteger idx, SQBool pushval) {
 }
 
 SQRESULT lv_arrayresize(HSQUIRRELVM v, SQInteger idx, SQInteger newsize) {
-	sq_aux_paramscheck(v, 1);
+	lv_aux_paramscheck(v, 1);
 	SQObjectPtr *arr;
 	_GETSAFE_OBJ(v, idx, OT_ARRAY, arr);
 	if (newsize >= 0) {
@@ -315,9 +315,8 @@ SQRESULT lv_arrayresize(HSQUIRRELVM v, SQInteger idx, SQInteger newsize) {
 	return lv_throwerror(v, _SC("negative size"));
 }
 
-
 SQRESULT lv_arrayreverse(HSQUIRRELVM v, SQInteger idx) {
-	sq_aux_paramscheck(v, 1);
+	lv_aux_paramscheck(v, 1);
 	SQObjectPtr *o;
 	_GETSAFE_OBJ(v, idx, OT_ARRAY, o);
 	SQArray *arr = _array(*o);
@@ -337,14 +336,14 @@ SQRESULT lv_arrayreverse(HSQUIRRELVM v, SQInteger idx) {
 }
 
 SQRESULT lv_arrayremove(HSQUIRRELVM v, SQInteger idx, SQInteger itemidx) {
-	sq_aux_paramscheck(v, 1);
+	lv_aux_paramscheck(v, 1);
 	SQObjectPtr *arr;
 	_GETSAFE_OBJ(v, idx, OT_ARRAY, arr);
 	return _array(*arr)->Remove(itemidx) ? LV_OK : lv_throwerror(v, _SC("index out of range"));
 }
 
 SQRESULT lv_arrayinsert(HSQUIRRELVM v, SQInteger idx, SQInteger destpos) {
-	sq_aux_paramscheck(v, 1);
+	lv_aux_paramscheck(v, 1);
 	SQObjectPtr *arr;
 	_GETSAFE_OBJ(v, idx, OT_ARRAY, arr);
 	SQRESULT ret = _array(*arr)->Insert(destpos, v->GetUp(-1)) ? LV_OK : lv_throwerror(v, _SC("index out of range"));
@@ -790,10 +789,11 @@ SQInteger lv_cmp(HSQUIRRELVM v) {
 }
 
 SQRESULT lv_newslot(HSQUIRRELVM v, SQInteger idx, SQBool bstatic) {
-	sq_aux_paramscheck(v, 3);
+	lv_aux_paramscheck(v, 3);
 	SQObjectPtr& self = stack_get(v, idx);
 	if (type(self) == OT_TABLE || type(self) == OT_CLASS) {
 		SQObjectPtr& key = v->GetUp(-2);
+		key.dump();
 		if (type(key) == OT_NULL)
 			return lv_throwerror(v, _SC("null is not a valid key"));
 		v->NewSlot(self, key, v->GetUp(-1), bstatic ? true : false);
@@ -803,7 +803,7 @@ SQRESULT lv_newslot(HSQUIRRELVM v, SQInteger idx, SQBool bstatic) {
 }
 
 SQRESULT lv_deleteslot(HSQUIRRELVM v, SQInteger idx, SQBool pushval) {
-	sq_aux_paramscheck(v, 2);
+	lv_aux_paramscheck(v, 2);
 	SQObjectPtr *self;
 	_GETSAFE_OBJ(v, idx, OT_TABLE, self);
 	SQObjectPtr& key = v->GetUp(-1);
@@ -923,7 +923,7 @@ SQRESULT lv_setdelegate(HSQUIRRELVM v, SQInteger idx) {
 }
 
 SQRESULT lv_rawdeleteslot(HSQUIRRELVM v, SQInteger idx, SQBool pushval) {
-	sq_aux_paramscheck(v, 2);
+	lv_aux_paramscheck(v, 2);
 	SQObjectPtr *self;
 	_GETSAFE_OBJ(v, idx, OT_TABLE, self);
 	SQObjectPtr& key = v->GetUp(-1);

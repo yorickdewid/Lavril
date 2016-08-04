@@ -291,9 +291,9 @@ struct SQObjectPtr : public SQObject {
 		__Release(tOldType , unOldVal);
 	}
 
-#ifdef _DEBUG_DUMP
+	// #ifdef _DEBUG_DUMP
 	void dump();
-#endif
+	// #endif
 
   private:
 	SQObjectPtr(const SQChar *) {} //safety
