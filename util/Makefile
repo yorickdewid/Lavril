@@ -30,6 +30,9 @@ runner: runner.o
 vmext: vmext.o
 	$(CC) vmext.o $(LFLAGS) -o vmext
 
+fwrapper: fwrapper.o
+	$(CC) fwrapper.o $(LFLAGS) -lfcgi -o fwrapper
+
 clean:
 	$(RM) *.o
 	$(RM) $(BIN)

@@ -221,15 +221,15 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			}
 
 			/* If this point is reached an error occured */
-			// {
-			// 	const SQChar *err;
-			// 	sq_getlasterror(v);
-			// 	if (LV_SUCCEEDED(sq_getstring(v, -1, &err))) {
-			// 		scprintf(_SC("Error [%s]\n"), err);
-			// 		*retval = -2;
-			// 		return ERROR;
-			// 	}
-			// }
+			{
+				// const SQChar *err;
+				// lv_getlasterror(v);
+				// if (LV_SUCCEEDED(lv_getstring(v, -1, &err))) {
+				// 	scprintf(_SC("Error [%s]\n"), err);
+				// 	*retval = -2;
+				return ERROR;
+				// }
+			}
 		}
 	}
 
@@ -338,6 +338,7 @@ int main(int argc, char *argv[]) {
 	init_module(system, v);
 	init_module(math, v);
 	init_module(crypto, v);
+	init_module(json, v);
 
 	lv_registererrorhandlers(v);
 
