@@ -268,7 +268,8 @@ SQRESULT lv_newclass(HSQUIRRELVM v, SQBool hasbase) {
 		baseclass = _class(base);
 	}
 	SQClass *newclass = SQClass::Create(_ss(v), baseclass);
-	if (baseclass) v->Pop();
+	if (baseclass)
+		v->Pop();
 	v->Push(newclass);
 	return LV_OK;
 }
@@ -793,7 +794,6 @@ SQRESULT lv_newslot(HSQUIRRELVM v, SQInteger idx, SQBool bstatic) {
 	SQObjectPtr& self = stack_get(v, idx);
 	if (type(self) == OT_TABLE || type(self) == OT_CLASS) {
 		SQObjectPtr& key = v->GetUp(-2);
-		key.dump();
 		if (type(key) == OT_NULL)
 			return lv_throwerror(v, _SC("null is not a valid key"));
 		v->NewSlot(self, key, v->GetUp(-1), bstatic ? true : false);

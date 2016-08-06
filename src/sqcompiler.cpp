@@ -728,7 +728,6 @@ class LVCompiler {
 				case _SC('.'):
 					pos = -1;
 					Lex();
-
 					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
 					if (_es.etype == BASE) {
 						Emit2ArgsOP(_OP_GET);
@@ -743,11 +742,29 @@ class LVCompiler {
 					}
 					break;
 				case _SC('['):
-					if (_lex._prevtoken == _SC('\n')) Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
+					if (_lex._prevtoken == _SC('\n'))
+						Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
 					Lex();
 					Expression();
 					Expect(_SC(']'));
 					pos = -1;
+					if (_es.etype == BASE) {
+						Emit2ArgsOP(_OP_GET);
+						pos = _fs->TopTarget();
+						_es.etype = EXPR;
+						_es.epos   = pos;
+					} else {
+						if (NeedGet()) {
+							Emit2ArgsOP(_OP_GET);
+						}
+						_es.etype = OBJECT;
+					}
+					break;
+				case _SC('-'):
+					Lex();
+					Expect(_SC('>'));
+					pos = -1;
+					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
 					if (_es.etype == BASE) {
 						Emit2ArgsOP(_OP_GET);
 						pos = _fs->TopTarget();
@@ -824,6 +841,7 @@ class LVCompiler {
 			}
 		}
 	}
+
 	SQInteger Factor() {
 		//_es.etype = EXPR;
 		switch (_token) {
@@ -953,7 +971,8 @@ class LVCompiler {
 				Lex();
 				while (_token != _SC(']')) {
 					Expression();
-					if (_token == _SC(',')) Lex();
+					if (_token == _SC(','))
+						Lex();
 					SQInteger val = _fs->PopTarget();
 					SQInteger array = _fs->TopTarget();
 					_fs->AddInstruction(_OP_APPENDARRAY, array, val, AAT_STACK);
@@ -1117,16 +1136,16 @@ class LVCompiler {
 	void ParseTableOrClass(SQInteger separator, SQInteger terminator) {
 		SQInteger tpos = _fs->GetCurrentPos(), nkeys = 0;
 		while (_token != terminator) {
-			bool hasattrs = false;
+			// bool hasattrs = false;
 			bool isstatic = false;
 			//check if is an attribute
 			if (separator == ';') {
-				if (_token == TK_ATTR_OPEN) {
+				/*if (_token == TK_ATTR_OPEN) {
 					_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, NOT_TABLE);
 					Lex();
 					ParseTableOrClass(',', TK_ATTR_CLOSE);
 					hasattrs = true;
-				}
+				}*/
 				if (_token == TK_STATIC) {
 					isstatic = true;
 					Lex();
@@ -1163,14 +1182,16 @@ class LVCompiler {
 					Expect(_SC('='));
 					Expression();
 			}
-			if (_token == separator) Lex(); //optional comma/semicolon
+			if (_token == separator)
+				Lex(); //optional comma/semicolon
 			nkeys++;
 			SQInteger val = _fs->PopTarget();
 			SQInteger key = _fs->PopTarget();
-			SQInteger attrs = hasattrs ? _fs->PopTarget() : -1;
-			((void)attrs);
-			assert((hasattrs && (attrs == key - 1)) || !hasattrs);
-			unsigned char flags = (hasattrs ? NEW_SLOT_ATTRIBUTES_FLAG : 0) | (isstatic ? NEW_SLOT_STATIC_FLAG : 0);
+			// SQInteger attrs = hasattrs ? _fs->PopTarget() : -1;
+			// ((void)attrs);
+			// assert((hasattrs && (attrs == key - 1)) || !hasattrs);
+			// unsigned char flags = (hasattrs ? NEW_SLOT_ATTRIBUTES_FLAG : 0) | (isstatic ? NEW_SLOT_STATIC_FLAG : 0);
+			unsigned char flags = isstatic ? NEW_SLOT_STATIC_FLAG : 0;
 			SQInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
 			if (separator == _SC(',')) { //hack recognizes a table from the separator
 				_fs->AddInstruction(_OP_NEWSLOT, 0xFF, table, key, val);
@@ -1636,22 +1657,24 @@ class LVCompiler {
 
 	void ClassExp() {
 		SQInteger base = -1;
-		SQInteger attrs = -1;
+		// SQInteger attrs = -1;
 		if (_token == TK_EXTENDS) {
 			Lex();
 			Expression();
 			base = _fs->TopTarget();
 		}
-		if (_token == TK_ATTR_OPEN) {
+		/*if (_token == TK_ATTR_OPEN) {
 			Lex();
 			_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, NOT_TABLE);
 			ParseTableOrClass(_SC(','), TK_ATTR_CLOSE);
 			attrs = _fs->TopTarget();
-		}
+		}*/
 		Expect(_SC('{'));
-		if (attrs != -1) _fs->PopTarget();
-		if (base != -1) _fs->PopTarget();
-		_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), base, attrs, NOT_CLASS);
+		// if (attrs != -1)
+		// _fs->PopTarget();
+		if (base != -1)
+			_fs->PopTarget();
+		_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), base, -1, NOT_CLASS);
 		ParseTableOrClass(_SC(';'), _SC('}'));
 	}
 
@@ -1661,7 +1684,8 @@ class LVCompiler {
 		es = _es;
 		_es.donot_get = true;
 		PrefixedExpr();
-		if (_es.etype == EXPR) Error(_SC("can't delete an expression"));
+		if (_es.etype == EXPR)
+			Error(_SC("can't delete an expression"));
 		if (_es.etype == OBJECT || _es.etype == BASE) {
 			Emit2ArgsOP(_OP_DELETE);
 		} else {

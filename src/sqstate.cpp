@@ -137,12 +137,12 @@ void SQSharedState::Init() {
 	_gc_chain = NULL;
 #endif
 	_stringtable = (SQStringTable *)SQ_MALLOC(sizeof(SQStringTable));
-	new (_stringtable) SQStringTable(this);
+	new(_stringtable) SQStringTable(this);
 	sq_new(_metamethods, SQObjectPtrVec);
 	sq_new(_systemstrings, SQObjectPtrVec);
 	sq_new(_types, SQObjectPtrVec);
 	_metamethodsmap = SQTable::Create(this, MT_LAST - 1);
-	//adding type strings to avoid memory trashing
+
 	//types names
 	newsysstring(_SC("null"));
 	newsysstring(_SC("table"));
@@ -324,7 +324,6 @@ void SQSharedState::RunMark(SQVM LV_UNUSED_ARG(*vm), SQCollectable **tchain) {
 	MarkObject(_class_default_delegate, tchain);
 	MarkObject(_instance_default_delegate, tchain);
 	MarkObject(_weakref_default_delegate, tchain);
-
 }
 
 SQInteger SQSharedState::ResurrectUnreachable(SQVM *vm) {
