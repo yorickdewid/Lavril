@@ -5,5 +5,6 @@
 register_module(math);
 register_module(system);
 register_module(crypto);
+register_module(curl);
 
 #endif // _MODULES_H_

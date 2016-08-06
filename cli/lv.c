@@ -338,7 +338,7 @@ int main(int argc, char *argv[]) {
 	init_module(system, v);
 	init_module(math, v);
 	init_module(crypto, v);
-	init_module(json, v);
+	init_module(curl, v);
 
 	lv_registererrorhandlers(v);
 

@@ -3,6 +3,7 @@ OBJS = $(wildcard */*.o)
 MODS = \
 	math \
 	crypto \
+	curl \
 	system
 
 all: build
