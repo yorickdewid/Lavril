@@ -779,7 +779,8 @@ class LVCompiler {
 					break;
 				case TK_MINUSMINUS:
 				case TK_PLUSPLUS: {
-					if (IsEndOfStatement()) return;
+					if (IsEndOfStatement())
+						return;
 					SQInteger diff = (_token == TK_MINUSMINUS) ? -1 : 1;
 					Lex();
 					switch (_es.etype) {
