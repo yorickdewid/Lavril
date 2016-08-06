@@ -69,6 +69,8 @@ typedef wchar_t SQChar;
 #define scsprintf   swprintf
 #endif
 #define scstrlen    wcslen
+#define scstrcpy    wcscpy
+#define scstrcat    wcscat
 #define scstrtod    wcstod
 #ifdef _SQ64
 #define scstrtol    wcstoll
@@ -114,6 +116,8 @@ typedef char SQChar;
 #define scsprintf   snprintf
 #endif
 #define scstrlen    strlen
+#define scstrcpy    strcpy
+#define scstrcat    strcat
 #define scstrtod    strtod
 #ifdef _SQ64
 #ifdef _MSC_VER

@@ -964,17 +964,23 @@ static SQInteger string_find(HSQUIRRELVM v) {
 {\
 	SQInteger sidx,eidx; \
 	SQObjectPtr str; \
-	if(LV_FAILED(get_slice_params(v,sidx,eidx,str)))return -1; \
+	if (LV_FAILED(get_slice_params(v,sidx,eidx,str))) \
+		return -1; \
 	SQInteger slen = _string(str)->_len; \
-	if(sidx < 0)sidx = slen + sidx; \
-	if(eidx < 0)eidx = slen + eidx; \
-	if(eidx < sidx) return lv_throwerror(v,_SC("wrong indexes")); \
-	if(eidx > slen || sidx < 0) return lv_throwerror(v,_SC("slice out of range")); \
+	if (sidx < 0) \
+		sidx = slen + sidx; \
+	if (eidx < 0) \
+		eidx = slen + eidx; \
+	if (eidx < sidx) \
+		return lv_throwerror(v,_SC("wrong indexes")); \
+	if (eidx > slen || sidx < 0) \
+		return lv_throwerror(v,_SC("slice out of range")); \
 	SQInteger len=_string(str)->_len; \
-	const SQChar *sthis=_stringval(str); \
-	SQChar *snew=(_ss(v)->GetScratchPad(sq_rsl(len))); \
-	memcpy(snew,sthis,sq_rsl(len));\
-	for(SQInteger i=sidx;i<eidx;i++) snew[i] = func(sthis[i]); \
+	const SQChar *sthis = _stringval(str); \
+	SQChar *snew = (_ss(v)->GetScratchPad(sq_rsl(len))); \
+	memcpy(snew, sthis, sq_rsl(len));\
+	for (SQInteger i=sidx; i<eidx; i++) \
+		snew[i] = func(sthis[i]); \
 	v->Push(SQString::Create(_ss(v),snew,len)); \
 	return 1; \
 }

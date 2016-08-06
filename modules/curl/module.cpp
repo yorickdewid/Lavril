@@ -17,14 +17,38 @@ struct LVCURLObj {
 	CURL *_curl;
 	CURLcode res;
 	const SQChar *_url;
-	SQInteger _op;
 	SQInteger _nallocated;
-	SQInteger _nsize;
-	SQInteger _nsubexpr;
+	struct curl_slist *_hlist;
 	void *_jmpbuf;
 	const SQChar **_error;
 	struct cbbuffer _chunk;
 };
+
+const int mod_curl_opt[] = {
+	CURLOPT_POST,
+	// CURLOPT_PUT,
+	// CURLOPT_REFERER,
+	// CURLOPT_POSTFIELDS,
+	// CURLOPT_REFERER,
+	// CURLOPT_FOLLOWLOCATION,
+	-1,
+};
+
+#if 0
+void register_curl_setopt(HSQUIRRELVM v) {
+	SQInteger i = 0;
+	// lv_pushstring(v, _SC("CURLOPT_POST"), -1);
+	// lv_pushinteger(v, CURLOPT_POST);
+	// lv_newslot(v, -3, SQFalse);
+
+	while (mod_curl_opt[i] != 0) {
+		lv_pushstring(v, _SC("CURLOPT_POSTFIELDS"), -1);
+		lv_pushinteger(v, CURLOPT_POSTFIELDS);
+		lv_newslot(v, -3, SQFalse);
+		i++;
+	}
+}
+#endif
 
 #define OBJECT_INSTANCE(v) \
 	LVCURLObj *self = NULL; \
@@ -37,7 +61,10 @@ void mod_curl_free(LVCURLObj *exp) {
 			lv_free(exp->_jmpbuf, sizeof(jmp_buf));
 		if (exp->_chunk.buf)
 			lv_free(exp->_chunk.buf, 1);
+		if (exp->_hlist)
+			lv_free(exp->_hlist, 0);
 		lv_free(exp, sizeof(LVCURLObj));
+		curl_global_cleanup();
 	}
 }
 
@@ -56,10 +83,6 @@ static SQInteger mod_curl_releasehook(SQUserPointer p, SQInteger LV_UNUSED_ARG(s
 static void init_buffer(struct cbbuffer *s) {
 	s->size = 0;
 	s->buf = (char *)lv_malloc(s->size + 1);
-	if (s->buf == NULL) {
-		fprintf(stderr, "malloc() failed\n");
-		exit(EXIT_FAILURE);
-	}
 	s->buf[0] = '\0';
 }
 
@@ -67,8 +90,7 @@ static size_t callback_buffer(void *ptr, size_t size, size_t nmemb, struct cbbuf
 	size_t new_len = s->size + size * nmemb;
 	s->buf = (char *)lv_realloc(s->buf, 0, new_len + 1);
 	if (!s->buf) {
-		fprintf(stderr, "realloc() failed\n");
-		exit(EXIT_FAILURE);
+		return 0;
 	}
 	memcpy(s->buf + s->size, ptr, size * nmemb);
 	s->buf[new_len] = '\0';
@@ -82,8 +104,7 @@ LVCURLObj *mod_curl_init(const SQChar *location, const SQChar **error) {
 	exp->_curl = NULL;
 	exp->_url = location;
 	exp->_nallocated = (SQInteger)scstrlen(location) * sizeof(SQChar);
-	exp->_nsize = 0;
-	exp->_nsubexpr = 0;
+	exp->_hlist = NULL;
 	exp->_error = error;
 	exp->_jmpbuf = lv_malloc(sizeof(jmp_buf));
 	init_buffer(&exp->_chunk);
@@ -108,8 +129,55 @@ LVCURLObj *mod_curl_init(const SQChar *location, const SQChar **error) {
 	return exp;
 }
 
+#if 0
+static SQInteger _curl_setopt(HSQUIRRELVM v) {
+	OBJECT_INSTANCE(v);
+	const SQChar *str;
+	SQInteger opt = 0;
+	lv_getinteger(v, 2, &opt);
+	lv_getstring(v, 3, &str);
+
+	// curl_easy_setopt(self->_curl, CURLOPT_VERBOSE, 1L);
+
+	printf("opt %lld, str %s\n", opt, str);
+	/*if (sqstd_rex_search(self, str + start, &begin, &end) == SQTrue) {
+		SQInteger n = sqstd_rex_getsubexpcount(self);
+		SQRexMatch match;
+		sq_newarray(v, 0);
+		for (SQInteger i = 0; i < n; i++) {
+			sqstd_rex_getsubexp(self, i, &match);
+			if (match.len > 0)
+				_addrexmatch(v, str, match.begin, match.begin + match.len);
+			else
+				_addrexmatch(v, str, str, str); //empty match
+			sq_arrayappend(v, -2);
+		}
+		return 1;
+	}*/
+	return 0;
+}
+#endif
+
+static SQInteger _curl_setheader(HSQUIRRELVM v) {
+	OBJECT_INSTANCE(v);
+	const SQChar *key, *value;
+	lv_getstring(v, 2, &key);
+	lv_getstring(v, 3, &value);
+	SQChar *temp = lv_getscratchpad(v, scstrlen(key) + scstrlen(value) + 3);
+	scstrcpy(temp, key);
+	scstrcat(temp, ": ");
+	scstrcat(temp, value);
+	self->_hlist = curl_slist_append(self->_hlist, temp);
+	return 0;
+}
+
 static SQInteger _curl_exec(HSQUIRRELVM v) {
 	OBJECT_INSTANCE(v);
+	if (self->_hlist) {
+		self->res = curl_easy_setopt(self->_curl, CURLOPT_HTTPHEADER, self->_hlist);
+		if (self->res != CURLE_OK)
+			mod_curl_error(self, curl_easy_strerror(self->res));
+	}
 	self->res = curl_easy_perform(self->_curl);
 	if (self->res != CURLE_OK)
 		mod_curl_error(self, curl_easy_strerror(self->res));
@@ -137,6 +205,8 @@ static SQInteger _curl__typeof(HSQUIRRELVM v) {
 static const SQRegFunction curlobj_funcs[] = {
 	_DECL_CURL_FUNC(constructor, 2, _SC(".s")),
 	_DECL_CURL_FUNC(exec, 1, _SC("x")),
+	// _DECL_CURL_FUNC(setopt, 3, _SC("xns")),
+	_DECL_CURL_FUNC(setheader, 3, _SC("xss")),
 	_DECL_CURL_FUNC(_typeof, 1, _SC("x")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
@@ -157,5 +227,6 @@ SQInteger mod_init_curl(HSQUIRRELVM v) {
 		i++;
 	}
 	lv_newslot(v, -3, SQFalse);
+	// register_curl_setopt(v);
 	return 1;
 }
