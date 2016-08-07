@@ -4,15 +4,13 @@
 #include <lavril.h>
 
 #ifdef _MSC_VER
-#pragma comment (lib ,"squirrel.lib")
-#pragma comment (lib ,"sqstdlib.lib")
+#pragma comment (lib ,"lvcore.lib")
+#pragma comment (lib ,"lvmods.lib")
 #endif
 
 #ifdef SQUNICODE
-
 #define scvprintf vfwprintf
 #else
-
 #define scvprintf vfprintf
 #endif
 

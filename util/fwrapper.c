@@ -76,6 +76,30 @@ void error_func(HSQUIRRELVM v, const SQChar *s, ...) {
 	va_end(vl);
 }
 
+static SQInteger apprun(HSQUIRRELVM v) {
+	const SQChar *s;
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		scprintf(_SC("%s\r\n"), s);
+	}
+
+	return 0;
+}
+
+void create_webapp_core(HSQUIRRELVM v) {
+	lv_pushroottable(v);
+	lv_pushstring(v, _SC("webapp"), -1);
+	lv_newclass(v, SQFalse);
+
+	lv_pushstring(v, _SC("run"), -1);
+	lv_newclosure(v, apprun, 0);
+	lv_setparamscheck(v, 2, ".s");
+	lv_setnativeclosurename(v, -1, _SC("run"));
+	lv_newslot(v, -3, SQFalse);
+
+	lv_newslot(v, -3, SQFalse);
+	lv_pop(v, 1);
+}
+
 int main(int argc, char *argv[]) {
 	HSQUIRRELVM v = lv_open(1024);
 	lv_setprintfunc(v, print_func, error_func);
@@ -92,6 +116,8 @@ int main(int argc, char *argv[]) {
 	init_module(crypto, v);
 
 	lv_registererrorhandlers(v);
+
+	create_webapp_core(v);
 
 	/* Accept requests */
     while (FCGI_Accept() >= 0) {
