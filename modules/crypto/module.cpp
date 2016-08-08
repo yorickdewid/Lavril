@@ -1,6 +1,33 @@
 #include <lavril.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "sha1.h"
+#include "base64.h"
+
+static SQInteger crypto_base64_encode(HSQUIRRELVM v) {
+	size_t out = 0;
+	const SQChar *s;
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		char *encoded = base64_encode((const unsigned char *)s, scstrlen(s), &out);
+		lv_pushstring(v, encoded, out);
+		free(encoded);
+		return 1;
+	}
+	return 0;
+}
+
+static SQInteger crypto_base64_decode(HSQUIRRELVM v) {
+	size_t out = 0;
+	const SQChar *s;
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		unsigned char *decoded = base64_decode((const char *)s, scstrlen(s), &out);
+		lv_pushstring(v, (const SQChar *)decoded, out);
+		free(decoded);
+		return 1;
+	}
+	return 0;
+}
 
 static SQInteger crypto_sha1(HSQUIRRELVM v) {
 	SHA1 sha1;
@@ -15,6 +42,8 @@ static SQInteger crypto_sha1(HSQUIRRELVM v) {
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),crypto_##name,nparams,tycheck}
 static const SQRegFunction cryptolib_funcs[] = {
+	_DECL_FUNC(base64_encode, 2, _SC(".s")),
+	_DECL_FUNC(base64_decode, 2, _SC(".s")),
 	_DECL_FUNC(sha1, 2, _SC(".s")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };

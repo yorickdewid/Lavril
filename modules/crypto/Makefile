@@ -14,6 +14,7 @@ endif
 
 OBJS= \
 	sha1.o \
+	base64.o \
 	module.o
 
 all: $(OBJS)

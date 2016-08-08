@@ -33,4 +33,4 @@ class SHA1 {
 
 std::string sha1(const std::string& string);
 
-#endif /* _SHA1_H_ */
+#endif // _SHA1_H_
