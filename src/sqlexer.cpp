@@ -165,9 +165,9 @@ SQInteger LVLexer::Lex() {
 						NEXT();
 						RETURN_TOKEN(TK_DIVEQ);
 						continue;
-					case _SC('>'):
-						NEXT();
-						RETURN_TOKEN(TK_ATTR_CLOSE);
+						// case _SC('>'):
+						// NEXT();
+						// RETURN_TOKEN(TK_ATTR_CLOSE);
 						continue;
 					default:
 						RETURN_TOKEN('/');
@@ -199,9 +199,9 @@ SQInteger LVLexer::Lex() {
 						NEXT();
 						RETURN_TOKEN(TK_SHIFTL);
 						break;
-					case _SC('/'):
-						NEXT();
-						RETURN_TOKEN(TK_ATTR_OPEN);
+						// case _SC('/'):
+						// NEXT();
+						// RETURN_TOKEN(TK_ATTR_OPEN);
 						break;
 				}
 				RETURN_TOKEN('<');

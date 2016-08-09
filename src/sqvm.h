@@ -13,7 +13,7 @@
 #define GET_FLAG_RAW                0x00000001
 #define GET_FLAG_DO_NOT_RAISE_ERROR 0x00000002
 //base lib
-void sq_base_register(HSQUIRRELVM v);
+void lv_base_register(HSQUIRRELVM v);
 
 struct SQExceptionTrap {
 	SQExceptionTrap() {}
@@ -116,9 +116,9 @@ struct SQVM : public CHAINABLE_OBJ {
 	//_INLINE bool LOCAL_INC(SQInteger op,SQObjectPtr &target, SQObjectPtr &a, SQObjectPtr &incr);
 	_INLINE bool PLOCAL_INC(SQInteger op, SQObjectPtr& target, SQObjectPtr& a, SQObjectPtr& incr);
 	_INLINE bool DerefInc(SQInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObjectPtr& key, SQObjectPtr& incr, bool postfix, SQInteger arg0);
-#ifdef _DEBUG_DUMP
+	// #ifdef _DEBUG_DUMP
 	void dumpstack(SQInteger stackbase = -1, bool dumpall = false);
-#endif
+	// #endif
 
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
@@ -167,7 +167,6 @@ struct SQVM : public CHAINABLE_OBJ {
 	SQObjectPtr _debughook_closure;
 
 	SQObjectPtr temp_reg;
-
 
 	CallInfo *_callsstack;
 	SQInteger _callsstacksize;

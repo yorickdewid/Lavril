@@ -1,6 +1,3 @@
-/*
-	see copyright notice in squirrel.h
-*/
 #include "sqpcheader.h"
 #include <math.h>
 #include <stdlib.h>
@@ -232,7 +229,6 @@ bool SQVM::ArithMetaMethod(SQInteger op, const SQObjectPtr& o1, const SQObjectPt
 }
 
 bool SQVM::NEG_OP(SQObjectPtr& trg, const SQObjectPtr& o) {
-
 	switch (type(o)) {
 		case OT_INTEGER:
 			trg = -_integer(o);
@@ -444,7 +440,7 @@ bool SQVM::Init(SQVM *friendvm, SQInteger stacksize) {
 	_top = 0;
 	if (!friendvm) {
 		_roottable = SQTable::Create(_ss(this), 0);
-		sq_base_register(this);
+		lv_base_register(this);
 	} else {
 		_roottable = friendvm->_roottable;
 		_errorhandler = friendvm->_errorhandler;
@@ -1407,10 +1403,12 @@ bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& des
 			}
 			break;
 		case OT_INSTANCE:
-			if (_instance(self)->Get(key, dest)) return true;
+			if (_instance(self)->Get(key, dest))
+				return true;
 			break;
 		case OT_CLASS:
-			if (_class(self)->Get(key, dest)) return true;
+			if (_class(self)->Get(key, dest))
+				return true;
 			break;
 		case OT_STRING:
 			if (sq_isnumeric(key)) {
@@ -1878,7 +1876,8 @@ void SQVM::LeaveFrame() {
 	_top = _stackbase + ci->_prevtop;
 	ci = (css) ? &_callsstack[css - 1] : NULL;
 
-	if (_openouters) CloseOuters(&(_stack._vals[last_stackbase]));
+	if (_openouters)
+		CloseOuters(&(_stack._vals[last_stackbase]));
 	while (last_top >= _top) {
 		_stack._vals[last_top--].Null();
 	}
@@ -1945,76 +1944,100 @@ SQObjectPtr& SQVM::GetAt(SQInteger n) {
 	return _stack[n];
 }
 
-#ifdef _DEBUG_DUMP
+#ifdef _DEBUG
 void SQVM::dumpstack(SQInteger stackbase, bool dumpall) {
+	if (stackbase == -1)
+		stackbase = _stackbase;
 	SQInteger size = dumpall ? _stack.size() : _top;
-	SQInteger n = 0;
+	SQInteger n = 0, r = 1;
+	typedef lvpair<SQInteger, SQRawObjectVal> respair;
+	sqvector<respair> resources(_top);
 	scprintf(_SC("\n>>>>stack dump<<<<\n"));
 	CallInfo& ci = _callsstack[_callsstacksize - 1];
-	scprintf(_SC("IP: %p\n"), ci._ip);
+	scprintf(_SC("ip: %p\n"), ci._ip);
+	scprintf(_SC("stack exhaustion: %lld/%lld\n"), _top, _stack.size());
 	scprintf(_SC("prev stack base: %d\n"), ci._prevstkbase);
 	scprintf(_SC("prev top: %d\n"), ci._prevtop);
-	for (SQInteger i = 0; i < size; i++) {
+	for (SQInteger i = 0; i < size; ++i) {
 		SQObjectPtr& obj = _stack[i];
-		if (stackbase == i)scprintf(_SC(">"));
-		else scprintf(_SC(" "));
-		scprintf(_SC("[" LVFORMATINT "]:"), n);
+		if (stackbase == i)
+			scprintf(_SC(">"));
+		else if (ci._prevstkbase == i)
+			scprintf(_SC("*"));
+		else
+			scprintf(_SC(" "));
+
+		SQInteger res = 0;
+		for (SQUnsignedInteger j = 0; j < resources.size(); ++j) {
+			if (resources[j].second == _rawval(obj))
+				res = resources[j].first;
+		}
+
+		if (!res) {
+			resources[r] = respair(r, _rawval(obj));
+			res = r++;
+		}
+
+		scprintf(_SC("[" LVFORMATINT "]:#" LVFORMATINT ": "), n, res);
 		switch (type(obj)) {
 			case OT_FLOAT:
-				scprintf(_SC("FLOAT %.3f"), _float(obj));
+				scprintf(_SC("float %.3f"), _float(obj));
 				break;
 			case OT_INTEGER:
-				scprintf(_SC("INTEGER " LVFORMATINT), _integer(obj));
+				scprintf(_SC("integer " LVFORMATINT), _integer(obj));
 				break;
 			case OT_BOOL:
-				scprintf(_SC("BOOL %s"), _integer(obj) ? "true" : "false");
+				scprintf(_SC("bool %s"), _integer(obj) ? "true" : "false");
 				break;
 			case OT_STRING:
-				scprintf(_SC("STRING %s"), _stringval(obj));
+				scprintf(_SC("string %s"), _stringval(obj));
 				break;
 			case OT_NULL:
-				scprintf(_SC("NULL"));
+				scprintf(_SC("null"));
 				break;
 			case OT_TABLE:
-				scprintf(_SC("TABLE %p[%p]"), _table(obj), _table(obj)->_delegate);
+				if (_table(_roottable) == _table(obj))
+					scprintf(_SC("table(root)[" LVFORMATINT "] [%p]"), _table(obj)->CountUsed(), _table(obj)->_delegate);
+				else
+					scprintf(_SC("table[" LVFORMATINT "] [%p]"), _table(obj)->CountUsed(), _table(obj)->_delegate);
 				break;
 			case OT_ARRAY:
-				scprintf(_SC("ARRAY %p"), _array(obj));
+				scprintf(_SC("array[" LVFORMATINT "]"), _array(obj)->Size());
 				break;
 			case OT_CLOSURE:
-				scprintf(_SC("CLOSURE [%p]"), _closure(obj));
+				scprintf(_SC("closure(function)"));
 				break;
 			case OT_NATIVECLOSURE:
-				scprintf(_SC("NATIVECLOSURE"));
+				scprintf(_SC("native closure(api)"));
 				break;
 			case OT_USERDATA:
-				scprintf(_SC("USERDATA %p[%p]"), _userdataval(obj), _userdata(obj)->_delegate);
+				scprintf(_SC("userdata [%p]"), _userdata(obj)->_delegate);
 				break;
 			case OT_GENERATOR:
-				scprintf(_SC("GENERATOR %p"), _generator(obj));
+				scprintf(_SC("generator"));
 				break;
 			case OT_THREAD:
-				scprintf(_SC("THREAD [%p]"), _thread(obj));
+				scprintf(_SC("thread"));
 				break;
 			case OT_USERPOINTER:
-				scprintf(_SC("USERPOINTER %p"), _userpointer(obj));
+				scprintf(_SC("userpointer"));
 				break;
 			case OT_CLASS:
-				scprintf(_SC("CLASS %p"), _class(obj));
+				scprintf(_SC("class"));
 				break;
 			case OT_INSTANCE:
-				scprintf(_SC("INSTANCE %p"), _instance(obj));
+				scprintf(_SC("instance"));
 				break;
 			case OT_WEAKREF:
-				scprintf(_SC("WEAKERF %p"), _weakref(obj));
+				scprintf(_SC("weak reference"));
 				break;
 			default:
-				assert(0);
+				scprintf(_SC("invalid object type"));
 				break;
 		};
 		scprintf(_SC("\n"));
 		++n;
 	}
+	resources.resize(0);
 }
-
 #endif

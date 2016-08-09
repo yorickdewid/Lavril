@@ -17,10 +17,13 @@ void sq_vm_free(void *p, SQUnsignedInteger size);
 template<typename T>
 class sqvector {
   public:
-	sqvector() {
+	sqvector(SQUnsignedInteger size = 0) {
 		_vals = NULL;
 		_size = 0;
 		_allocated = 0;
+
+		if (size)
+			resize(size);
 	}
 	sqvector(const sqvector<T>& v) {
 		copy(v);
@@ -118,6 +121,15 @@ class sqvector {
 	}
 	SQUnsignedInteger _size;
 	SQUnsignedInteger _allocated;
+};
+
+template<typename T1, typename T2>
+struct lvpair {
+	T1 first;
+	T2 second;
+
+	lvpair(T1 _first, T1 _second) : first(_first), second(_second) {}
+	lvpair() {}
 };
 
 #endif //_SQUTILS_H_

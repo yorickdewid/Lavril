@@ -1,6 +1,5 @@
 #include <lavril.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include "sha1.h"
 #include "base64.h"

@@ -456,7 +456,7 @@ static const SQRegFunction base_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-void sq_base_register(HSQUIRRELVM v) {
+void lv_base_register(HSQUIRRELVM v) {
 	SQInteger i = 0;
 	lv_pushroottable(v);
 

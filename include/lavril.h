@@ -254,6 +254,9 @@ LAVRIL_API void lv_settop(HSQUIRRELVM v, SQInteger newtop);
 LAVRIL_API SQRESULT lv_reservestack(HSQUIRRELVM v, SQInteger nsize);
 LAVRIL_API SQInteger lv_cmp(HSQUIRRELVM v);
 LAVRIL_API void lv_move(HSQUIRRELVM dest, HSQUIRRELVM src, SQInteger idx);
+#ifdef _DEBUG
+LAVRIL_API void lv_stackdump(HSQUIRRELVM v);
+#endif
 
 /* Object creation handling */
 LAVRIL_API SQUserPointer lv_newuserdata(HSQUIRRELVM v, SQUnsignedInteger size);

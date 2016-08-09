@@ -1518,6 +1518,12 @@ void lv_move(HSQUIRRELVM dest, HSQUIRRELVM src, SQInteger idx) {
 	dest->Push(stack_get(src, idx));
 }
 
+// #ifdef _DEBUG_DUMP
+void lv_stackdump(HSQUIRRELVM v) {
+	v->dumpstack(-1, false);
+}
+// #endif
+
 void lv_setprintfunc(HSQUIRRELVM v, SQPRINTFUNCTION printfunc, SQPRINTFUNCTION errfunc) {
 	_ss(v)->_printfunc = printfunc;
 	_ss(v)->_errorfunc = errfunc;
