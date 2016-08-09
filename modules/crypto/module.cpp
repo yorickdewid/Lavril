@@ -4,6 +4,7 @@
 #include <string.h>
 #include "sha1.h"
 #include "base64.h"
+#include "urlcode.h"
 
 static SQInteger crypto_base64_encode(HSQUIRRELVM v) {
 	size_t out = 0;
@@ -29,6 +30,28 @@ static SQInteger crypto_base64_decode(HSQUIRRELVM v) {
 	return 0;
 }
 
+static SQInteger crypto_url_encode(HSQUIRRELVM v) {
+	const SQChar *s;
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		char *encoded = url_encode(s);
+		lv_pushstring(v, encoded, -1);
+		free(encoded);
+		return 1;
+	}
+	return 0;
+}
+
+static SQInteger crypto_url_decode(HSQUIRRELVM v) {
+	const SQChar *s;
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		char *encoded = url_decode(s);
+		lv_pushstring(v, encoded, -1);
+		free(encoded);
+		return 1;
+	}
+	return 0;
+}
+
 static SQInteger crypto_sha1(HSQUIRRELVM v) {
 	SHA1 sha1;
 	const SQChar *s;
@@ -44,6 +67,8 @@ static SQInteger crypto_sha1(HSQUIRRELVM v) {
 static const SQRegFunction cryptolib_funcs[] = {
 	_DECL_FUNC(base64_encode, 2, _SC(".s")),
 	_DECL_FUNC(base64_decode, 2, _SC(".s")),
+	_DECL_FUNC(url_encode, 2, _SC(".s")),
+	_DECL_FUNC(url_decode, 2, _SC(".s")),
 	_DECL_FUNC(sha1, 2, _SC(".s")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
