@@ -4,6 +4,7 @@ MODS = \
 	math \
 	crypto \
 	curl \
+	json \
 	system
 
 all: build
