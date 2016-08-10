@@ -429,6 +429,14 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, SQInteger ident) {
 			res = str;
 			return true;
 		}
+		case OT_WEAKREF: {
+			SQObjectPtr rs, str;
+			str = SQString::Create(_ss(this), _LC("(weak reference) -> "));
+			this->ToString(_weakref(o)->_obj, rs);
+			this->StringCat(str, rs, str);
+			res = str;
+			return true;
+		}
 		case OT_USERDATA:
 		case OT_INSTANCE:
 			if (_delegable(o)->_delegate) {

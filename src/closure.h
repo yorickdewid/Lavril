@@ -30,6 +30,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 		_CONSTRUCT_VECTOR(SQObjectPtr, func->_ndefaultparams, nc->_defaultparams);
 		return nc;
 	}
+
 	void Release() {
 		FunctionPrototype *f = _function;
 		SQInteger size = _CALC_CLOSURE_SIZE(f);
@@ -39,11 +40,13 @@ struct SQClosure : public CHAINABLE_OBJ {
 		this->~SQClosure();
 		sq_vm_free(this, size);
 	}
+
 	void SetRoot(SQWeakRef *r) {
 		__ObjRelease(_root);
 		_root = r;
 		__ObjAddRef(_root);
 	}
+
 	SQClosure *Clone() {
 		FunctionPrototype *f = _function;
 		SQClosure *ret = SQClosure::Create(_opt_ss(this), f, _root);
@@ -53,17 +56,21 @@ struct SQClosure : public CHAINABLE_OBJ {
 		_COPY_VECTOR(ret->_defaultparams, _defaultparams, f->_ndefaultparams);
 		return ret;
 	}
+
 	~SQClosure();
 
 	bool Save(SQVM *v, SQUserPointer up, SQWRITEFUNC write);
 	static bool Load(SQVM *v, SQUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
+
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
+
 	void Finalize() {
 		FunctionPrototype *f = _function;
 		_NULL_SQOBJECT_VECTOR(_outervalues, f->_noutervalues);
 		_NULL_SQOBJECT_VECTOR(_defaultparams, f->_ndefaultparams);
 	}
+
 	SQObjectType GetType() {
 		return OT_CLOSURE;
 	}
