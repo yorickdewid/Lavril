@@ -302,15 +302,13 @@ void interactive(HSQUIRRELVM v) {
 			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), SQTrue))) {
 				lv_pushroottable(v);
 				if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue)) && retval) {
-					scprintf(_LC("\n"));
 					lv_pushroottable(v);
-					lv_pushstring(v, _LC("print"), -1);
+					lv_pushstring(v, _LC("println"), -1);
 					lv_get(v, -2);
 					lv_pushroottable(v);
 					lv_push(v, -4);
 					lv_call(v, 2, SQFalse, SQTrue);
 					retval = 0;
-					scprintf(_LC("\n"));
 				}
 			}
 
