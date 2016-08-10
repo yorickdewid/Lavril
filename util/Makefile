@@ -30,6 +30,9 @@ runner: runner.o
 vmext: vmext.o
 	$(CC) vmext.o $(LFLAGS) -o vmext
 
+lvsh: lvsh.o
+	$(CC) lvsh.o $(LFLAGS) -o lvsh
+
 fwrapper: fwrapper.o
 	$(CC) fwrapper.o $(LFLAGS) -lfcgi -o fwrapper
 
