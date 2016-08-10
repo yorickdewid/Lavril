@@ -14,23 +14,23 @@ ifeq ($(LBITS),64)
 endif
 
 OBJS = \
-	sqapi.o \
-	sqbaselib.o \
-	sqfuncstate.o \
-	sqdebug.o \
-	sqlexer.o \
-	sqobject.o \
-	sqcompiler.o \
-	sqstate.o \
-	sqtable.o \
-	sqmem.o \
-	sqvm.o \
-	sqaux.o \
-	sqblob.o \
-	sqstream.o \
-	sqstring.o \
-	sqio.o \
-	sqclass.o
+	api.o \
+	baselib.o \
+	funcstate.o \
+	debug.o \
+	lexer.o \
+	object.o \
+	compiler.o \
+	state.o \
+	table.o \
+	mem.o \
+	vm.o \
+	aux.o \
+	blob.o \
+	stream.o \
+	lvstring.o \
+	io.o \
+	class.o
 
 all: $(OBJS)
 	$(AR) rc $(BIN) $(OBJS)
