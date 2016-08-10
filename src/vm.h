@@ -14,7 +14,7 @@
 #define GET_FLAG_RAW                0x00000001
 #define GET_FLAG_DO_NOT_RAISE_ERROR 0x00000002
 //base lib
-void lv_base_register(HSQUIRRELVM v);
+void lv_base_register(VMHANDLE v);
 
 struct SQExceptionTrap {
 	SQExceptionTrap() {}
@@ -58,7 +58,7 @@ struct SQVM : public CHAINABLE_OBJ {
 	typedef sqvector<CallInfo> CallInfoVec;
   public:
 	void DebugHookProxy(SQInteger type, const SQChar *sourcename, SQInteger line, const SQChar *funcname);
-	static void _DebugHookProxy(HSQUIRRELVM v, SQInteger type, const SQChar *sourcename, SQInteger line, const SQChar *funcname);
+	static void _DebugHookProxy(VMHANDLE v, SQInteger type, const SQChar *sourcename, SQInteger line, const SQChar *funcname);
 	enum ExecutionType { ET_CALL, ET_RESUME_GENERATOR, ET_RESUME_VM, ET_RESUME_THROW_VM };
 	SQVM(SQSharedState *ss);
 	~SQVM();
@@ -203,7 +203,7 @@ struct AutoDec {
 	SQInteger *_n;
 };
 
-inline SQObjectPtr& stack_get(HSQUIRRELVM v, SQInteger idx) {
+inline SQObjectPtr& stack_get(VMHANDLE v, SQInteger idx) {
 	return ((idx >= 0) ? (v->GetAt(idx + v->_stackbase - 1)) : (v->GetUp(idx)));
 }
 

@@ -35,7 +35,7 @@ const int mod_curl_opt[] = {
 };
 
 #if 0
-void register_curl_setopt(HSQUIRRELVM v) {
+void register_curl_setopt(VMHANDLE v) {
 	SQInteger i = 0;
 	// lv_pushstring(v, _LC("CURLOPT_POST"), -1);
 	// lv_pushinteger(v, CURLOPT_POST);
@@ -130,7 +130,7 @@ LVCURLObj *mod_curl_init(const SQChar *location, const SQChar **error) {
 }
 
 #if 0
-static SQInteger _curl_setopt(HSQUIRRELVM v) {
+static SQInteger _curl_setopt(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	const SQChar *str;
 	SQInteger opt = 0;
@@ -158,7 +158,7 @@ static SQInteger _curl_setopt(HSQUIRRELVM v) {
 }
 #endif
 
-static SQInteger _curl_setheader(HSQUIRRELVM v) {
+static SQInteger _curl_setheader(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	const SQChar *key, *value;
 	lv_getstring(v, 2, &key);
@@ -171,7 +171,7 @@ static SQInteger _curl_setheader(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger _curl_exec(HSQUIRRELVM v) {
+static SQInteger _curl_exec(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	if (self->_hlist) {
 		self->res = curl_easy_setopt(self->_curl, CURLOPT_HTTPHEADER, self->_hlist);
@@ -185,7 +185,7 @@ static SQInteger _curl_exec(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _curl_constructor(HSQUIRRELVM v) {
+static SQInteger _curl_constructor(VMHANDLE v) {
 	const SQChar *error, *location;
 	lv_getstring(v, 2, &location);
 	LVCURLObj *curl = mod_curl_init(location, &error);
@@ -196,7 +196,7 @@ static SQInteger _curl_constructor(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger _curl__typeof(HSQUIRRELVM v) {
+static SQInteger _curl__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("curl"), -1);
 	return 1;
 }
@@ -212,7 +212,7 @@ static const SQRegFunction curlobj_funcs[] = {
 };
 #undef _DECL_CURL_FUNC
 
-SQInteger mod_init_curl(HSQUIRRELVM v) {
+SQInteger mod_init_curl(VMHANDLE v) {
 	SQInteger i = 0;
 
 	lv_pushstring(v, _LC("curl"), -1);

@@ -89,7 +89,7 @@ SQUnsignedInteger TranslateIndex(const SQObjectPtr& idx) {
 SQWeakRef *SQRefCounted::GetWeakRef(SQObjectType type) {
 	if (!_weakref) {
 		sq_new(_weakref, SQWeakRef);
-#if defined(SQUSEDOUBLE) && !defined(_SQ64)
+#if defined(SQUSEDOUBLE) && !defined(_LV64)
 		_weakref->_obj._unVal.raw = 0; //clean the whole union on 32 bits with double
 #endif
 		_weakref->_obj._type = type;
@@ -282,7 +282,7 @@ SQClosure::~SQClosure() {
 		return false; \
 }
 
-bool SafeWrite(HSQUIRRELVM v, SQWRITEFUNC write, SQUserPointer up, SQUserPointer dest, SQInteger size) {
+bool SafeWrite(VMHANDLE v, SQWRITEFUNC write, SQUserPointer up, SQUserPointer dest, SQInteger size) {
 	if (write(up, dest, size) != size) {
 		v->Raise_Error(_LC("io error (write function failure)"));
 		return false;
@@ -290,7 +290,7 @@ bool SafeWrite(HSQUIRRELVM v, SQWRITEFUNC write, SQUserPointer up, SQUserPointer
 	return true;
 }
 
-bool SafeRead(HSQUIRRELVM v, SQWRITEFUNC read, SQUserPointer up, SQUserPointer dest, SQInteger size) {
+bool SafeRead(VMHANDLE v, SQWRITEFUNC read, SQUserPointer up, SQUserPointer dest, SQInteger size) {
 	if (size && read(up, dest, size) != size) {
 		v->Raise_Error(_LC("io error, read function failure, the origin stream could be corrupted/trucated"));
 		return false;
@@ -298,11 +298,11 @@ bool SafeRead(HSQUIRRELVM v, SQWRITEFUNC read, SQUserPointer up, SQUserPointer d
 	return true;
 }
 
-bool WriteTag(HSQUIRRELVM v, SQWRITEFUNC write, SQUserPointer up, SQUnsignedInteger32 tag) {
+bool WriteTag(VMHANDLE v, SQWRITEFUNC write, SQUserPointer up, SQUnsignedInteger32 tag) {
 	return SafeWrite(v, write, up, &tag, sizeof(tag));
 }
 
-bool CheckTag(HSQUIRRELVM v, SQWRITEFUNC read, SQUserPointer up, SQUnsignedInteger32 tag) {
+bool CheckTag(VMHANDLE v, SQWRITEFUNC read, SQUserPointer up, SQUnsignedInteger32 tag) {
 	SQUnsignedInteger32 t;
 	_CHECK_IO(SafeRead(v, read, up, &t, sizeof(t)));
 	if (t != tag) {
@@ -312,7 +312,7 @@ bool CheckTag(HSQUIRRELVM v, SQWRITEFUNC read, SQUserPointer up, SQUnsignedInteg
 	return true;
 }
 
-bool WriteObject(HSQUIRRELVM v, SQUserPointer up, SQWRITEFUNC write, SQObjectPtr& o) {
+bool WriteObject(VMHANDLE v, SQUserPointer up, SQWRITEFUNC write, SQObjectPtr& o) {
 	SQUnsignedInteger32 _type = (SQUnsignedInteger32)type(o);
 	_CHECK_IO(SafeWrite(v, write, up, &_type, sizeof(_type)));
 	switch (type(o)) {
@@ -336,7 +336,7 @@ bool WriteObject(HSQUIRRELVM v, SQUserPointer up, SQWRITEFUNC write, SQObjectPtr
 	return true;
 }
 
-bool ReadObject(HSQUIRRELVM v, SQUserPointer up, SQREADFUNC read, SQObjectPtr& o) {
+bool ReadObject(VMHANDLE v, SQUserPointer up, SQREADFUNC read, SQObjectPtr& o) {
 	SQUnsignedInteger32 _type;
 	_CHECK_IO(SafeRead(v, read, up, &_type, sizeof(_type)));
 	SQObjectType t = (SQObjectType)_type;

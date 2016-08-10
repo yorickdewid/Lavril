@@ -2,14 +2,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define SINGLE_ARG_FUNC(_funcname) static SQInteger math_##_funcname(HSQUIRRELVM v){ \
+#define SINGLE_ARG_FUNC(_funcname) static SQInteger math_##_funcname(VMHANDLE v){ \
 	SQFloat f; \
 	lv_getfloat(v,2,&f); \
 	lv_pushfloat(v,(SQFloat)_funcname(f)); \
 	return 1; \
 }
 
-#define TWO_ARGS_FUNC(_funcname) static SQInteger math_##_funcname(HSQUIRRELVM v){ \
+#define TWO_ARGS_FUNC(_funcname) static SQInteger math_##_funcname(VMHANDLE v){ \
 	SQFloat p1,p2; \
 	lv_getfloat(v,2,&p1); \
 	lv_getfloat(v,3,&p2); \
@@ -17,7 +17,7 @@
 	return 1; \
 }
 
-static SQInteger math_srand(HSQUIRRELVM v) {
+static SQInteger math_srand(VMHANDLE v) {
 	SQInteger i;
 	if (LV_FAILED(lv_getinteger(v, 2, &i)))
 		return lv_throwerror(v, _LC("invalid param"));
@@ -25,19 +25,19 @@ static SQInteger math_srand(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger math_rand(HSQUIRRELVM v) {
+static SQInteger math_rand(VMHANDLE v) {
 	lv_pushinteger(v, rand());
 	return 1;
 }
 
-static SQInteger math_abs(HSQUIRRELVM v) {
+static SQInteger math_abs(VMHANDLE v) {
 	SQInteger n;
 	lv_getinteger(v, 2, &n);
 	lv_pushinteger(v, (SQInteger)abs((int)n));
 	return 1;
 }
 
-static SQInteger math_universe(HSQUIRRELVM v) {
+static SQInteger math_universe(VMHANDLE v) {
 	lv_pushinteger(v, 42);
 	return 1;
 }
@@ -87,7 +87,7 @@ static const SQRegFunction mathlib_funcs[] = {
 #define M_PI (3.14159265358979323846)
 #endif
 
-SQRESULT mod_init_math(HSQUIRRELVM v) {
+SQRESULT mod_init_math(VMHANDLE v) {
 	SQInteger i = 0;
 	while (mathlib_funcs[i].name != 0) {
 		lv_pushstring(v, mathlib_funcs[i].name, -1);

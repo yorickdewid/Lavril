@@ -359,7 +359,7 @@ SQInteger LVLexer::GetIDType(const SQChar *s, SQInteger len) {
 	return TK_IDENTIFIER;
 }
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #if WCHAR_SIZE == 2
 SQInteger LVLexer::AddUTF16(SQUnsignedInteger ch) {
 	if (ch >= 0x10000) {
@@ -452,7 +452,7 @@ SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim) {
 								SQChar temp[8 + 1];
 								ProcessStringHexEscape(temp, maxdigits);
 								SQChar *stemp;
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #if WCHAR_SIZE == 2
 								AddUTF16(scstrtoul(temp, &stemp, 16));
 #else

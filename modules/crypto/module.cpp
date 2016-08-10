@@ -5,7 +5,7 @@
 #include "base64.h"
 #include "urlcode.h"
 
-static SQInteger crypto_base64_encode(HSQUIRRELVM v) {
+static SQInteger crypto_base64_encode(VMHANDLE v) {
 	size_t out = 0;
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
@@ -17,7 +17,7 @@ static SQInteger crypto_base64_encode(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger crypto_base64_decode(HSQUIRRELVM v) {
+static SQInteger crypto_base64_decode(VMHANDLE v) {
 	size_t out = 0;
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
@@ -29,7 +29,7 @@ static SQInteger crypto_base64_decode(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger crypto_url_encode(HSQUIRRELVM v) {
+static SQInteger crypto_url_encode(VMHANDLE v) {
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		char *encoded = url_encode(s);
@@ -40,7 +40,7 @@ static SQInteger crypto_url_encode(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger crypto_url_decode(HSQUIRRELVM v) {
+static SQInteger crypto_url_decode(VMHANDLE v) {
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		char *encoded = url_decode(s);
@@ -51,7 +51,7 @@ static SQInteger crypto_url_decode(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger crypto_sha1(HSQUIRRELVM v) {
+static SQInteger crypto_sha1(VMHANDLE v) {
 	SHA1 sha1;
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
@@ -73,7 +73,7 @@ static const SQRegFunction cryptolib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQRESULT mod_init_crypto(HSQUIRRELVM v) {
+SQRESULT mod_init_crypto(VMHANDLE v) {
 	SQInteger i = 0;
 	while (cryptolib_funcs[i].name != 0) {
 		lv_pushstring(v, cryptolib_funcs[i].name, -1);

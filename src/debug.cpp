@@ -5,7 +5,7 @@
 #include "closure.h"
 #include "lvstring.h"
 
-SQRESULT lv_getfunctioninfo(HSQUIRRELVM v, SQInteger level, SQFunctionInfo *fi) {
+SQRESULT lv_getfunctioninfo(VMHANDLE v, SQInteger level, SQFunctionInfo *fi) {
 	SQInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
 		SQVM::CallInfo& ci = v->_callsstack[cssize - level - 1];
@@ -22,7 +22,7 @@ SQRESULT lv_getfunctioninfo(HSQUIRRELVM v, SQInteger level, SQFunctionInfo *fi) 
 	return lv_throwerror(v, _LC("the object is not a closure"));
 }
 
-SQRESULT lv_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si) {
+SQRESULT lv_stackinfos(VMHANDLE v, SQInteger level, SQStackInfos *si) {
 	SQInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
 		memset(si, 0, sizeof(SQStackInfos));

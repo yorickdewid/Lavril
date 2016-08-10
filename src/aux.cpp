@@ -1,6 +1,6 @@
 #include "pcheader.h"
 
-CALLBACK static void printcallstack(HSQUIRRELVM v) {
+CALLBACK static void printcallstack(VMHANDLE v) {
 	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		SQStackInfos si;
@@ -96,7 +96,7 @@ CALLBACK static void printcallstack(HSQUIRRELVM v) {
 	}
 }
 
-CALLBACK static SQInteger callback_printerror(HSQUIRRELVM v) {
+CALLBACK static SQInteger callback_printerror(VMHANDLE v) {
 	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		const SQChar *sErr = 0;
@@ -112,14 +112,14 @@ CALLBACK static SQInteger callback_printerror(HSQUIRRELVM v) {
 	return 0;
 }
 
-CALLBACK void callback_compiler_error(HSQUIRRELVM v, const SQChar *sErr, const SQChar *sSource, SQInteger line, SQInteger column) {
+CALLBACK void callback_compiler_error(VMHANDLE v, const SQChar *sErr, const SQChar *sSource, SQInteger line, SQInteger column) {
 	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		pf(v, _LC("%s:%d:%d: error %s\n"), sSource, line, column, sErr);
 	}
 }
 
-void lv_registererrorhandlers(HSQUIRRELVM v) {
+void lv_registererrorhandlers(VMHANDLE v) {
 	lv_setcompilererrorhandler(v, callback_compiler_error);
 	lv_newclosure(v, callback_printerror, 0);
 	lv_seterrorhandler(v);

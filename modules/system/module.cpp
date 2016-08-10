@@ -18,7 +18,7 @@
 #define screname rename
 #endif
 
-static SQInteger _system_getenv(HSQUIRRELVM v) {
+static SQInteger _system_getenv(VMHANDLE v) {
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		lv_pushstring(v, scgetenv(s), -1);
@@ -27,7 +27,7 @@ static SQInteger _system_getenv(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger _system_system(HSQUIRRELVM v) {
+static SQInteger _system_system(VMHANDLE v) {
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		lv_pushinteger(v, scsystem(s));
@@ -36,18 +36,18 @@ static SQInteger _system_system(HSQUIRRELVM v) {
 	return lv_throwerror(v, _LC("wrong param"));
 }
 
-static SQInteger _system_clock(HSQUIRRELVM v) {
+static SQInteger _system_clock(VMHANDLE v) {
 	lv_pushfloat(v, ((SQFloat)clock()) / (SQFloat)CLOCKS_PER_SEC);
 	return 1;
 }
 
-static SQInteger _system_time(HSQUIRRELVM v) {
+static SQInteger _system_time(VMHANDLE v) {
 	SQInteger t = (SQInteger)time(NULL);
 	lv_pushinteger(v, t);
 	return 1;
 }
 
-static SQInteger _system_remove(HSQUIRRELVM v) {
+static SQInteger _system_remove(VMHANDLE v) {
 	const SQChar *s;
 	lv_getstring(v, 2, &s);
 	if (scremove(s) == -1)
@@ -55,7 +55,7 @@ static SQInteger _system_remove(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger _system_rename(HSQUIRRELVM v) {
+static SQInteger _system_rename(VMHANDLE v) {
 	const SQChar *oldn, *newn;
 	lv_getstring(v, 2, &oldn);
 	lv_getstring(v, 3, &newn);
@@ -64,13 +64,13 @@ static SQInteger _system_rename(HSQUIRRELVM v) {
 	return 0;
 }
 
-static void _set_integer_slot(HSQUIRRELVM v, const SQChar *name, SQInteger val) {
+static void _set_integer_slot(VMHANDLE v, const SQChar *name, SQInteger val) {
 	lv_pushstring(v, name, -1);
 	lv_pushinteger(v, val);
 	lv_rawset(v, -3);
 }
 
-static SQInteger _system_date(HSQUIRRELVM v) {
+static SQInteger _system_date(VMHANDLE v) {
 	time_t t;
 	SQInteger it;
 	SQInteger format = 'l';
@@ -116,7 +116,7 @@ static const SQRegFunction systemlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQInteger mod_init_system(HSQUIRRELVM v) {
+SQInteger mod_init_system(VMHANDLE v) {
 	SQInteger i = 0;
 	while (systemlib_funcs[i].name != 0) {
 		lv_pushstring(v, systemlib_funcs[i].name, -1);

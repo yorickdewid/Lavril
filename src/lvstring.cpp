@@ -22,7 +22,7 @@ static void __strip_r(const SQChar *str, SQInteger len, const SQChar **end) {
 	*end = t + 1;
 }
 
-static SQInteger _string_strip(HSQUIRRELVM v) {
+static SQInteger _string_strip(VMHANDLE v) {
 	const SQChar *str, *start, *end;
 	lv_getstring(v, 2, &str);
 	SQInteger len = lv_getsize(v, 2);
@@ -32,7 +32,7 @@ static SQInteger _string_strip(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _string_lstrip(HSQUIRRELVM v) {
+static SQInteger _string_lstrip(VMHANDLE v) {
 	const SQChar *str, *start;
 	lv_getstring(v, 2, &str);
 	__strip_l(str, &start);
@@ -40,7 +40,7 @@ static SQInteger _string_lstrip(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _string_rstrip(HSQUIRRELVM v) {
+static SQInteger _string_rstrip(VMHANDLE v) {
 	const SQChar *str, *end;
 	lv_getstring(v, 2, &str);
 	SQInteger len = lv_getsize(v, 2);
@@ -49,7 +49,7 @@ static SQInteger _string_rstrip(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _string_split(HSQUIRRELVM v) {
+static SQInteger _string_split(VMHANDLE v) {
 	const SQChar *str, *seps;
 	SQChar *stemp;
 	lv_getstring(v, 2, &str);
@@ -83,7 +83,7 @@ static SQInteger _string_split(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _string_escape(HSQUIRRELVM v) {
+static SQInteger _string_escape(VMHANDLE v) {
 	const SQChar *str;
 	SQChar *dest, *resstr;
 	SQInteger size;
@@ -93,7 +93,7 @@ static SQInteger _string_escape(HSQUIRRELVM v) {
 		lv_push(v, 2);
 		return 1;
 	}
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #if WCHAR_SIZE == 2
 	const SQChar *escpat = _LC("\\x%04x");
 	const SQInteger maxescsize = 6;
@@ -171,7 +171,7 @@ static SQInteger _string_escape(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _string_startswith(HSQUIRRELVM v) {
+static SQInteger _string_startswith(VMHANDLE v) {
 	const SQChar *str, *cmp;
 	lv_getstring(v, 2, &str);
 	lv_getstring(v, 3, &cmp);
@@ -185,7 +185,7 @@ static SQInteger _string_startswith(HSQUIRRELVM v) {
 	return 1;
 }
 
-static SQInteger _string_endswith(HSQUIRRELVM v) {
+static SQInteger _string_endswith(VMHANDLE v) {
 	const SQChar *str, *cmp;
 	lv_getstring(v, 2, &str);
 	lv_getstring(v, 3, &cmp);
@@ -210,7 +210,7 @@ static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(si
 	return 1;
 }
 
-static SQInteger _regexp_match(HSQUIRRELVM v) {
+static SQInteger _regexp_match(VMHANDLE v) {
 	SETUP_REX(v);
 	const SQChar *str;
 	lv_getstring(v, 2, &str);
@@ -222,7 +222,7 @@ static SQInteger _regexp_match(HSQUIRRELVM v) {
 	return 1;
 }
 
-static void _addrexmatch(HSQUIRRELVM v, const SQChar *str, const SQChar *begin, const SQChar *end) {
+static void _addrexmatch(VMHANDLE v, const SQChar *str, const SQChar *begin, const SQChar *end) {
 	sq_newtable(v);
 	lv_pushstring(v, _LC("begin"), -1);
 	lv_pushinteger(v, begin - str);
@@ -232,7 +232,7 @@ static void _addrexmatch(HSQUIRRELVM v, const SQChar *str, const SQChar *begin, 
 	sq_rawset(v, -3);
 }
 
-static SQInteger _regexp_search(HSQUIRRELVM v) {
+static SQInteger _regexp_search(VMHANDLE v) {
 	SETUP_REX(v);
 	const SQChar *str, *begin, *end;
 	SQInteger start = 0;
@@ -246,7 +246,7 @@ static SQInteger _regexp_search(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger _regexp_capture(HSQUIRRELVM v) {
+static SQInteger _regexp_capture(VMHANDLE v) {
 	SETUP_REX(v);
 	const SQChar *str, *begin, *end;
 	SQInteger start = 0;
@@ -270,13 +270,13 @@ static SQInteger _regexp_capture(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger _regexp_subexpcount(HSQUIRRELVM v) {
+static SQInteger _regexp_subexpcount(VMHANDLE v) {
 	SETUP_REX(v);
 	lv_pushinteger(v, sqstd_rex_getsubexpcount(self));
 	return 1;
 }
 
-static SQInteger _regexp_constructor(HSQUIRRELVM v) {
+static SQInteger _regexp_constructor(VMHANDLE v) {
 	const SQChar *error, *pattern;
 	lv_getstring(v, 2, &pattern);
 	SQRex *rex = sqstd_rex_compile(pattern, &error);
@@ -287,7 +287,7 @@ static SQInteger _regexp_constructor(HSQUIRRELVM v) {
 	return 0;
 }
 
-static SQInteger _regexp__typeof(HSQUIRRELVM v) {
+static SQInteger _regexp__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("regexp"), -1);
 	return 1;
 }
@@ -318,7 +318,7 @@ static const SQRegFunction stringlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQInteger mod_init_string(HSQUIRRELVM v) {
+SQInteger mod_init_string(VMHANDLE v) {
 	SQInteger i = 0;
 
 #ifdef REGEX

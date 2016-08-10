@@ -429,7 +429,7 @@ struct jsonbuffer {
 	SQInteger allocated;
 };
 
-static int descent_level(HSQUIRRELVM v, struct jsonbuffer *out) {
+static int descent_level(VMHANDLE v, struct jsonbuffer *out) {
 	const SQChar *s;
 	switch (lv_gettype(v, -1)) {
 		case OT_STRING:
@@ -532,7 +532,7 @@ static int descent_level(HSQUIRRELVM v, struct jsonbuffer *out) {
 	return 0;
 }
 
-static SQInteger json_encode(HSQUIRRELVM v) {
+static SQInteger json_encode(VMHANDLE v) {
 	struct jsonbuffer out;
 	out.dest = (SQChar *)malloc(32);
 	out.size = 0;
@@ -550,7 +550,7 @@ static SQInteger json_encode(HSQUIRRELVM v) {
 	return 1;
 }
 
-static int parse_level(HSQUIRRELVM v, const char *js, jsmntok_t *t, size_t count) {
+static int parse_level(VMHANDLE v, const char *js, jsmntok_t *t, size_t count) {
 	int i, j;
 	if (count == 0) {
 		return 0;
@@ -614,7 +614,7 @@ static int parse_level(HSQUIRRELVM v, const char *js, jsmntok_t *t, size_t count
 	return 0;
 }
 
-static SQInteger json_decode(HSQUIRRELVM v) {
+static SQInteger json_decode(VMHANDLE v) {
 	const SQChar *s;
 	jsmn_parser p;
 	size_t tokcount = 32;
@@ -650,7 +650,7 @@ static const SQRegFunction jsonlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQRESULT mod_init_json(HSQUIRRELVM v) {
+SQRESULT mod_init_json(VMHANDLE v) {
 	SQInteger i = 0;
 	while (jsonlib_funcs[i].name != 0) {
 		lv_pushstring(v, jsonlib_funcs[i].name, -1);

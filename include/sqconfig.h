@@ -1,4 +1,4 @@
-#ifdef _SQ64
+#ifdef _LV64
 
 #ifdef _MSC_VER
 typedef __int64 SQInteger;
@@ -30,7 +30,7 @@ typedef double SQFloat;
 typedef float SQFloat;
 #endif
 
-#if defined(SQUSEDOUBLE) && !defined(_SQ64) || !defined(SQUSEDOUBLE) && defined(_SQ64)
+#if defined(SQUSEDOUBLE) && !defined(_LV64) || !defined(SQUSEDOUBLE) && defined(_LV64)
 #ifdef _MSC_VER
 typedef __int64 SQRawObjectVal; //must be 64bits
 #else
@@ -43,7 +43,7 @@ typedef SQUnsignedInteger SQRawObjectVal; //is 32 bits on 32 bits builds and 64 
 #endif
 
 #ifndef SQ_ALIGNMENT // SQ_ALIGNMENT shall be less than or equal to SQ_MALLOC alignments, and its value shall be power of 2.
-#if defined(SQUSEDOUBLE) || defined(_SQ64)
+#if defined(SQUSEDOUBLE) || defined(_LV64)
 #define SQ_ALIGNMENT 8
 #else
 #define SQ_ALIGNMENT 4
@@ -72,7 +72,7 @@ typedef wchar_t SQChar;
 #define scstrcpy    wcscpy
 #define scstrcat    wcscat
 #define scstrtod    wcstod
-#ifdef _SQ64
+#ifdef _LV64
 #define scstrtol    wcstoll
 #else
 #define scstrtol    wcstol
@@ -118,7 +118,7 @@ typedef char SQChar;
 #define scstrcpy    strcpy
 #define scstrcat    strcat
 #define scstrtod    strtod
-#ifdef _SQ64
+#ifdef _LV64
 #ifdef _MSC_VER
 #define scstrtol    _strtoi64
 #else
@@ -144,7 +144,7 @@ typedef char SQChar;
 
 #endif
 
-#ifdef _SQ64
+#ifdef _LV64
 #define _PRINT_INT_PREC _LC("ll")
 #define _PRINT_INT_FMT _LC("%lld")
 #else

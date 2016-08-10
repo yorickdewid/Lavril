@@ -7,7 +7,7 @@ LFLAGS = -Wall $(DEBUG) $(LIBS)
 
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)
-   DEFINE += -D_SQ64
+   DEFINE += -D_LV64
    CXXFLAGS += -m64
 endif
 

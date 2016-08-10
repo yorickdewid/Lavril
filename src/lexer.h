@@ -1,7 +1,7 @@
 #ifndef _LEXER_H_
 #define _LEXER_H_
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 typedef SQChar LexChar;
 #else
 typedef unsigned char LexChar;
@@ -23,7 +23,7 @@ struct LVLexer {
 	void LexLineComment();
 	SQInteger ReadID();
 	void Next();
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #if WCHAR_SIZE == 2
 	SQInteger AddUTF16(SQUnsignedInteger ch);
 #endif

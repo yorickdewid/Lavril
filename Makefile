@@ -1,4 +1,3 @@
-MAKE = make
 SRC = src
 MOD = modules
 CLI = cli

@@ -14,21 +14,21 @@
 #define scvprintf vfprintf
 #endif
 
-void print_func(HSQUIRRELVM v, const SQChar *s, ...) {
+void print_func(VMHANDLE v, const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(HSQUIRRELVM v, const SQChar *s, ...) {
+void error_func(VMHANDLE v, const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
 }
 
-void call_test(HSQUIRRELVM v, int n, float f, const SQChar *s) {
+void call_test(VMHANDLE v, int n, float f, const SQChar *s) {
 	/* Save the stack size before the call */
 	SQInteger top = lv_gettop(v);
 
@@ -50,7 +50,7 @@ void call_test(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 }
 
 int main(int argc, char *argv[]) {
-	HSQUIRRELVM v;
+	VMHANDLE v;
 
 	/* Creates a VM with initial stack size 1024 */
 	v = lv_open(1024);

@@ -124,21 +124,21 @@ void color_fprintf(FILE *stream, enum Color color, const char *fmt, ...) {
 void print_version_info();
 static SQInteger retval = 0;
 
-SQInteger quit(HSQUIRRELVM v) {
+SQInteger quit(VMHANDLE v) {
 	int *done;
 	lv_getuserpointer(v, -1, (SQUserPointer *)&done);
 	*done = 1;
 	return 0;
 }
 
-void print_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void print_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void error_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_list vl;
 	fprintf(stderr, "\033[31;1m");
 	va_start(vl, s);
@@ -266,7 +266,7 @@ void print_prompt() {
 	color_fprintf(stdout, COLOR_WHITE, _LC("]$ "));
 }
 
-void interactive(HSQUIRRELVM v) {
+void interactive(VMHANDLE v) {
 	SQChar buffer[CLI_MAXINPUT];
 	SQInteger blocks = 0;
 	SQInteger string = 0;
@@ -373,7 +373,7 @@ void interactive(HSQUIRRELVM v) {
 int main(int argc, char *argv[]) {
 	SQInteger retval = 0;
 
-	HSQUIRRELVM v = lv_open(1024);
+	VMHANDLE v = lv_open(1024);
 	lv_setprintfunc(v, print_func, error_func);
 
 	lv_pushroottable(v);

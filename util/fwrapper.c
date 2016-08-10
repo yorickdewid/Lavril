@@ -60,21 +60,21 @@ void print_error(int code, const char *status, const char *message) {
 	scprintf(error_body, code, status, code, status, message ? message : "");
 }
 
-void print_func(HSQUIRRELVM v, const SQChar *s, ...) {
+void print_func(VMHANDLE v, const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(HSQUIRRELVM v, const SQChar *s, ...) {
+void error_func(VMHANDLE v, const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
 }
 
-static SQInteger apprun(HSQUIRRELVM v) {
+static SQInteger apprun(VMHANDLE v) {
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		scprintf(_LC("%s\r\n"), s);
@@ -83,7 +83,7 @@ static SQInteger apprun(HSQUIRRELVM v) {
 	return 0;
 }
 
-void create_webapp_core(HSQUIRRELVM v) {
+void create_webapp_core(VMHANDLE v) {
 	lv_pushroottable(v);
 	lv_pushstring(v, _LC("webapp"), -1);
 	lv_newclass(v, SQFalse);
@@ -99,7 +99,7 @@ void create_webapp_core(HSQUIRRELVM v) {
 }
 
 int main(int argc, char *argv[]) {
-	HSQUIRRELVM v = lv_open(1024);
+	VMHANDLE v = lv_open(1024);
 	lv_setprintfunc(v, print_func, error_func);
 
 	/* Push the roottable */

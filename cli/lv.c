@@ -34,21 +34,21 @@ int MemAllocHook(int allocType, void *userData, size_t size, int blockType,
 }
 #endif
 
-SQInteger quit(HSQUIRRELVM v) {
+SQInteger quit(VMHANDLE v) {
 	int *done;
 	lv_getuserpointer(v, -1, (SQUserPointer *)&done);
 	*done = 1;
 	return 0;
 }
 
-void print_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void print_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void error_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
@@ -74,7 +74,7 @@ void print_usage() {
 	          _LC("  -h              This help\n"));
 }
 
-enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
+enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 	int i;
 	int compiles_only = 0;
 	int run_statement_only = 0;
@@ -236,7 +236,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 	return INTERACTIVE;
 }
 
-void interactive(HSQUIRRELVM v) {
+void interactive(VMHANDLE v) {
 	SQChar buffer[CLI_MAXINPUT];
 	SQInteger blocks = 0;
 	SQInteger string = 0;
@@ -318,7 +318,7 @@ void interactive(HSQUIRRELVM v) {
 }
 
 int main(int argc, char *argv[]) {
-	HSQUIRRELVM v;
+	VMHANDLE v;
 	SQInteger retval = 0;
 
 #if defined(_MSC_VER) && defined(_DEBUG)

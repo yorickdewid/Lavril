@@ -787,7 +787,7 @@ bool SQVM::IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res) {
 bool SQVM::IsFalse(SQObjectPtr& o) {
 	if (((type(o) & SQOBJECT_CANBEFALSE)
 	        && ( ((type(o) == OT_FLOAT) && (_float(o) == SQFloat(0.0))) ))
-#if !defined(SQUSEDOUBLE) || (defined(SQUSEDOUBLE) && defined(_SQ64))
+#if !defined(SQUSEDOUBLE) || (defined(SQUSEDOUBLE) && defined(_LV64))
 	        || (_integer(o) == 0) )  //OT_NULL|OT_INTEGER|OT_BOOL
 #else
 	        || (((type(o) != OT_FLOAT) && (_integer(o) == 0))) )  //OT_NULL|OT_INTEGER|OT_BOOL
@@ -860,7 +860,7 @@ exception_restore:
 					TARGET = ci->_literals[arg1];
 					continue;
 				case _OP_LOADINT:
-#ifndef _SQ64
+#ifndef _LV64
 					TARGET = (SQInteger)arg1;
 					continue;
 #else
@@ -1112,7 +1112,7 @@ exception_restore:
 							break;
 						case AAT_INT:
 							val._type = OT_INTEGER;
-#ifndef _SQ64
+#ifndef _LV64
 							val._unVal.nInteger = (SQInteger)arg1;
 #else
 							val._unVal.nInteger = (SQInteger)((SQInt32)arg1);

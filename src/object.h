@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-#ifdef _SQ64
+#ifdef _LV64
 #define UINT_MINUS_ONE (0xFFFFFFFFFFFFFFFF)
 #else
 #define UINT_MINUS_ONE (0xFFFFFFFF)
@@ -159,7 +159,7 @@ struct SQObjectPtr;
 #define tointeger(num) ((type(num)==OT_FLOAT)?(SQInteger)_float(num):_integer(num))
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
-#if defined(SQUSEDOUBLE) && !defined(_SQ64) || !defined(SQUSEDOUBLE) && defined(_SQ64)
+#if defined(SQUSEDOUBLE) && !defined(_SQ64) || !defined(SQUSEDOUBLE) && defined(_LV64)
 #define SQ_REFOBJECT_INIT() SQ_OBJECT_RAWINIT()
 #else
 #define SQ_REFOBJECT_INIT()
