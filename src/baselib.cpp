@@ -311,13 +311,13 @@ static SQInteger get_slice_params(HSQUIRRELVM v, SQInteger& sidx, SQInteger& eid
 	o = stack_get(v, 1);
 	if (top > 1) {
 		SQObjectPtr& start = stack_get(v, 2);
-		if (type(start) != OT_NULL && sq_isnumeric(start)) {
+		if (type(start) != OT_NULL && lv_isnumeric(start)) {
 			sidx = tointeger(start);
 		}
 	}
 	if (top > 2) {
 		SQObjectPtr& end = stack_get(v, 3);
-		if (sq_isnumeric(end)) {
+		if (lv_isnumeric(end)) {
 			eidx = tointeger(end);
 		}
 	} else {
@@ -660,7 +660,7 @@ static SQInteger array_insert(HSQUIRRELVM v) {
 static SQInteger array_remove(HSQUIRRELVM v) {
 	SQObject& o = stack_get(v, 1);
 	SQObject& idx = stack_get(v, 2);
-	if (!sq_isnumeric(idx)) return lv_throwerror(v, _LC("wrong type"));
+	if (!lv_isnumeric(idx)) return lv_throwerror(v, _LC("wrong type"));
 	SQObjectPtr val;
 	if (_array(o)->Get(tointeger(idx), val)) {
 		_array(o)->Remove(tointeger(idx));
@@ -674,7 +674,7 @@ static SQInteger array_resize(HSQUIRRELVM v) {
 	SQObject& o = stack_get(v, 1);
 	SQObject& nsize = stack_get(v, 2);
 	SQObjectPtr fill;
-	if (sq_isnumeric(nsize)) {
+	if (lv_isnumeric(nsize)) {
 		if (lv_gettop(v) > 2)
 			fill = stack_get(v, 3);
 		_array(o)->Resize(tointeger(nsize), fill);
@@ -793,7 +793,7 @@ static bool _sort_compare(HSQUIRRELVM v, SQObjectPtr& a, SQObjectPtr& b, SQInteg
 		v->Push(a);
 		v->Push(b);
 		if (LV_FAILED(lv_call(v, 3, SQTrue, SQFalse))) {
-			if (!sq_isstring( v->_lasterror))
+			if (!lv_isstring( v->_lasterror))
 				v->Raise_Error(_LC("compare func failed"));
 			return false;
 		}

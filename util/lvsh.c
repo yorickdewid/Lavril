@@ -234,7 +234,7 @@ int split(char *cmd) {
 }
 
 int extrun(char *cmd, short input, short first, short last) {
-	int argc = split(cmd);
+	split(cmd);
 	if (args[0] != NULL) {
 		n += 1;
 		return runcmd(input, first, last);

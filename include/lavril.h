@@ -110,17 +110,6 @@ struct SQOuter;
 #define init_module(mod,v) mod_init_##mod(v)
 #define register_module(mod) LAVRIL_API SQRESULT mod_init_##mod(HSQUIRRELVM v)
 
-struct SQStream {
-	virtual SQInteger Read(void *buffer, SQInteger size) = 0;
-	virtual SQInteger Write(void *buffer, SQInteger size) = 0;
-	virtual SQInteger Flush() = 0;
-	virtual SQInteger Tell() = 0;
-	virtual SQInteger Len() = 0;
-	virtual SQInteger Seek(SQInteger offset, SQInteger origin) = 0;
-	virtual bool IsValid() = 0;
-	virtual bool EOS() = 0;
-};
-
 #define SQ_SEEK_CUR 0
 #define SQ_SEEK_END 1
 #define SQ_SEEK_SET 2
@@ -429,25 +418,25 @@ LAVRIL_API SQRESULT mod_init_string(HSQUIRRELVM v);
 #include "modules.h"
 
 /* Auxiliary macros */
-#define sq_isnumeric(o) ((o)._type&SQOBJECT_NUMERIC)
-#define sq_istable(o) ((o)._type==OT_TABLE)
-#define sq_isarray(o) ((o)._type==OT_ARRAY)
-#define sq_isfunction(o) ((o)._type==OT_FUNCPROTO)
-#define sq_isclosure(o) ((o)._type==OT_CLOSURE)
-#define sq_isgenerator(o) ((o)._type==OT_GENERATOR)
-#define sq_isnativeclosure(o) ((o)._type==OT_NATIVECLOSURE)
-#define sq_isstring(o) ((o)._type==OT_STRING)
-#define sq_isinteger(o) ((o)._type==OT_INTEGER)
-#define sq_isfloat(o) ((o)._type==OT_FLOAT)
-#define sq_isuserpointer(o) ((o)._type==OT_USERPOINTER)
-#define sq_isuserdata(o) ((o)._type==OT_USERDATA)
-#define sq_isthread(o) ((o)._type==OT_THREAD)
-#define sq_isnull(o) ((o)._type==OT_NULL)
-#define sq_isclass(o) ((o)._type==OT_CLASS)
-#define sq_isinstance(o) ((o)._type==OT_INSTANCE)
-#define sq_isbool(o) ((o)._type==OT_BOOL)
-#define sq_isweakref(o) ((o)._type==OT_WEAKREF)
-#define sq_type(o) ((o)._type)
+#define lv_isnumeric(o) ((o)._type&SQOBJECT_NUMERIC)
+#define lv_istable(o) ((o)._type==OT_TABLE)
+#define lv_isarray(o) ((o)._type==OT_ARRAY)
+#define lv_isfunction(o) ((o)._type==OT_FUNCPROTO)
+#define lv_isclosure(o) ((o)._type==OT_CLOSURE)
+#define lv_isgenerator(o) ((o)._type==OT_GENERATOR)
+#define lv_isnativeclosure(o) ((o)._type==OT_NATIVECLOSURE)
+#define lv_isstring(o) ((o)._type==OT_STRING)
+#define lv_isinteger(o) ((o)._type==OT_INTEGER)
+#define lv_isfloat(o) ((o)._type==OT_FLOAT)
+#define lv_isuserpointer(o) ((o)._type==OT_USERPOINTER)
+#define lv_isuserdata(o) ((o)._type==OT_USERDATA)
+#define lv_isthread(o) ((o)._type==OT_THREAD)
+#define lv_isnull(o) ((o)._type==OT_NULL)
+#define lv_isclass(o) ((o)._type==OT_CLASS)
+#define lv_isinstance(o) ((o)._type==OT_INSTANCE)
+#define lv_isbool(o) ((o)._type==OT_BOOL)
+#define lv_isweakref(o) ((o)._type==OT_WEAKREF)
+#define lv_type(o) ((o)._type)
 
 #define LV_OK (0)
 #define LV_ERROR (-1)

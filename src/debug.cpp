@@ -9,7 +9,7 @@ SQRESULT lv_getfunctioninfo(HSQUIRRELVM v, SQInteger level, SQFunctionInfo *fi) 
 	SQInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
 		SQVM::CallInfo& ci = v->_callsstack[cssize - level - 1];
-		if (sq_isclosure(ci._closure)) {
+		if (lv_isclosure(ci._closure)) {
 			SQClosure *c = _closure(ci._closure);
 			FunctionPrototype *proto = c->_function;
 			fi->funcid = proto;

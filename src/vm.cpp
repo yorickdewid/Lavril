@@ -297,7 +297,7 @@ bool SQVM::ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, SQInteger& resul
 		//  _RET_SUCCEED(_integer(res));
 
 	} else {
-		if (sq_isnumeric(o1) && sq_isnumeric(o2)) {
+		if (lv_isnumeric(o1) && lv_isnumeric(o2)) {
 			if ((t1 == OT_INTEGER) && (t2 == OT_FLOAT)) {
 				if ( _integer(o1) == _float(o2) ) {
 					_RET_SUCCEED(0);
@@ -775,7 +775,7 @@ bool SQVM::IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res) {
 	if (type(o1) == type(o2)) {
 		res = (_rawval(o1) == _rawval(o2));
 	} else {
-		if (sq_isnumeric(o1) && sq_isnumeric(o2)) {
+		if (lv_isnumeric(o1) && lv_isnumeric(o2)) {
 			res = (tofloat(o1) == tofloat(o2));
 		} else {
 			res = false;
@@ -1448,7 +1448,7 @@ bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& des
 				return true;
 			break;
 		case OT_ARRAY:
-			if (sq_isnumeric(key)) {
+			if (lv_isnumeric(key)) {
 				if (_array(self)->Get(tointeger(key), dest)) {
 					return true;
 				}
@@ -1466,7 +1466,7 @@ bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& des
 				return true;
 			break;
 		case OT_STRING:
-			if (sq_isnumeric(key)) {
+			if (lv_isnumeric(key)) {
 				SQInteger n = tointeger(key);
 				SQInteger len = _string(self)->_len;
 				if (n < 0) {
@@ -1598,7 +1598,7 @@ bool SQVM::Set(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPt
 			if (_instance(self)->Set(key, val)) return true;
 			break;
 		case OT_ARRAY:
-			if (!sq_isnumeric(key)) {
+			if (!lv_isnumeric(key)) {
 				Raise_Error(_LC("indexing %s with %s"), GetTypeName(self), GetTypeName(key));
 				return false;
 			}

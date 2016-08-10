@@ -85,7 +85,7 @@ SQInteger lv_getvmstate(HSQUIRRELVM v) {
 /* Runtime error callback */
 void lv_seterrorhandler(HSQUIRRELVM v) {
 	SQObject o = stack_get(v, -1);
-	if (sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
+	if (lv_isclosure(o) || lv_isnativeclosure(o) || lv_isnull(o)) {
 		v->_errorhandler = o;
 		v->Pop();
 	}
@@ -99,10 +99,10 @@ void lv_setnativedebughook(HSQUIRRELVM v, SQDEBUGHOOK hook) {
 
 void lv_setdebughook(HSQUIRRELVM v) {
 	SQObject o = stack_get(v, -1);
-	if (sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
+	if (lv_isclosure(o) || lv_isnativeclosure(o) || lv_isnull(o)) {
 		v->_debughook_closure = o;
 		v->_debughook_native = NULL;
-		v->_debughook = !sq_isnull(o);
+		v->_debughook = !lv_isnull(o);
 		v->Pop();
 	}
 }
@@ -176,35 +176,35 @@ SQUnsignedInteger lv_getvmrefcount(HSQUIRRELVM LV_UNUSED_ARG(v), const HSQOBJECT
 }
 
 const SQChar *lv_objtostring(const HSQOBJECT *o) {
-	if (sq_type(*o) == OT_STRING) {
+	if (lv_type(*o) == OT_STRING) {
 		return _stringval(*o);
 	}
 	return NULL;
 }
 
 SQInteger lv_objtointeger(const HSQOBJECT *o) {
-	if (sq_isnumeric(*o)) {
+	if (lv_isnumeric(*o)) {
 		return tointeger(*o);
 	}
 	return 0;
 }
 
 SQFloat lv_objtofloat(const HSQOBJECT *o) {
-	if (sq_isnumeric(*o)) {
+	if (lv_isnumeric(*o)) {
 		return tofloat(*o);
 	}
 	return 0;
 }
 
 SQBool lv_objtobool(const HSQOBJECT *o) {
-	if (sq_isbool(*o)) {
+	if (lv_isbool(*o)) {
 		return _integer(*o);
 	}
 	return SQFalse;
 }
 
 SQUserPointer lv_objtouserpointer(const HSQOBJECT *o) {
-	if (sq_isuserpointer(*o)) {
+	if (lv_isuserpointer(*o)) {
 		return _userpointer(*o);
 	}
 	return 0;
@@ -381,7 +381,7 @@ SQRESULT lv_getclosureinfo(HSQUIRRELVM v, SQInteger idx, SQUnsignedInteger *npar
 
 SQRESULT lv_setnativeclosurename(HSQUIRRELVM v, SQInteger idx, const SQChar *name) {
 	SQObject o = stack_get(v, idx);
-	if (sq_isnativeclosure(o)) {
+	if (lv_isnativeclosure(o)) {
 		SQNativeClosure *nc = _nativeclosure(o);
 		nc->_name = SQString::Create(_ss(v), name);
 		return LV_OK;
@@ -391,7 +391,7 @@ SQRESULT lv_setnativeclosurename(HSQUIRRELVM v, SQInteger idx, const SQChar *nam
 
 SQRESULT lv_setparamscheck(HSQUIRRELVM v, SQInteger nparamscheck, const SQChar *typemask) {
 	SQObject o = stack_get(v, -1);
-	if (!sq_isnativeclosure(o))
+	if (!lv_isnativeclosure(o))
 		return lv_throwerror(v, _LC("native closure expected"));
 	SQNativeClosure *nc = _nativeclosure(o);
 	nc->_nparamscheck = nparamscheck;
@@ -411,14 +411,14 @@ SQRESULT lv_setparamscheck(HSQUIRRELVM v, SQInteger nparamscheck, const SQChar *
 
 SQRESULT lv_bindenv(HSQUIRRELVM v, SQInteger idx) {
 	SQObjectPtr& o = stack_get(v, idx);
-	if (!sq_isnativeclosure(o) && !sq_isclosure(o))
+	if (!lv_isnativeclosure(o) && !lv_isclosure(o))
 		return lv_throwerror(v, _LC("the target is not a closure"));
 	SQObjectPtr& env = stack_get(v, -1);
-	if (!sq_istable(env) && !sq_isarray(env) && !sq_isclass(env) && !sq_isinstance(env))
+	if (!lv_istable(env) && !lv_isarray(env) && !lv_isclass(env) && !lv_isinstance(env))
 		return lv_throwerror(v, _LC("invalid environment"));
 	SQWeakRef *w = _refcounted(env)->GetWeakRef(type(env));
 	SQObjectPtr ret;
-	if (sq_isclosure(o)) {
+	if (lv_isclosure(o)) {
 		SQClosure *c = _closure(o)->Clone();
 		__ObjRelease(c->_env);
 		c->_env = w;
@@ -442,10 +442,10 @@ SQRESULT lv_bindenv(HSQUIRRELVM v, SQInteger idx) {
 
 SQRESULT lv_getclosurename(HSQUIRRELVM v, SQInteger idx) {
 	SQObjectPtr& o = stack_get(v, idx);
-	if (!sq_isnativeclosure(o) &&
-	        !sq_isclosure(o))
+	if (!lv_isnativeclosure(o) &&
+	        !lv_isclosure(o))
 		return lv_throwerror(v, _LC("the target is not a closure"));
-	if (sq_isnativeclosure(o)) {
+	if (lv_isnativeclosure(o)) {
 		v->Push(_nativeclosure(o)->_name);
 	} else { //closure
 		v->Push(_closure(o)->_function->_name);
@@ -456,9 +456,9 @@ SQRESULT lv_getclosurename(HSQUIRRELVM v, SQInteger idx) {
 SQRESULT lv_setclosureroot(HSQUIRRELVM v, SQInteger idx) {
 	SQObjectPtr& c = stack_get(v, idx);
 	SQObject o = stack_get(v, -1);
-	if (!sq_isclosure(c))
+	if (!lv_isclosure(c))
 		return lv_throwerror(v, _LC("closure expected"));
-	if (sq_istable(o)) {
+	if (lv_istable(o)) {
 		_closure(c)->SetRoot(_table(o)->GetWeakRef(OT_TABLE));
 		v->Pop();
 		return LV_OK;
@@ -468,7 +468,7 @@ SQRESULT lv_setclosureroot(HSQUIRRELVM v, SQInteger idx) {
 
 SQRESULT lv_getclosureroot(HSQUIRRELVM v, SQInteger idx) {
 	SQObjectPtr& c = stack_get(v, idx);
-	if (!sq_isclosure(c))
+	if (!lv_isclosure(c))
 		return lv_throwerror(v, _LC("closure expected"));
 	v->Push(_closure(c)->_root->_obj);
 	return LV_OK;
@@ -505,7 +505,7 @@ void lv_pushconsttable(HSQUIRRELVM v) {
 
 SQRESULT lv_setroottable(HSQUIRRELVM v) {
 	SQObject o = stack_get(v, -1);
-	if (sq_istable(o) || sq_isnull(o)) {
+	if (lv_istable(o) || lv_isnull(o)) {
 		v->_roottable = o;
 		v->Pop();
 		return LV_OK;
@@ -515,7 +515,7 @@ SQRESULT lv_setroottable(HSQUIRRELVM v) {
 
 SQRESULT lv_setconsttable(HSQUIRRELVM v) {
 	SQObject o = stack_get(v, -1);
-	if (sq_istable(o)) {
+	if (lv_istable(o)) {
 		_ss(v)->_consts = o;
 		v->Pop();
 		return LV_OK;
@@ -591,7 +591,7 @@ void lv_tobool(HSQUIRRELVM v, SQInteger idx, SQBool *b) {
 
 SQRESULT lv_getinteger(HSQUIRRELVM v, SQInteger idx, SQInteger *i) {
 	SQObjectPtr& o = stack_get(v, idx);
-	if (sq_isnumeric(o)) {
+	if (lv_isnumeric(o)) {
 		*i = tointeger(o);
 		return LV_OK;
 	}
@@ -600,7 +600,7 @@ SQRESULT lv_getinteger(HSQUIRRELVM v, SQInteger idx, SQInteger *i) {
 
 SQRESULT lv_getfloat(HSQUIRRELVM v, SQInteger idx, SQFloat *f) {
 	SQObjectPtr& o = stack_get(v, idx);
-	if (sq_isnumeric(o)) {
+	if (lv_isnumeric(o)) {
 		*f = tofloat(o);
 		return LV_OK;
 	}
@@ -609,7 +609,7 @@ SQRESULT lv_getfloat(HSQUIRRELVM v, SQInteger idx, SQFloat *f) {
 
 SQRESULT lv_getbool(HSQUIRRELVM v, SQInteger idx, SQBool *b) {
 	SQObjectPtr& o = stack_get(v, idx);
-	if (sq_isbool(o)) {
+	if (lv_isbool(o)) {
 		*b = _integer(o);
 		return LV_OK;
 	}
@@ -983,7 +983,7 @@ SQRESULT lv_rawget(HSQUIRRELVM v, SQInteger idx) {
 				return LV_OK;
 			break;
 		case OT_ARRAY: {
-			if (sq_isnumeric(obj)) {
+			if (lv_isnumeric(obj)) {
 				if (_array(self)->Get(tointeger(obj), obj)) {
 					return LV_OK;
 				}
