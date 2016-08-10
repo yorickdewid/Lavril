@@ -119,7 +119,7 @@ struct SQFile : public SQStream {
 };
 
 static SQInteger _file__typeof(HSQUIRRELVM v) {
-	lv_pushstring(v, _SC("file"), -1);
+	lv_pushstring(v, _LC("file"), -1);
 	return 1;
 }
 
@@ -139,19 +139,19 @@ static SQInteger _file_constructor(HSQUIRRELVM v) {
 		lv_getstring(v, 2, &filename);
 		lv_getstring(v, 3, &mode);
 		newf = lv_fopen(filename, mode);
-		if (!newf) return lv_throwerror(v, _SC("cannot open file"));
+		if (!newf) return lv_throwerror(v, _LC("cannot open file"));
 	} else if (lv_gettype(v, 2) == OT_USERPOINTER) {
 		owns = !(lv_gettype(v, 3) == OT_NULL);
 		lv_getuserpointer(v, 2, &newf);
 	} else {
-		return lv_throwerror(v, _SC("wrong parameter"));
+		return lv_throwerror(v, _LC("wrong parameter"));
 	}
 
 	f = new(lv_malloc(sizeof(SQFile))) SQFile(newf, owns);
 	if (LV_FAILED(lv_setinstanceup(v, 1, f))) {
 		f->~SQFile();
 		lv_free(f, sizeof(SQFile));
-		return lv_throwerror(v, _SC("cannot create blob with negative size"));
+		return lv_throwerror(v, _LC("cannot create blob with negative size"));
 	}
 	lv_setreleasehook(v, 1, _file_releasehook);
 	return 0;
@@ -167,18 +167,18 @@ static SQInteger _file_close(HSQUIRRELVM v) {
 }
 
 //bindings
-#define _DECL_FILE_FUNC(name,nparams,typecheck) {_SC(#name),_file_##name,nparams,typecheck}
+#define _DECL_FILE_FUNC(name,nparams,typecheck) {_LC(#name),_file_##name,nparams,typecheck}
 static const SQRegFunction _file_methods[] = {
-	_DECL_FILE_FUNC(constructor, 3, _SC("x")),
-	_DECL_FILE_FUNC(_typeof, 1, _SC("x")),
-	_DECL_FILE_FUNC(close, 1, _SC("x")),
+	_DECL_FILE_FUNC(constructor, 3, _LC("x")),
+	_DECL_FILE_FUNC(_typeof, 1, _LC("x")),
+	_DECL_FILE_FUNC(close, 1, _LC("x")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
 SQRESULT lv_createfile(HSQUIRRELVM v, LVFILE file, SQBool own) {
 	SQInteger top = lv_gettop(v);
 	lv_pushregistrytable(v);
-	lv_pushstring(v, _SC("std_file"), -1);
+	lv_pushstring(v, _LC("std_file"), -1);
 	if (LV_SUCCEEDED(lv_get(v, -2))) {
 		lv_remove(v, -2); //removes the registry
 		lv_pushroottable(v); // push the this
@@ -203,7 +203,7 @@ SQRESULT lv_getfile(HSQUIRRELVM v, SQInteger idx, LVFILE *file) {
 		*file = fileobj->GetHandle();
 		return LV_OK;
 	}
-	return lv_throwerror(v, _SC("not a file"));
+	return lv_throwerror(v, _LC("not a file"));
 }
 #define IO_BUFFER_SIZE 2048
 struct IOBuffer {
@@ -322,7 +322,7 @@ SQInteger file_write(SQUserPointer file, SQUserPointer p, SQInteger size) {
 }
 
 SQRESULT lv_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
-	LVFILE file = lv_fopen(filename, _SC("rb"));
+	LVFILE file = lv_fopen(filename, _LC("rb"));
 
 	SQInteger ret;
 	unsigned short us;
@@ -353,11 +353,11 @@ SQRESULT lv_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
 				case 0xBBEF:
 					if (lv_fread(&uc, 1, sizeof(uc), file) == 0) {
 						lv_fclose(file);
-						return lv_throwerror(v, _SC("io error"));
+						return lv_throwerror(v, _LC("io error"));
 					}
 					if (uc != 0xBF) {
 						lv_fclose(file);
-						return lv_throwerror(v, _SC("Unrecognozed ecoding"));
+						return lv_throwerror(v, _LC("Unrecognozed ecoding"));
 					}
 #ifdef SQUNICODE
 					func = _io_file_lexfeed_UTF8;
@@ -382,7 +382,7 @@ SQRESULT lv_loadfile(HSQUIRRELVM v, const SQChar *filename, SQBool printerror) {
 		lv_fclose(file);
 		return LV_ERROR;
 	}
-	return lv_throwerror(v, _SC("cannot open the file"));
+	return lv_throwerror(v, _LC("cannot open the file"));
 }
 
 SQRESULT lv_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBool printerror) {
@@ -398,9 +398,9 @@ SQRESULT lv_execfile(HSQUIRRELVM v, const SQChar *filename, SQBool retval, SQBoo
 }
 
 SQRESULT lv_writeclosuretofile(HSQUIRRELVM v, const SQChar *filename) {
-	LVFILE file = lv_fopen(filename, _SC("wb+"));
+	LVFILE file = lv_fopen(filename, _LC("wb+"));
 	if (!file)
-		return lv_throwerror(v, _SC("cannot open the file"));
+		return lv_throwerror(v, _LC("cannot open the file"));
 	if (LV_SUCCEEDED(lv_writeclosure(v, file_write, file))) {
 		lv_fclose(file);
 		return LV_OK;
@@ -449,25 +449,25 @@ CALLBACK SQInteger callback_loadunit(HSQUIRRELVM v, const SQChar *sSource, SQBoo
 	return LV_OK;
 }
 
-#define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck}
+#define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_LC(#name),_g_io_##name,nparams,typecheck}
 static const SQRegFunction iolib_funcs[] = {
-	_DECL_GLOBALIO_FUNC(loadfile, -2, _SC(".sb")),
-	_DECL_GLOBALIO_FUNC(execfile, -2, _SC(".sb")),
-	_DECL_GLOBALIO_FUNC(writeclosuretofile, 3, _SC(".sc")),
+	_DECL_GLOBALIO_FUNC(loadfile, -2, _LC(".sb")),
+	_DECL_GLOBALIO_FUNC(execfile, -2, _LC(".sb")),
+	_DECL_GLOBALIO_FUNC(writeclosuretofile, 3, _LC(".sc")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
 SQRESULT mod_init_io(HSQUIRRELVM v) {
 	SQInteger top = lv_gettop(v);
 	//create delegate
-	declare_stream(v, _SC("file"), (SQUserPointer)SQ_FILE_TYPE_TAG, _SC("std_file"), _file_methods, iolib_funcs);
-	lv_pushstring(v, _SC("stdout"), -1);
+	declare_stream(v, _LC("file"), (SQUserPointer)SQ_FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
+	lv_pushstring(v, _LC("stdout"), -1);
 	lv_createfile(v, stdout, SQFalse);
 	lv_newslot(v, -3, SQFalse);
-	lv_pushstring(v, _SC("stdin"), -1);
+	lv_pushstring(v, _LC("stdin"), -1);
 	lv_createfile(v, stdin, SQFalse);
 	lv_newslot(v, -3, SQFalse);
-	lv_pushstring(v, _SC("stderr"), -1);
+	lv_pushstring(v, _LC("stderr"), -1);
 	lv_createfile(v, stderr, SQFalse);
 	lv_newslot(v, -3, SQFalse);
 	lv_settop(v, top);

@@ -17,46 +17,46 @@
 /* some of the HTTP variables we are interest in */
 #define MAX_VARS 30
 const char *vars[MAX_VARS] = {
-    "DOCUMENT_ROOT",
-    "GATEWAY_INTERFACE",
-    "HTTP_ACCEPT",
-    "HTTP_ACCEPT_ENCODING",
-    "HTTP_ACCEPT_LANGUAGE",
-    "HTTP_CACHE_CONTROL",
-    "HTTP_CONNECTION",
-    "HTTP_HOST",
-    "HTTP_PRAGMA",
-    "HTTP_RANGE",
-    "HTTP_REFERER",
-    "HTTP_TE",
-    "HTTP_USER_AGENT",
-    "HTTP_X_FORWARDED_FOR",
-    "PATH",
-    "QUERY_STRING",
-    "REMOTE_ADDR",
-    "REMOTE_HOST",
-    "REMOTE_PORT",
-    "REQUEST_METHOD",
-    "REQUEST_URI",
-    "SCRIPT_FILENAME",
-    "SCRIPT_NAME",
-    "SERVER_ADDR",
-    "SERVER_ADMIN",
-    "SERVER_NAME",
-    "SERVER_PORT",
-    "SERVER_PROTOCOL",
-    "SERVER_SIGNATURE",
-    "SERVER_SOFTWARE"
+	"DOCUMENT_ROOT",
+	"GATEWAY_INTERFACE",
+	"HTTP_ACCEPT",
+	"HTTP_ACCEPT_ENCODING",
+	"HTTP_ACCEPT_LANGUAGE",
+	"HTTP_CACHE_CONTROL",
+	"HTTP_CONNECTION",
+	"HTTP_HOST",
+	"HTTP_PRAGMA",
+	"HTTP_RANGE",
+	"HTTP_REFERER",
+	"HTTP_TE",
+	"HTTP_USER_AGENT",
+	"HTTP_X_FORWARDED_FOR",
+	"PATH",
+	"QUERY_STRING",
+	"REMOTE_ADDR",
+	"REMOTE_HOST",
+	"REMOTE_PORT",
+	"REQUEST_METHOD",
+	"REQUEST_URI",
+	"SCRIPT_FILENAME",
+	"SCRIPT_NAME",
+	"SERVER_ADDR",
+	"SERVER_ADMIN",
+	"SERVER_NAME",
+	"SERVER_PORT",
+	"SERVER_PROTOCOL",
+	"SERVER_SIGNATURE",
+	"SERVER_SOFTWARE"
 };
 
 const char *error_body = "<html>"
-	"<head><title>%d %s</title></head>"
-	"<body bgcolor=\"white\">"
-	"<h1>%d %s</h1>"
-	"%s"
-	"<hr>lavril"
-	"</body>"
-	"</html>\r\n";
+                         "<head><title>%d %s</title></head>"
+                         "<body bgcolor=\"white\">"
+                         "<h1>%d %s</h1>"
+                         "%s"
+                         "<hr>lavril"
+                         "</body>"
+                         "</html>\r\n";
 
 void print_error(int code, const char *status, const char *message) {
 	scprintf(error_body, code, status, code, status, message ? message : "");
@@ -79,7 +79,7 @@ void error_func(HSQUIRRELVM v, const SQChar *s, ...) {
 static SQInteger apprun(HSQUIRRELVM v) {
 	const SQChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
-		scprintf(_SC("%s\r\n"), s);
+		scprintf(_LC("%s\r\n"), s);
 	}
 
 	return 0;
@@ -87,13 +87,13 @@ static SQInteger apprun(HSQUIRRELVM v) {
 
 void create_webapp_core(HSQUIRRELVM v) {
 	lv_pushroottable(v);
-	lv_pushstring(v, _SC("webapp"), -1);
+	lv_pushstring(v, _LC("webapp"), -1);
 	lv_newclass(v, SQFalse);
 
-	lv_pushstring(v, _SC("run"), -1);
+	lv_pushstring(v, _LC("run"), -1);
 	lv_newclosure(v, apprun, 0);
 	lv_setparamscheck(v, 2, ".s");
-	lv_setnativeclosurename(v, -1, _SC("run"));
+	lv_setnativeclosurename(v, -1, _LC("run"));
 	lv_newslot(v, -3, SQFalse);
 
 	lv_newslot(v, -3, SQFalse);
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
 	create_webapp_core(v);
 
 	/* Accept requests */
-    while (FCGI_Accept() >= 0) {
+	while (FCGI_Accept() >= 0) {
 		char *script = getenv("SCRIPT_NAME");
 		if (!script) {
 			scprintf("Status: 500\r\nContent-type: text/html\r\n\r\n");
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
 			const SQChar *err;
 			lv_getlasterror(v);
 			if (LV_SUCCEEDED(lv_getstring(v, -1, &err))) {
-				scprintf(_SC("<br /><b>An error occurred:</b> <pre>[%s]</pre>\r\n"), err);
+				scprintf(_LC("<br /><b>An error occurred:</b> <pre>[%s]</pre>\r\n"), err);
 				lv_reseterror(v);
 			}
 		}

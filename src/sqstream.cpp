@@ -4,9 +4,9 @@
 #define SETUP_STREAM(v) \
 	SQStream *self = NULL; \
 	if(LV_FAILED(lv_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQ_STREAM_TYPE_TAG))) \
-		return lv_throwerror(v,_SC("invalid type tag")); \
+		return lv_throwerror(v,_LC("invalid type tag")); \
 	if(!self || !self->IsValid())  \
-		return lv_throwerror(v,_SC("the stream is invalid"));
+		return lv_throwerror(v,_LC("the stream is invalid"));
 
 SQInteger _stream_readblob(HSQUIRRELVM v) {
 	SETUP_STREAM(v);
@@ -19,7 +19,7 @@ SQInteger _stream_readblob(HSQUIRRELVM v) {
 	data = lv_getscratchpad(v, size);
 	res = self->Read(data, size);
 	if (res <= 0)
-		return lv_throwerror(v, _SC("no data left to read"));
+		return lv_throwerror(v, _LC("no data left to read"));
 	blobp = lv_createblob(v, res);
 	memcpy(blobp, data, res);
 	return 1;
@@ -27,7 +27,7 @@ SQInteger _stream_readblob(HSQUIRRELVM v) {
 
 #define SAFE_READN(ptr,len) { \
 	if(self->Read(ptr,len) != len) \
-		return lv_throwerror(v,_SC("io error")); \
+		return lv_throwerror(v,_LC("io error")); \
 	}
 
 SQInteger _stream_readn(HSQUIRRELVM v) {
@@ -84,7 +84,7 @@ SQInteger _stream_readn(HSQUIRRELVM v) {
 		}
 		break;
 		default:
-			return lv_throwerror(v, _SC("invalid format"));
+			return lv_throwerror(v, _LC("invalid format"));
 	}
 	return 1;
 }
@@ -94,10 +94,10 @@ SQInteger _stream_writeblob(HSQUIRRELVM v) {
 	SQInteger size;
 	SETUP_STREAM(v);
 	if (LV_FAILED(lv_getblob(v, 2, &data)))
-		return lv_throwerror(v, _SC("invalid parameter"));
+		return lv_throwerror(v, _LC("invalid parameter"));
 	size = lv_getblobsize(v, 2);
 	if (self->Write(data, size) != size)
-		return lv_throwerror(v, _SC("io error"));
+		return lv_throwerror(v, _LC("io error"));
 	lv_pushinteger(v, size);
 	return 1;
 }
@@ -165,7 +165,7 @@ SQInteger _stream_writen(HSQUIRRELVM v) {
 		}
 		break;
 		default:
-			return lv_throwerror(v, _SC("invalid format"));
+			return lv_throwerror(v, _LC("invalid format"));
 	}
 	return 0;
 }
@@ -188,7 +188,7 @@ SQInteger _stream_seek(HSQUIRRELVM v) {
 				origin = SQ_SEEK_END;
 				break;
 			default:
-				return lv_throwerror(v, _SC("invalid origin"));
+				return lv_throwerror(v, _LC("invalid origin"));
 		}
 	}
 	lv_pushinteger(v, self->Seek(offset, origin));
@@ -226,28 +226,28 @@ SQInteger _stream_eos(HSQUIRRELVM v) {
 }
 
 SQInteger _stream__cloned(HSQUIRRELVM v) {
-	return lv_throwerror(v, _SC("this object cannot be cloned"));
+	return lv_throwerror(v, _LC("this object cannot be cloned"));
 }
 
 static const SQRegFunction _stream_methods[] = {
-	_DECL_STREAM_FUNC(readblob, 2, _SC("xn")),
-	_DECL_STREAM_FUNC(readn, 2, _SC("xn")),
-	_DECL_STREAM_FUNC(writeblob, -2, _SC("xx")),
-	_DECL_STREAM_FUNC(writen, 3, _SC("xnn")),
-	_DECL_STREAM_FUNC(seek, -2, _SC("xnn")),
-	_DECL_STREAM_FUNC(tell, 1, _SC("x")),
-	_DECL_STREAM_FUNC(len, 1, _SC("x")),
-	_DECL_STREAM_FUNC(eos, 1, _SC("x")),
-	_DECL_STREAM_FUNC(flush, 1, _SC("x")),
+	_DECL_STREAM_FUNC(readblob, 2, _LC("xn")),
+	_DECL_STREAM_FUNC(readn, 2, _LC("xn")),
+	_DECL_STREAM_FUNC(writeblob, -2, _LC("xx")),
+	_DECL_STREAM_FUNC(writen, 3, _LC("xnn")),
+	_DECL_STREAM_FUNC(seek, -2, _LC("xnn")),
+	_DECL_STREAM_FUNC(tell, 1, _LC("x")),
+	_DECL_STREAM_FUNC(len, 1, _LC("x")),
+	_DECL_STREAM_FUNC(eos, 1, _LC("x")),
+	_DECL_STREAM_FUNC(flush, 1, _LC("x")),
 	_DECL_STREAM_FUNC(_cloned, 0, NULL),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
 void init_streamclass(HSQUIRRELVM v) {
 	lv_pushregistrytable(v);
-	lv_pushstring(v, _SC("std_stream"), -1);
+	lv_pushstring(v, _LC("std_stream"), -1);
 	if (LV_FAILED(lv_get(v, -2))) {
-		lv_pushstring(v, _SC("std_stream"), -1);
+		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_newclass(v, SQFalse);
 		lv_settypetag(v, -1, (SQUserPointer)SQ_STREAM_TYPE_TAG);
 		SQInteger i = 0;
@@ -261,8 +261,8 @@ void init_streamclass(HSQUIRRELVM v) {
 		}
 		lv_newslot(v, -3, SQFalse);
 		lv_pushroottable(v);
-		lv_pushstring(v, _SC("stream"), -1);
-		lv_pushstring(v, _SC("std_stream"), -1);
+		lv_pushstring(v, _LC("stream"), -1);
+		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_get(v, -4);
 		lv_newslot(v, -3, SQFalse);
 		lv_pop(v, 1);
@@ -274,13 +274,13 @@ void init_streamclass(HSQUIRRELVM v) {
 
 SQRESULT declare_stream(HSQUIRRELVM v, const SQChar *name, SQUserPointer typetag, const SQChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals) {
 	if (lv_gettype(v, -1) != OT_TABLE)
-		return lv_throwerror(v, _SC("table expected"));
+		return lv_throwerror(v, _LC("table expected"));
 	SQInteger top = lv_gettop(v);
 	//create delegate
 	init_streamclass(v);
 	lv_pushregistrytable(v);
 	lv_pushstring(v, reg_name, -1);
-	lv_pushstring(v, _SC("std_stream"), -1);
+	lv_pushstring(v, _LC("std_stream"), -1);
 	if (LV_SUCCEEDED(lv_get(v, -3))) {
 		lv_newclass(v, SQTrue);
 		lv_settypetag(v, -1, typetag);

@@ -56,22 +56,22 @@ void error_func(HSQUIRRELVM LV_UNUSED_ARG(v), const SQChar *s, ...) {
 }
 
 void print_version_info() {
-	scfprintf(stdout, _SC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
+	scfprintf(stdout, _LC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
 }
 
 void print_interactive_console_info() {
-	scfprintf(stdout, _SC("Enter 'quit()' to exit\n"));
+	scfprintf(stdout, _LC("Enter 'quit()' to exit\n"));
 }
 
 void print_usage() {
-	scfprintf(stderr, _SC("usage: lv [options] <file> [--] [args...]\n\n")
-	          _SC("  -a              Run interactively\n")
-	          _SC("  -r <statement>  Run statement and exit\n")
-	          _SC("  -c <file>       Compile file (default output 'out.lavc')\n")
-	          _SC("  -o <file>       Specifies output file for the -c option\n")
-	          _SC("  -d              Enable debug info\n")
-	          _SC("  -v              Version\n")
-	          _SC("  -h              This help\n"));
+	scfprintf(stderr, _LC("usage: lv [options] <file> [--] [args...]\n\n")
+	          _LC("  -a              Run interactively\n")
+	          _LC("  -r <statement>  Run statement and exit\n")
+	          _LC("  -c <file>       Compile file (default output 'out.lavc')\n")
+	          _LC("  -o <file>       Specifies output file for the -c option\n")
+	          _LC("  -d              Enable debug info\n")
+	          _LC("  -v              Version\n")
+	          _LC("  -h              This help\n"));
 }
 
 enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
@@ -122,7 +122,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 						return DONE;
 					default:
 						print_version_info();
-						scprintf(_SC("unknown prameter '-%c'\n"), argv[arg][1]);
+						scprintf(_LC("unknown prameter '-%c'\n"), argv[arg][1]);
 						print_usage();
 						*retval = -1;
 						return ERROR;
@@ -140,18 +140,18 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 			int i = scstrlen(statement);
 			if (i > 0) {
 				SQInteger oldtop = lv_gettop(v);
-				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _SC("lv"), SQTrue))) {
+				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _LC("lv"), SQTrue))) {
 					lv_pushroottable(v);
 					if (LV_SUCCEEDED(lv_call(v, 1, _retval, SQTrue)) && _retval) {
-						scprintf(_SC("\n"));
+						scprintf(_LC("\n"));
 						lv_pushroottable(v);
-						lv_pushstring(v, _SC("print"), -1);
+						lv_pushstring(v, _LC("print"), -1);
 						lv_get(v, -2);
 						lv_pushroottable(v);
 						lv_push(v, -4);
 						lv_call(v, 2, SQFalse, SQTrue);
 						_retval = 0;
-						scprintf(_SC("\n"));
+						scprintf(_LC("\n"));
 					}
 				}
 
@@ -174,7 +174,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 
 			if (compiles_only) {
 				if (LV_SUCCEEDED(lv_loadfile(v, filename, SQTrue))) {
-					const SQChar *outfile = _SC("out.lavc");
+					const SQChar *outfile = _LC("out.lavc");
 					if (output) {
 #ifdef SQUNICODE
 						int len = (int)(strlen(output) + 1);
@@ -199,7 +199,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 						int alen = (int)strlen(argv[i]);
 						a = lv_getscratchpad(v, (int)(alen * sizeof(SQChar)));
 						mbstowcs(lv_getscratchpad(v, -1), argv[i], alen);
-						lv_getscratchpad(v, -1)[alen] = _SC('\0');
+						lv_getscratchpad(v, -1)[alen] = _LC('\0');
 #else
 						a = argv[i];
 #endif
@@ -225,7 +225,7 @@ enum result getargs(HSQUIRRELVM v, int argc, char *argv[], SQInteger *retval) {
 				// const SQChar *err;
 				// lv_getlasterror(v);
 				// if (LV_SUCCEEDED(lv_getstring(v, -1, &err))) {
-				// 	scprintf(_SC("Error [%s]\n"), err);
+				// 	scprintf(_LC("Error [%s]\n"), err);
 				// 	*retval = -2;
 				return ERROR;
 				// }
@@ -247,7 +247,7 @@ void interactive(HSQUIRRELVM v) {
 	print_interactive_console_info();
 
 	lv_pushroottable(v);
-	lv_pushstring(v, _SC("quit"), -1);
+	lv_pushstring(v, _LC("quit"), -1);
 	lv_pushuserpointer(v, &done);
 	lv_newclosure(v, quit, 1);
 	lv_setparamscheck(v, 1, NULL);
@@ -256,13 +256,13 @@ void interactive(HSQUIRRELVM v) {
 
 	while (!done) {
 		SQInteger i = 0;
-		scprintf(_SC("\nlv> "));
+		scprintf(_LC("\nlv> "));
 		while (!done) {
 			int c = getchar();
-			if (c == _SC('\n')) {
-				if (i > 0 && buffer[i - 1] == _SC('\\')) {
-					buffer[i - 1] = _SC('\n');
-				} else if (i > 0 && buffer[i - 1] == _SC('q') && buffer[i - 2] == _SC('\\')) {
+			if (c == _LC('\n')) {
+				if (i > 0 && buffer[i - 1] == _LC('\\')) {
+					buffer[i - 1] = _LC('\n');
+				} else if (i > 0 && buffer[i - 1] == _LC('q') && buffer[i - 2] == _LC('\\')) {
 					done = 1;
 					i = 0;
 					continue;
@@ -270,28 +270,28 @@ void interactive(HSQUIRRELVM v) {
 					break;
 				}
 
-				buffer[i++] = _SC('\n');
-			} else if (c == _SC('}')) {
+				buffer[i++] = _LC('\n');
+			} else if (c == _LC('}')) {
 				blocks--;
 				buffer[i++] = (SQChar)c;
-			} else if (c == _SC('{') && !string) {
+			} else if (c == _LC('{') && !string) {
 				blocks++;
 				buffer[i++] = (SQChar)c;
-			} else if (c == _SC('"') || c == _SC('\'')) {
+			} else if (c == _LC('"') || c == _LC('\'')) {
 				string = !string;
 				buffer[i++] = (SQChar)c;
 			} else if (i >= CLI_MAXINPUT - 1) {
-				scfprintf(stderr, _SC("lv : input line too long\n"));
+				scfprintf(stderr, _LC("lv : input line too long\n"));
 				break;
 			} else {
 				buffer[i++] = (SQChar)c;
 			}
 		}
 
-		buffer[i] = _SC('\0');
+		buffer[i] = _LC('\0');
 
-		if (buffer[0] == _SC('=')) {
-			scsprintf(lv_getscratchpad(v, CLI_MAXINPUT), (size_t)CLI_MAXINPUT, _SC("return (%s)"), &buffer[1]);
+		if (buffer[0] == _LC('=')) {
+			scsprintf(lv_getscratchpad(v, CLI_MAXINPUT), (size_t)CLI_MAXINPUT, _LC("return (%s)"), &buffer[1]);
 			memcpy(buffer, lv_getscratchpad(v, -1), (scstrlen(lv_getscratchpad(v, -1)) + 1)*sizeof(SQChar));
 			retval = 1;
 		}
@@ -299,18 +299,18 @@ void interactive(HSQUIRRELVM v) {
 		i = scstrlen(buffer);
 		if (i > 0) {
 			SQInteger oldtop = lv_gettop(v);
-			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _SC("lv"), SQTrue))) {
+			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), SQTrue))) {
 				lv_pushroottable(v);
 				if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue)) && retval) {
-					scprintf(_SC("\n"));
+					scprintf(_LC("\n"));
 					lv_pushroottable(v);
-					lv_pushstring(v, _SC("print"), -1);
+					lv_pushstring(v, _LC("print"), -1);
 					lv_get(v, -2);
 					lv_pushroottable(v);
 					lv_push(v, -4);
 					lv_call(v, 2, SQFalse, SQTrue);
 					retval = 0;
-					scprintf(_SC("\n"));
+					scprintf(_LC("\n"));
 				}
 			}
 

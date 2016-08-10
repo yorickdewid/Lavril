@@ -168,20 +168,23 @@ struct SQVM : public CHAINABLE_OBJ {
 
 	SQObjectPtr temp_reg;
 
+	/* Stacks */
 	CallInfo *_callsstack;
 	SQInteger _callsstacksize;
 	SQInteger _alloccallsstacksize;
-	sqvector<CallInfo>  _callstackdata;
+	sqvector<CallInfo> _callstackdata;
 
 	ExceptionsTraps _etraps;
 	CallInfo *ci;
 	SQUserPointer _foreignptr;
-	//VMs sharing the same state
+
+	/* VMs sharing the same state */
 	SQSharedState *_sharedstate;
 	SQInteger _nnativecalls;
 	SQInteger _nmetamethodscall;
 	SQRELEASEHOOK _releasehook;
-	//suspend infos
+
+	/* Suspend infos */
 	SQBool _suspended;
 	SQBool _suspended_root;
 	SQInteger _suspended_target;

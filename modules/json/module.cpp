@@ -526,7 +526,7 @@ static int descent_level(HSQUIRRELVM v, struct jsonbuffer *out) {
 			return 1;
 		}
 		default:
-			return lv_throwerror(v, _SC("cannot convert type"));
+			return lv_throwerror(v, _LC("cannot convert type"));
 	}
 
 	return 0;
@@ -642,10 +642,10 @@ try_again:
 	return 0;
 }
 
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),name,nparams,tycheck}
+#define _DECL_FUNC(name,nparams,tycheck) {_LC(#name),name,nparams,tycheck}
 static const SQRegFunction jsonlib_funcs[] = {
 	_DECL_FUNC(json_encode, 2, NULL),
-	_DECL_FUNC(json_decode, 2, _SC(".s")),
+	_DECL_FUNC(json_decode, 2, _LC(".s")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC

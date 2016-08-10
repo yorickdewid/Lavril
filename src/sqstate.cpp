@@ -144,21 +144,21 @@ void SQSharedState::Init() {
 	_metamethodsmap = SQTable::Create(this, MT_LAST - 1);
 
 	//types names
-	newsysstring(_SC("null"));
-	newsysstring(_SC("table"));
-	newsysstring(_SC("array"));
-	newsysstring(_SC("closure"));
-	newsysstring(_SC("string"));
-	newsysstring(_SC("userdata"));
-	newsysstring(_SC("integer"));
-	newsysstring(_SC("float"));
-	newsysstring(_SC("userpointer"));
-	newsysstring(_SC("function"));
-	newsysstring(_SC("generator"));
-	newsysstring(_SC("thread"));
-	newsysstring(_SC("class"));
-	newsysstring(_SC("instance"));
-	newsysstring(_SC("bool"));
+	newsysstring(_LC("null"));
+	newsysstring(_LC("table"));
+	newsysstring(_LC("array"));
+	newsysstring(_LC("closure"));
+	newsysstring(_LC("string"));
+	newsysstring(_LC("userdata"));
+	newsysstring(_LC("integer"));
+	newsysstring(_LC("float"));
+	newsysstring(_LC("userpointer"));
+	newsysstring(_LC("function"));
+	newsysstring(_LC("generator"));
+	newsysstring(_LC("thread"));
+	newsysstring(_LC("class"));
+	newsysstring(_LC("instance"));
+	newsysstring(_LC("bool"));
 
 	//meta methods
 	newmetamethod(MM_ADD);
@@ -180,7 +180,7 @@ void SQSharedState::Init() {
 	newmetamethod(MM_NEWMEMBER);
 	newmetamethod(MM_INHERITED);
 
-	_constructoridx = SQString::Create(this, _SC("constructor"));
+	_constructoridx = SQString::Create(this, _LC("constructor"));
 	_registry = SQTable::Create(this, 0);
 	_consts = SQTable::Create(this, 0);
 	_table_default_delegate = CreateDefaultDelegate(this, _table_default_delegate_funcz);
@@ -632,7 +632,7 @@ SQString *SQStringTable::Add(const SQChar *news, SQInteger len) {
 	new (t) SQString;
 	t->_sharedstate = _sharedstate;
 	memcpy(t->_val, news, sq_rsl(len));
-	t->_val[len] = _SC('\0');
+	t->_val[len] = _LC('\0');
 	t->_len = len;
 	t->_hash = newhash;
 	t->_next = _strings[h];

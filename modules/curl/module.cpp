@@ -37,12 +37,12 @@ const int mod_curl_opt[] = {
 #if 0
 void register_curl_setopt(HSQUIRRELVM v) {
 	SQInteger i = 0;
-	// lv_pushstring(v, _SC("CURLOPT_POST"), -1);
+	// lv_pushstring(v, _LC("CURLOPT_POST"), -1);
 	// lv_pushinteger(v, CURLOPT_POST);
 	// lv_newslot(v, -3, SQFalse);
 
 	while (mod_curl_opt[i] != 0) {
-		lv_pushstring(v, _SC("CURLOPT_POSTFIELDS"), -1);
+		lv_pushstring(v, _LC("CURLOPT_POSTFIELDS"), -1);
 		lv_pushinteger(v, CURLOPT_POSTFIELDS);
 		lv_newslot(v, -3, SQFalse);
 		i++;
@@ -111,7 +111,7 @@ LVCURLObj *mod_curl_init(const SQChar *location, const SQChar **error) {
 	if (setjmp(*((jmp_buf *)exp->_jmpbuf)) == 0) {
 		exp->_curl = curl_easy_init();
 		if (!exp->_curl)
-			mod_curl_error(exp, _SC("initialization failed"));
+			mod_curl_error(exp, _LC("initialization failed"));
 
 
 		/* Default options */
@@ -197,17 +197,17 @@ static SQInteger _curl_constructor(HSQUIRRELVM v) {
 }
 
 static SQInteger _curl__typeof(HSQUIRRELVM v) {
-	lv_pushstring(v, _SC("curl"), -1);
+	lv_pushstring(v, _LC("curl"), -1);
 	return 1;
 }
 
-#define _DECL_CURL_FUNC(name,nparams,pmask) {_SC(#name),_curl_##name,nparams,pmask}
+#define _DECL_CURL_FUNC(name,nparams,pmask) {_LC(#name),_curl_##name,nparams,pmask}
 static const SQRegFunction curlobj_funcs[] = {
-	_DECL_CURL_FUNC(constructor, 2, _SC(".s")),
-	_DECL_CURL_FUNC(exec, 1, _SC("x")),
-	// _DECL_CURL_FUNC(setopt, 3, _SC("xns")),
-	_DECL_CURL_FUNC(setheader, 3, _SC("xss")),
-	_DECL_CURL_FUNC(_typeof, 1, _SC("x")),
+	_DECL_CURL_FUNC(constructor, 2, _LC(".s")),
+	_DECL_CURL_FUNC(exec, 1, _LC("x")),
+	// _DECL_CURL_FUNC(setopt, 3, _LC("xns")),
+	_DECL_CURL_FUNC(setheader, 3, _LC("xss")),
+	_DECL_CURL_FUNC(_typeof, 1, _LC("x")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 #undef _DECL_CURL_FUNC
@@ -215,7 +215,7 @@ static const SQRegFunction curlobj_funcs[] = {
 SQInteger mod_init_curl(HSQUIRRELVM v) {
 	SQInteger i = 0;
 
-	lv_pushstring(v, _SC("curl"), -1);
+	lv_pushstring(v, _LC("curl"), -1);
 	lv_newclass(v, SQFalse);
 	while (curlobj_funcs[i].name != 0) {
 		const SQRegFunction& f = curlobj_funcs[i];

@@ -64,9 +64,9 @@ struct SQOuter;
 
 #include "sqconfig.h"
 
-#define LAVRIL_VERSION    _SC("Lavril 1.0-beta")
-#define LAVRIL_COPYRIGHT  _SC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
-#define LAVRIL_AUTHOR     _SC("Quenza Inc.")
+#define LAVRIL_VERSION    _LC("Lavril 1.0-beta")
+#define LAVRIL_COPYRIGHT  _LC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
+#define LAVRIL_AUTHOR     _LC("Quenza Inc.")
 #define LAVRIL_VERSION_NUMBER 100
 
 #define SQ_VMSTATE_IDLE         0

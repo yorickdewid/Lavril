@@ -11,39 +11,39 @@
 const SQChar *IdType2Name(SQObjectType type) {
 	switch (_RAW_TYPE(type)) {
 		case _RT_NULL:
-			return _SC("null");
+			return _LC("null");
 		case _RT_INTEGER:
-			return _SC("integer");
+			return _LC("integer");
 		case _RT_FLOAT:
-			return _SC("float");
+			return _LC("float");
 		case _RT_BOOL:
-			return _SC("bool");
+			return _LC("bool");
 		case _RT_STRING:
-			return _SC("string");
+			return _LC("string");
 		case _RT_TABLE:
-			return _SC("table");
+			return _LC("table");
 		case _RT_ARRAY:
-			return _SC("array");
+			return _LC("array");
 		case _RT_GENERATOR:
-			return _SC("generator");
+			return _LC("generator");
 		case _RT_CLOSURE:
 		case _RT_NATIVECLOSURE:
-			return _SC("function");
+			return _LC("function");
 		case _RT_USERDATA:
 		case _RT_USERPOINTER:
-			return _SC("userdata");
+			return _LC("userdata");
 		case _RT_THREAD:
-			return _SC("thread");
+			return _LC("thread");
 		case _RT_FUNCPROTO:
-			return _SC("function");
+			return _LC("function");
 		case _RT_CLASS:
-			return _SC("class");
+			return _LC("class");
 		case _RT_INSTANCE:
-			return _SC("instance");
+			return _LC("instance");
 		case _RT_WEAKREF:
-			return _SC("weakref");
+			return _LC("weakref");
 		case _RT_OUTER:
-			return _SC("outer");
+			return _LC("outer");
 		default:
 			return NULL;
 	}
@@ -134,11 +134,11 @@ bool SQDelegable::SetDelegate(SQTable *mt) {
 
 bool SQGenerator::Yield(SQVM *v, SQInteger target) {
 	if (_state == eSuspended) {
-		v->Raise_Error(_SC("internal vm error, yielding dead generator"));
+		v->Raise_Error(_LC("internal vm error, yielding dead generator"));
 		return false;
 	}
 	if (_state == eDead) {
-		v->Raise_Error(_SC("internal vm error, yielding a dead generator"));
+		v->Raise_Error(_LC("internal vm error, yielding a dead generator"));
 		return false;
 	}
 	SQInteger size = v->_top - v->_stackbase;
@@ -169,11 +169,11 @@ bool SQGenerator::Yield(SQVM *v, SQInteger target) {
 
 bool SQGenerator::Resume(SQVM *v, SQObjectPtr& dest) {
 	if (_state == eDead) {
-		v->Raise_Error(_SC("resuming dead generator"));
+		v->Raise_Error(_LC("resuming dead generator"));
 		return false;
 	}
 	if (_state == eRunning) {
-		v->Raise_Error(_SC("resuming active generator"));
+		v->Raise_Error(_LC("resuming active generator"));
 		return false;
 	}
 	SQInteger size = _stack.size();
@@ -210,7 +210,7 @@ bool SQGenerator::Resume(SQVM *v, SQObjectPtr& dest) {
 
 	_state = eRunning;
 	if (v->_debughook)
-		v->CallDebugHook(_SC('c'));
+		v->CallDebugHook(_LC('c'));
 
 	return true;
 }
@@ -284,7 +284,7 @@ SQClosure::~SQClosure() {
 
 bool SafeWrite(HSQUIRRELVM v, SQWRITEFUNC write, SQUserPointer up, SQUserPointer dest, SQInteger size) {
 	if (write(up, dest, size) != size) {
-		v->Raise_Error(_SC("io error (write function failure)"));
+		v->Raise_Error(_LC("io error (write function failure)"));
 		return false;
 	}
 	return true;
@@ -292,7 +292,7 @@ bool SafeWrite(HSQUIRRELVM v, SQWRITEFUNC write, SQUserPointer up, SQUserPointer
 
 bool SafeRead(HSQUIRRELVM v, SQWRITEFUNC read, SQUserPointer up, SQUserPointer dest, SQInteger size) {
 	if (size && read(up, dest, size) != size) {
-		v->Raise_Error(_SC("io error, read function failure, the origin stream could be corrupted/trucated"));
+		v->Raise_Error(_LC("io error, read function failure, the origin stream could be corrupted/trucated"));
 		return false;
 	}
 	return true;
@@ -306,7 +306,7 @@ bool CheckTag(HSQUIRRELVM v, SQWRITEFUNC read, SQUserPointer up, SQUnsignedInteg
 	SQUnsignedInteger32 t;
 	_CHECK_IO(SafeRead(v, read, up, &t, sizeof(t)));
 	if (t != tag) {
-		v->Raise_Error(_SC("invalid or corrupted closure stream"));
+		v->Raise_Error(_LC("invalid or corrupted closure stream"));
 		return false;
 	}
 	return true;
@@ -330,7 +330,7 @@ bool WriteObject(HSQUIRRELVM v, SQUserPointer up, SQWRITEFUNC write, SQObjectPtr
 		case OT_NULL:
 			break;
 		default:
-			v->Raise_Error(_SC("cannot serialize a %s"), GetTypeName(o));
+			v->Raise_Error(_LC("cannot serialize a %s"), GetTypeName(o));
 			return false;
 	}
 	return true;
@@ -371,7 +371,7 @@ bool ReadObject(HSQUIRRELVM v, SQUserPointer up, SQREADFUNC read, SQObjectPtr& o
 			o.Null();
 			break;
 		default:
-			v->Raise_Error(_SC("cannot serialize a %s"), IdType2Name(t));
+			v->Raise_Error(_LC("cannot serialize a %s"), IdType2Name(t));
 			return false;
 	}
 	return true;
@@ -673,60 +673,60 @@ void SQCollectable::UnMark() {
 
 // #ifdef _DEBUG_DUMP
 void SQObjectPtr::dump() {
-	scprintf(_SC("DELEGABLE %s\n"), is_delegable(*this) ? "true" : "false");
+	scprintf(_LC("DELEGABLE %s\n"), is_delegable(*this) ? "true" : "false");
 	switch (type(*this)) {
 		case OT_FLOAT:
-			scprintf(_SC("FLOAT %.3f"), _float(*this));
+			scprintf(_LC("FLOAT %.3f"), _float(*this));
 			break;
 		case OT_INTEGER:
-			scprintf(_SC("INTEGER " LVFORMATINT), _integer(*this));
+			scprintf(_LC("INTEGER " LVFORMATINT), _integer(*this));
 			break;
 		case OT_BOOL:
-			scprintf(_SC("BOOL %s"), _integer(*this) ? "true" : "false");
+			scprintf(_LC("BOOL %s"), _integer(*this) ? "true" : "false");
 			break;
 		case OT_STRING:
-			scprintf(_SC("STRING %s"), _stringval(*this));
+			scprintf(_LC("STRING %s"), _stringval(*this));
 			break;
 		case OT_NULL:
-			scprintf(_SC("NULL"));
+			scprintf(_LC("NULL"));
 			break;
 		case OT_TABLE:
-			scprintf(_SC("TABLE %p[%p]"), _table(*this), _table(*this)->_delegate);
+			scprintf(_LC("TABLE %p[%p]"), _table(*this), _table(*this)->_delegate);
 			break;
 		case OT_ARRAY:
-			scprintf(_SC("ARRAY %p"), _array(*this));
+			scprintf(_LC("ARRAY %p"), _array(*this));
 			break;
 		case OT_CLOSURE:
-			scprintf(_SC("CLOSURE [%p]"), _closure(*this));
+			scprintf(_LC("CLOSURE [%p]"), _closure(*this));
 			break;
 		case OT_NATIVECLOSURE:
-			scprintf(_SC("NATIVECLOSURE"));
+			scprintf(_LC("NATIVECLOSURE"));
 			break;
 		case OT_USERDATA:
-			scprintf(_SC("USERDATA %p[%p]"), _userdataval(*this), _userdata(*this)->_delegate);
+			scprintf(_LC("USERDATA %p[%p]"), _userdataval(*this), _userdata(*this)->_delegate);
 			break;
 		case OT_GENERATOR:
-			scprintf(_SC("GENERATOR %p"), _generator(*this));
+			scprintf(_LC("GENERATOR %p"), _generator(*this));
 			break;
 		case OT_THREAD:
-			scprintf(_SC("THREAD [%p]"), _thread(*this));
+			scprintf(_LC("THREAD [%p]"), _thread(*this));
 			break;
 		case OT_USERPOINTER:
-			scprintf(_SC("USERPOINTER %p"), _userpointer(*this));
+			scprintf(_LC("USERPOINTER %p"), _userpointer(*this));
 			break;
 		case OT_CLASS:
-			scprintf(_SC("CLASS %p"), _class(*this));
+			scprintf(_LC("CLASS %p"), _class(*this));
 			break;
 		case OT_INSTANCE:
-			scprintf(_SC("INSTANCE %p"), _instance(*this));
+			scprintf(_LC("INSTANCE %p"), _instance(*this));
 			break;
 		case OT_WEAKREF:
-			scprintf(_SC("WEAKERF %p"), _weakref(*this));
+			scprintf(_LC("WEAKERF %p"), _weakref(*this));
 			break;
 		default:
 			assert(0);
 			break;
 	};
-	scprintf(_SC("\n"));
+	scprintf(_LC("\n"));
 }
 // #endif

@@ -9,86 +9,86 @@
 
 #ifdef _DEBUG_DUMP
 SQInstructionDesc g_InstrDesc[] = {
-	{_SC("_OP_LINE")},
-	{_SC("_OP_LOAD")},
-	{_SC("_OP_LOADINT")},
-	{_SC("_OP_LOADFLOAT")},
-	{_SC("_OP_DLOAD")},
-	{_SC("_OP_TAILCALL")},
-	{_SC("_OP_CALL")},
-	{_SC("_OP_PREPCALL")},
-	{_SC("_OP_PREPCALLK")},
-	{_SC("_OP_GETK")},
-	{_SC("_OP_MOVE")},
-	{_SC("_OP_NEWSLOT")},
-	{_SC("_OP_DELETE")},
-	{_SC("_OP_SET")},
-	{_SC("_OP_GET")},
-	{_SC("_OP_EQ")},
-	{_SC("_OP_NE")},
-	{_SC("_OP_ADD")},
-	{_SC("_OP_SUB")},
-	{_SC("_OP_MUL")},
-	{_SC("_OP_DIV")},
-	{_SC("_OP_MOD")},
-	{_SC("_OP_BITW")},
-	{_SC("_OP_RETURN")},
-	{_SC("_OP_LOADNULLS")},
-	{_SC("_OP_LOADROOT")},
-	{_SC("_OP_LOADBOOL")},
-	{_SC("_OP_DMOVE")},
-	{_SC("_OP_JMP")},
-	{_SC("_OP_JCMP")},
-	{_SC("_OP_JZ")},
-	{_SC("_OP_SETOUTER")},
-	{_SC("_OP_GETOUTER")},
-	{_SC("_OP_NEWOBJ")},
-	{_SC("_OP_APPENDARRAY")},
-	{_SC("_OP_COMPARITH")},
-	{_SC("_OP_INC")},
-	{_SC("_OP_INCL")},
-	{_SC("_OP_PINC")},
-	{_SC("_OP_PINCL")},
-	{_SC("_OP_CMP")},
-	{_SC("_OP_EXISTS")},
-	{_SC("_OP_INSTANCEOF")},
-	{_SC("_OP_AND")},
-	{_SC("_OP_OR")},
-	{_SC("_OP_NEG")},
-	{_SC("_OP_NOT")},
-	{_SC("_OP_BWNOT")},
-	{_SC("_OP_CLOSURE")},
-	{_SC("_OP_YIELD")},
-	{_SC("_OP_RESUME")},
-	{_SC("_OP_FOREACH")},
-	{_SC("_OP_POSTFOREACH")},
-	{_SC("_OP_CLONE")},
-	{_SC("_OP_TYPEOF")},
-	{_SC("_OP_PUSHTRAP")},
-	{_SC("_OP_POPTRAP")},
-	{_SC("_OP_THROW")},
-	{_SC("_OP_NEWSLOTA")},
-	{_SC("_OP_GETBASE")},
-	{_SC("_OP_CLOSE")},
+	{_LC("_OP_LINE")},
+	{_LC("_OP_LOAD")},
+	{_LC("_OP_LOADINT")},
+	{_LC("_OP_LOADFLOAT")},
+	{_LC("_OP_DLOAD")},
+	{_LC("_OP_TAILCALL")},
+	{_LC("_OP_CALL")},
+	{_LC("_OP_PREPCALL")},
+	{_LC("_OP_PREPCALLK")},
+	{_LC("_OP_GETK")},
+	{_LC("_OP_MOVE")},
+	{_LC("_OP_NEWSLOT")},
+	{_LC("_OP_DELETE")},
+	{_LC("_OP_SET")},
+	{_LC("_OP_GET")},
+	{_LC("_OP_EQ")},
+	{_LC("_OP_NE")},
+	{_LC("_OP_ADD")},
+	{_LC("_OP_SUB")},
+	{_LC("_OP_MUL")},
+	{_LC("_OP_DIV")},
+	{_LC("_OP_MOD")},
+	{_LC("_OP_BITW")},
+	{_LC("_OP_RETURN")},
+	{_LC("_OP_LOADNULLS")},
+	{_LC("_OP_LOADROOT")},
+	{_LC("_OP_LOADBOOL")},
+	{_LC("_OP_DMOVE")},
+	{_LC("_OP_JMP")},
+	{_LC("_OP_JCMP")},
+	{_LC("_OP_JZ")},
+	{_LC("_OP_SETOUTER")},
+	{_LC("_OP_GETOUTER")},
+	{_LC("_OP_NEWOBJ")},
+	{_LC("_OP_APPENDARRAY")},
+	{_LC("_OP_COMPARITH")},
+	{_LC("_OP_INC")},
+	{_LC("_OP_INCL")},
+	{_LC("_OP_PINC")},
+	{_LC("_OP_PINCL")},
+	{_LC("_OP_CMP")},
+	{_LC("_OP_EXISTS")},
+	{_LC("_OP_INSTANCEOF")},
+	{_LC("_OP_AND")},
+	{_LC("_OP_OR")},
+	{_LC("_OP_NEG")},
+	{_LC("_OP_NOT")},
+	{_LC("_OP_BWNOT")},
+	{_LC("_OP_CLOSURE")},
+	{_LC("_OP_YIELD")},
+	{_LC("_OP_RESUME")},
+	{_LC("_OP_FOREACH")},
+	{_LC("_OP_POSTFOREACH")},
+	{_LC("_OP_CLONE")},
+	{_LC("_OP_TYPEOF")},
+	{_LC("_OP_PUSHTRAP")},
+	{_LC("_OP_POPTRAP")},
+	{_LC("_OP_THROW")},
+	{_LC("_OP_NEWSLOTA")},
+	{_LC("_OP_GETBASE")},
+	{_LC("_OP_CLOSE")},
 };
 #endif
 
 void DumpLiteral(SQObjectPtr& o) {
 	switch (type(o)) {
 		case OT_STRING:
-			scprintf(_SC("\"%s\""), _stringval(o));
+			scprintf(_LC("\"%s\""), _stringval(o));
 			break;
 		case OT_FLOAT:
-			scprintf(_SC("{%f}"), _float(o));
+			scprintf(_LC("{%f}"), _float(o));
 			break;
 		case OT_INTEGER:
-			scprintf(_SC("{") _PRINT_INT_FMT _SC("}"), _integer(o));
+			scprintf(_LC("{") _PRINT_INT_FMT _LC("}"), _integer(o));
 			break;
 		case OT_BOOL:
-			scprintf(_SC("%s"), _integer(o) ? _SC("true") : _SC("false"));
+			scprintf(_LC("%s"), _integer(o) ? _LC("true") : _LC("false"));
 			break;
 		default:
-			scprintf(_SC("(%s %p)"), GetTypeName(o), (void *)_rawval(o));
+			scprintf(_LC("(%s %p)"), GetTypeName(o), (void *)_rawval(o));
 			break;
 			break; //shut up compiler
 	}
@@ -122,13 +122,13 @@ void FunctionState::Dump(FunctionPrototype *func) {
 	SQUnsignedInteger n = 0, i;
 	SQInteger si;
 
-	scprintf(_SC("--------------------------------------------------------------------\n"));
-	scprintf(_SC("function: %s\n"), type(func->_name) == OT_STRING ? _stringval(func->_name) : _SC("unknown"));
-	scprintf(_SC("stack size: " LVFORMATINT "\n"), func->_stacksize);
+	scprintf(_LC("--------------------------------------------------------------------\n"));
+	scprintf(_LC("function: %s\n"), type(func->_name) == OT_STRING ? _stringval(func->_name) : _LC("unknown"));
+	scprintf(_LC("stack size: " LVFORMATINT "\n"), func->_stacksize);
 	if (_varparams)
-		scprintf(_SC("varparams: true\n"));
+		scprintf(_LC("varparams: true\n"));
 
-	scprintf(_SC("literals:\n"));
+	scprintf(_LC("literals:\n"));
 	SQObjectPtr refidx, key, val;
 	SQInteger idx;
 	SQObjectPtrVec templiterals;
@@ -138,41 +138,41 @@ void FunctionState::Dump(FunctionPrototype *func) {
 		templiterals[_integer(val)] = key;
 	}
 	for (i = 0; i < templiterals.size(); i++) {
-		scprintf(_SC("\t[" LVFORMATINT "] "), n);
+		scprintf(_LC("\t[" LVFORMATINT "] "), n);
 		DumpLiteral(templiterals[i]);
-		scprintf(_SC("\n"));
+		scprintf(_LC("\n"));
 		n++;
 	}
-	scprintf(_SC("parameters:\n"));
+	scprintf(_LC("parameters:\n"));
 	n = 0;
 	for (i = 0; i < _parameters.size(); i++) {
-		scprintf(_SC("\t[" LVFORMATINT "] "), n);
+		scprintf(_LC("\t[" LVFORMATINT "] "), n);
 		DumpLiteral(_parameters[i]);
-		scprintf(_SC("\n"));
+		scprintf(_LC("\n"));
 		n++;
 	}
-	scprintf(_SC("variables:\n"));
+	scprintf(_LC("variables:\n"));
 	for (si = 0; si < func->_nlocalvarinfos; si++) {
 		SQLocalVarInfo lvi = func->_localvarinfos[si];
-		scprintf(_SC("\t[" LVFORMATINT "] %s \t" LVFORMATINT " -> " LVFORMATINT "\n"), lvi._pos, _stringval(lvi._name), lvi._start_op, lvi._end_op);
+		scprintf(_LC("\t[" LVFORMATINT "] %s \t" LVFORMATINT " -> " LVFORMATINT "\n"), lvi._pos, _stringval(lvi._name), lvi._start_op, lvi._end_op);
 		n++;
 	}
-	scprintf(_SC("line info:\n"));
+	scprintf(_LC("line info:\n"));
 	for (i = 0; i < _lineinfos.size(); i++) {
 		SQLineInfo li = _lineinfos[i];
-		scprintf(_SC("\top [" LVFORMATINT "] line [" LVFORMATINT "] \n"), li._op, li._line);
+		scprintf(_LC("\top [" LVFORMATINT "] line [" LVFORMATINT "] \n"), li._op, li._line);
 		n++;
 	}
-	scprintf(_SC("instruction set:\n"));
+	scprintf(_LC("instruction set:\n"));
 	n = 0;
 	for (i = 0; i < _instructions.size(); i++) {
 		SQInstruction& inst = _instructions[i];
 		if (inst.op == _OP_LOAD || inst.op == _OP_DLOAD || inst.op == _OP_PREPCALLK || inst.op == _OP_GETK ) {
 
 			SQInteger lidx = inst._arg1;
-			scprintf(_SC("\t[" LVFORMATINT3 "] %15s %d "), n, g_InstrDesc[inst.op].name, inst._arg0);
+			scprintf(_LC("\t[" LVFORMATINT3 "] %15s %d "), n, g_InstrDesc[inst.op].name, inst._arg0);
 			if (lidx >= 0xFFFFFFFF)
-				scprintf(_SC("null"));
+				scprintf(_LC("null"));
 			else {
 				SQInteger refidx;
 				SQObjectPtr val, key, refo;
@@ -182,12 +182,12 @@ void FunctionState::Dump(FunctionPrototype *func) {
 				DumpLiteral(key);
 			}
 			if (inst.op != _OP_DLOAD) {
-				scprintf(_SC(" %d %d \n"), inst._arg2, inst._arg3);
+				scprintf(_LC(" %d %d \n"), inst._arg2, inst._arg3);
 			} else {
-				scprintf(_SC(" %d "), inst._arg2);
+				scprintf(_LC(" %d "), inst._arg2);
 				lidx = inst._arg3;
 				if (lidx >= 0xFFFFFFFF)
-					scprintf(_SC("null"));
+					scprintf(_LC("null"));
 				else {
 					SQInteger refidx;
 					SQObjectPtr val, key, refo;
@@ -195,21 +195,21 @@ void FunctionState::Dump(FunctionPrototype *func) {
 						refo = refidx;
 					}
 					DumpLiteral(key);
-					scprintf(_SC("\n"));
+					scprintf(_LC("\n"));
 				}
 			}
 		} else if (inst.op == _OP_LOADFLOAT) {
-			scprintf(_SC("\t[" LVFORMATINT3 "] %15s %d %f %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, *((SQFloat *)&inst._arg1), inst._arg2, inst._arg3);
+			scprintf(_LC("\t[" LVFORMATINT3 "] %15s %d %f %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, *((SQFloat *)&inst._arg1), inst._arg2, inst._arg3);
 		}
 		/*  else if(inst.op==_OP_ARITH){
-				scprintf(_SC("[%03d] %15s %d %d %d %c\n"),n,g_InstrDesc[inst.op].name,inst._arg0,inst._arg1,inst._arg2,inst._arg3);
+				scprintf(_LC("[%03d] %15s %d %d %d %c\n"),n,g_InstrDesc[inst.op].name,inst._arg0,inst._arg1,inst._arg2,inst._arg3);
 			}*/
 		else {
-			scprintf(_SC("\t[" LVFORMATINT3 "] %15s %d %d %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+			scprintf(_LC("\t[" LVFORMATINT3 "] %15s %d %d %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
 		}
 		n++;
 	}
-	scprintf(_SC("--------------------------------------------------------------------\n"));
+	scprintf(_LC("--------------------------------------------------------------------\n"));
 }
 #endif
 
@@ -229,7 +229,7 @@ SQInteger FunctionState::GetConstant(const SQObject& cons) {
 		_nliterals++;
 		if (_nliterals > MAX_LITERALS) {
 			val.Null();
-			Error(_SC("internal compiler error: too many literals"));
+			Error(_LC("internal compiler error: too many literals"));
 		}
 	}
 	return _integer(val);
@@ -264,7 +264,7 @@ SQInteger FunctionState::AllocStackPos() {
 	SQInteger npos = _vlocals.size();
 	_vlocals.push_back(SQLocalVarInfo());
 	if (_vlocals.size() > ((SQUnsignedInteger)_stacksize)) {
-		if (_stacksize > MAX_FUNC_STACKSIZE) Error(_SC("internal compiler error: too many locals"));
+		if (_stacksize > MAX_FUNC_STACKSIZE) Error(_LC("internal compiler error: too many locals"));
 		_stacksize = _vlocals.size();
 	}
 	return npos;

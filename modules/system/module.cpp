@@ -33,7 +33,7 @@ static SQInteger _system_system(HSQUIRRELVM v) {
 		lv_pushinteger(v, scsystem(s));
 		return 1;
 	}
-	return lv_throwerror(v, _SC("wrong param"));
+	return lv_throwerror(v, _LC("wrong param"));
 }
 
 static SQInteger _system_clock(HSQUIRRELVM v) {
@@ -51,7 +51,7 @@ static SQInteger _system_remove(HSQUIRRELVM v) {
 	const SQChar *s;
 	lv_getstring(v, 2, &s);
 	if (scremove(s) == -1)
-		return lv_throwerror(v, _SC("remove() failed"));
+		return lv_throwerror(v, _LC("remove() failed"));
 	return 0;
 }
 
@@ -60,7 +60,7 @@ static SQInteger _system_rename(HSQUIRRELVM v) {
 	lv_getstring(v, 2, &oldn);
 	lv_getstring(v, 3, &newn);
 	if (screname(oldn, newn) == -1)
-		return lv_throwerror(v, _SC("rename() failed"));
+		return lv_throwerror(v, _LC("rename() failed"));
 	return 0;
 }
 
@@ -89,28 +89,28 @@ static SQInteger _system_date(HSQUIRRELVM v) {
 	else
 		date = localtime(&t);
 	if (!date)
-		return lv_throwerror(v, _SC("crt api failure"));
+		return lv_throwerror(v, _LC("crt api failure"));
 	lv_newtable(v);
-	_set_integer_slot(v, _SC("sec"), date->tm_sec);
-	_set_integer_slot(v, _SC("min"), date->tm_min);
-	_set_integer_slot(v, _SC("hour"), date->tm_hour);
-	_set_integer_slot(v, _SC("day"), date->tm_mday);
-	_set_integer_slot(v, _SC("month"), date->tm_mon);
-	_set_integer_slot(v, _SC("year"), date->tm_year + 1900);
-	_set_integer_slot(v, _SC("wday"), date->tm_wday);
-	_set_integer_slot(v, _SC("yday"), date->tm_yday);
+	_set_integer_slot(v, _LC("sec"), date->tm_sec);
+	_set_integer_slot(v, _LC("min"), date->tm_min);
+	_set_integer_slot(v, _LC("hour"), date->tm_hour);
+	_set_integer_slot(v, _LC("day"), date->tm_mday);
+	_set_integer_slot(v, _LC("month"), date->tm_mon);
+	_set_integer_slot(v, _LC("year"), date->tm_year + 1900);
+	_set_integer_slot(v, _LC("wday"), date->tm_wday);
+	_set_integer_slot(v, _LC("yday"), date->tm_yday);
 	return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask) {_LC(#name),_system_##name,nparams,pmask}
 static const SQRegFunction systemlib_funcs[] = {
-	_DECL_FUNC(getenv, 2, _SC(".s")),
-	_DECL_FUNC(system, 2, _SC(".s")),
+	_DECL_FUNC(getenv, 2, _LC(".s")),
+	_DECL_FUNC(system, 2, _LC(".s")),
 	_DECL_FUNC(clock, 0, NULL),
 	_DECL_FUNC(time, 1, NULL),
-	_DECL_FUNC(date, -1, _SC(".nn")),
-	_DECL_FUNC(remove, 2, _SC(".s")),
-	_DECL_FUNC(rename, 3, _SC(".ss")),
+	_DECL_FUNC(date, -1, _LC(".nn")),
+	_DECL_FUNC(remove, 2, _LC(".s")),
+	_DECL_FUNC(rename, 3, _LC(".ss")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC

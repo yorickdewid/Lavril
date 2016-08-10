@@ -34,7 +34,7 @@ void call_test(HSQUIRRELVM v, int n, float f, const SQChar *s) {
 
 	/* Push the global table */
 	lv_pushroottable(v);
-	lv_pushstring(v, _SC("test"), -1);
+	lv_pushstring(v, _LC("test"), -1);
 
 	/* Get the routine 'test' from the global table */
 	if (LV_SUCCEEDED(lv_get(v, -2))) {
@@ -76,8 +76,8 @@ int main(int argc, char *argv[]) {
 	lv_pushroottable(v);
 
 	/* Print syntax errors if any */
-	if (LV_SUCCEEDED(lv_execfile(v, _SC("test.lav"), SQFalse, SQTrue)))  {
-		call_test(v, 1, 2.5, _SC("teststring"));
+	if (LV_SUCCEEDED(lv_execfile(v, _LC("test.lav"), SQFalse, SQTrue)))  {
+		call_test(v, 1, 2.5, _LC("teststring"));
 	}
 
 	/* Pop the root table */

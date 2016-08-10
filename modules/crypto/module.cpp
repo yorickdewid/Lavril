@@ -62,13 +62,13 @@ static SQInteger crypto_sha1(HSQUIRRELVM v) {
 	return 0;
 }
 
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),crypto_##name,nparams,tycheck}
+#define _DECL_FUNC(name,nparams,tycheck) {_LC(#name),crypto_##name,nparams,tycheck}
 static const SQRegFunction cryptolib_funcs[] = {
-	_DECL_FUNC(base64_encode, 2, _SC(".s")),
-	_DECL_FUNC(base64_decode, 2, _SC(".s")),
-	_DECL_FUNC(url_encode, 2, _SC(".s")),
-	_DECL_FUNC(url_decode, 2, _SC(".s")),
-	_DECL_FUNC(sha1, 2, _SC(".s")),
+	_DECL_FUNC(base64_encode, 2, _LC(".s")),
+	_DECL_FUNC(base64_decode, 2, _LC(".s")),
+	_DECL_FUNC(url_encode, 2, _LC(".s")),
+	_DECL_FUNC(url_decode, 2, _LC(".s")),
+	_DECL_FUNC(sha1, 2, _LC(".s")),
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC

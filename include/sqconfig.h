@@ -92,8 +92,7 @@ typedef wchar_t SQChar;
 #define MAX_CHAR 0xFFFFFFFF
 #endif
 
-#define _SC(a) L##a
-
+#define _LC(a) L##a
 
 #define scisspace   iswspace
 #define scisdigit   iswdigit
@@ -108,7 +107,7 @@ typedef wchar_t SQChar;
 
 #else
 typedef char SQChar;
-#define _SC(a) a
+#define _LC(a) a
 #define scstrcmp    strcmp
 #ifdef _MSC_VER
 #define scsprintf   _snprintf
@@ -146,8 +145,8 @@ typedef char SQChar;
 #endif
 
 #ifdef _SQ64
-#define _PRINT_INT_PREC _SC("ll")
-#define _PRINT_INT_FMT _SC("%lld")
+#define _PRINT_INT_PREC _LC("ll")
+#define _PRINT_INT_FMT _LC("%lld")
 #else
-#define _PRINT_INT_FMT _SC("%d")
+#define _PRINT_INT_FMT _LC("%d")
 #endif
