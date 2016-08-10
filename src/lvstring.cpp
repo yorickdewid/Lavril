@@ -199,7 +199,7 @@ static SQInteger _string_endswith(VMHANDLE v) {
 	return 1;
 }
 
-#ifdef REGEX
+/*#ifdef REGEX
 #define SETUP_REX(v) \
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
@@ -303,7 +303,7 @@ static const SQRegFunction rexobj_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 #undef _DECL_REX_FUNC
-#endif
+#endif*/
 
 #define _DECL_FUNC(name,nparams,pmask) {_LC(#name),_string_##name,nparams,pmask}
 static const SQRegFunction stringlib_funcs[] = {
@@ -321,20 +321,20 @@ static const SQRegFunction stringlib_funcs[] = {
 SQInteger mod_init_string(VMHANDLE v) {
 	SQInteger i = 0;
 
-#ifdef REGEX
-	lv_pushstring(v, _LC("regexp"), -1);
-	sq_newclass(v, SQFalse);
-	while (rexobj_funcs[i].name != 0) {
-		const SQRegFunction& f = rexobj_funcs[i];
-		lv_pushstring(v, f.name, -1);
-		lv_newclosure(v, f.f, 0);
-		lv_setparamscheck(v, f.nparamscheck, f.typemask);
-		lv_setnativeclosurename(v, -1, f.name);
+	/*#ifdef REGEX
+		lv_pushstring(v, _LC("regexp"), -1);
+		sq_newclass(v, SQFalse);
+		while (rexobj_funcs[i].name != 0) {
+			const SQRegFunction& f = rexobj_funcs[i];
+			lv_pushstring(v, f.name, -1);
+			lv_newclosure(v, f.f, 0);
+			lv_setparamscheck(v, f.nparamscheck, f.typemask);
+			lv_setnativeclosurename(v, -1, f.name);
+			lv_newslot(v, -3, SQFalse);
+			i++;
+		}
 		lv_newslot(v, -3, SQFalse);
-		i++;
-	}
-	lv_newslot(v, -3, SQFalse);
-#endif
+	#endif*/
 
 	i = 0;
 	while (stringlib_funcs[i].name != 0) {

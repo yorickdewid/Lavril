@@ -378,7 +378,13 @@ int main(int argc, char *argv[]) {
 	lv_pushroottable(v);
 
 	/* Load modules */
-	lv_init_modules(v);
+	init_module(blob, v);
+	init_module(io, v);
+	init_module(string, v);
+	init_module(math, v);
+	init_module(system, v);
+	init_module(crypto, v);
+	init_module(json, v);
 
 	lv_registererrorhandlers(v);
 

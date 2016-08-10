@@ -10,9 +10,6 @@ register_module(json);
 
 /* Modules places here are loaded at startup */
 #define lv_init_modules(v) { \
-	init_module(blob, v); \
-	init_module(io, v); \
-	init_module(string, v); \
 	init_module(math, v); \
 	init_module(system, v); \
 	init_module(crypto, v); \

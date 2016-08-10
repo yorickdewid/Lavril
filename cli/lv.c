@@ -286,12 +286,9 @@ void interactive(VMHANDLE v) {
 				if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue)) && retval) {
 					lv_pushroottable(v);
 					lv_pushstring(v, _LC("println"), -1);
-					// lv_stackdump(v);
 					lv_get(v, -2);
 					lv_pushroottable(v);
-					// lv_stackdump(v);
 					lv_push(v, -4);
-					// lv_stackdump(v);
 					lv_call(v, 2, SQFalse, SQTrue);
 					retval = 0;
 				}

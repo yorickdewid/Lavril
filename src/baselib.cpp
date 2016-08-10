@@ -457,8 +457,8 @@ static const SQRegFunction base_funcs[] = {
 
 void lv_base_register(VMHANDLE v) {
 	SQInteger i = 0;
-	lv_pushroottable(v);
 
+	lv_pushroottable(v);
 	while (base_funcs[i].name != 0) {
 		lv_pushstring(v, base_funcs[i].name, -1);
 		lv_newclosure(v, base_funcs[i].f, 0);
@@ -468,6 +468,12 @@ void lv_base_register(VMHANDLE v) {
 		i++;
 	}
 
+	/* Additional modules */
+	mod_init_io(v);
+	mod_init_blob(v);
+	mod_init_string(v);
+
+	/* Global variables */
 	lv_pushstring(v, _LC("_versionnumber_"), -1);
 	lv_pushinteger(v, LAVRIL_VERSION_NUMBER);
 	lv_newslot(v, -3, SQFalse);
@@ -482,6 +488,13 @@ void lv_base_register(VMHANDLE v) {
 	lv_newslot(v, -3, SQFalse);
 	lv_pushstring(v, _LC("_floatsize_"), -1);
 	lv_pushinteger(v, sizeof(SQFloat));
+	lv_newslot(v, -3, SQFalse);
+	lv_pushstring(v, _LC("_debug_"), -1);
+#ifdef _DEBUG
+	lv_pushbool(v, SQTrue);
+#else
+	lv_pushbool(v, SQFalse);
+#endif
 	lv_newslot(v, -3, SQFalse);
 	lv_pop(v, 1);
 }
