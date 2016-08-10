@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <lavril.h>
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #define scvprintf vfwprintf
 #else
 #define scvprintf vfprintf
@@ -106,13 +106,7 @@ int main(int argc, char *argv[]) {
 	lv_pushroottable(v);
 
 	/* Load modules */
-	init_module(blob, v);
-	init_module(io, v);
-	init_module(string, v);
-	init_module(system, v);
-	init_module(math, v);
-	init_module(crypto, v);
-	init_module(json, v);
+	lv_init_modules(v);
 
 	lv_registererrorhandlers(v);
 

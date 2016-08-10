@@ -42,7 +42,6 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <ctype.h>
-// #include <sys/types.h>
 #include <sys/wait.h>
 
 #if defined(_MSC_VER) && defined(_DEBUG)
@@ -51,7 +50,7 @@
 #endif
 #include <lavril.h>
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #define scfprintf fwprintf
 #define scvprintf vfwprintf
 #else
@@ -378,15 +377,8 @@ int main(int argc, char *argv[]) {
 
 	lv_pushroottable(v);
 
-	/* Initialize modules */
-	init_module(blob, v);
-	init_module(io, v);
-	init_module(string, v);
-	init_module(system, v);
-	init_module(math, v);
-	init_module(crypto, v);
-	// init_module(curl, v);
-	init_module(json, v);
+	/* Load modules */
+	lv_init_modules(v);
 
 	lv_registererrorhandlers(v);
 

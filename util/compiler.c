@@ -9,7 +9,7 @@
 #endif
 #include <lavril.h>
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #define scfprintf fwprintf
 #define scvprintf vfwprintf
 #else

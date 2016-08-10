@@ -8,7 +8,7 @@
 #pragma comment (lib ,"lvmods.lib")
 #endif
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #define scvprintf vfwprintf
 #else
 #define scvprintf vfprintf

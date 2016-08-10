@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #include <wchar.h>
 #define scgetenv _wgetenv
 #define scsystem _wsystem

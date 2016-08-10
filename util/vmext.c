@@ -9,7 +9,7 @@
 #pragma comment (lib ,"sqstdlib.lib")
 #endif
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 
 #define scvprintf vfwprintf
 #else

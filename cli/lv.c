@@ -142,17 +142,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 				SQInteger oldtop = lv_gettop(v);
 				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _LC("lv"), SQTrue))) {
 					lv_pushroottable(v);
-					if (LV_SUCCEEDED(lv_call(v, 1, _retval, SQTrue)) && _retval) {
-						scprintf(_LC("\n"));
-						lv_pushroottable(v);
-						lv_pushstring(v, _LC("print"), -1);
-						lv_get(v, -2);
-						lv_pushroottable(v);
-						lv_push(v, -4);
-						lv_call(v, 2, SQFalse, SQTrue);
-						_retval = 0;
-						scprintf(_LC("\n"));
-					}
+					lv_call(v, 1, _retval, SQTrue);
 				}
 
 				lv_settop(v, oldtop);
@@ -221,15 +211,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 			}
 
 			/* If this point is reached an error occured */
-			{
-				// const SQChar *err;
-				// lv_getlasterror(v);
-				// if (LV_SUCCEEDED(lv_getstring(v, -1, &err))) {
-				// 	scprintf(_LC("Error [%s]\n"), err);
-				// 	*retval = -2;
-				return ERROR;
-				// }
-			}
+			return ERROR;
 		}
 	}
 
@@ -281,7 +263,7 @@ void interactive(VMHANDLE v) {
 				string = !string;
 				buffer[i++] = (SQChar)c;
 			} else if (i >= CLI_MAXINPUT - 1) {
-				scfprintf(stderr, _LC("lv : input line too long\n"));
+				scfprintf(stderr, _LC("lv: input line too long\n"));
 				break;
 			} else {
 				buffer[i++] = (SQChar)c;
@@ -304,9 +286,12 @@ void interactive(VMHANDLE v) {
 				if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue)) && retval) {
 					lv_pushroottable(v);
 					lv_pushstring(v, _LC("println"), -1);
+					// lv_stackdump(v);
 					lv_get(v, -2);
 					lv_pushroottable(v);
+					// lv_stackdump(v);
 					lv_push(v, -4);
+					// lv_stackdump(v);
 					lv_call(v, 2, SQFalse, SQTrue);
 					retval = 0;
 				}
@@ -330,14 +315,8 @@ int main(int argc, char *argv[]) {
 
 	lv_pushroottable(v);
 
-	init_module(blob, v);
-	init_module(io, v);
-	init_module(string, v);
-	init_module(system, v);
-	init_module(math, v);
-	init_module(crypto, v);
-	init_module(curl, v);
-	init_module(json, v);
+	/* Load modules */
+	lv_init_modules(v);
 
 	lv_registererrorhandlers(v);
 

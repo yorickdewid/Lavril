@@ -54,13 +54,11 @@ typedef void *SQUserPointer;
 typedef SQUnsignedInteger SQBool;
 typedef SQInteger SQRESULT;
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #include <wchar.h>
 #include <wctype.h>
 
-
 typedef wchar_t SQChar;
-
 
 #define scstrcmp    wcscmp
 #ifdef _WIN32
@@ -101,7 +99,6 @@ typedef wchar_t SQChar;
 #define scisalpha   iswalpha
 #define sciscntrl   iswcntrl
 #define scisalnum   iswalnum
-
 
 #define sq_rsl(l) ((l)<<WCHAR_SHIFT_MUL)
 
