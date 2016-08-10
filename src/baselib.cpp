@@ -220,7 +220,6 @@ static SQInteger base_getconsttable(HSQUIRRELVM v) {
 	return 1;
 }
 
-
 static SQInteger base_setroottable(HSQUIRRELVM v) {
 	SQObjectPtr o = v->_roottable;
 	if (LV_FAILED(lv_setroottable(v)))

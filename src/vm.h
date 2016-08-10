@@ -87,10 +87,10 @@ struct SQVM : public CHAINABLE_OBJ {
 	bool ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, SQInteger& res);
 	bool StringCat(const SQObjectPtr& str, const SQObjectPtr& obj, SQObjectPtr& dest);
 	static bool IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res);
-	bool ToString(const SQObjectPtr& o, SQObjectPtr& res);
+	bool ToString(const SQObjectPtr& o, SQObjectPtr& res, SQInteger ident = 0);
 	SQString *PrintObjVal(const SQObjectPtr& o);
 
-
+	/* Exception handeling */
 	void Raise_Error(const SQChar *s, ...);
 	void Raise_Error(const SQObjectPtr& desc);
 	void Raise_IdxError(const SQObjectPtr& o);
@@ -105,6 +105,7 @@ struct SQVM : public CHAINABLE_OBJ {
 	bool CallMetaMethod(SQObjectPtr& closure, SQMetaMethod mm, SQInteger nparams, SQObjectPtr& outres);
 	bool ArithMetaMethod(SQInteger op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& dest);
 	bool Return(SQInteger _arg0, SQInteger _arg1, SQObjectPtr& retval);
+
 	//new stuff
 	_INLINE bool ARITH_OP(SQUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);
 	_INLINE bool BW_OP(SQUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);

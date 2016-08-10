@@ -90,6 +90,7 @@ static SQInteger _system_date(HSQUIRRELVM v) {
 		date = localtime(&t);
 	if (!date)
 		return lv_throwerror(v, _LC("crt api failure"));
+
 	lv_newtable(v);
 	_set_integer_slot(v, _LC("sec"), date->tm_sec);
 	_set_integer_slot(v, _LC("min"), date->tm_min);

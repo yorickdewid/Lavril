@@ -173,7 +173,8 @@ void SQVM::Finalize() {
 		_releasehook(_foreignptr, 0);
 		_releasehook = NULL;
 	}
-	if (_openouters) CloseOuters(&_stack._vals[0]);
+	if (_openouters)
+		CloseOuters(&_stack._vals[0]);
 	_roottable.Null();
 	_lasterror.Null();
 	_errorhandler.Null();
@@ -216,7 +217,6 @@ bool SQVM::ArithMetaMethod(SQInteger op, const SQObjectPtr& o1, const SQObjectPt
 			break; //shutup compiler
 	}
 	if (is_delegable(o1) && _delegable(o1)->_delegate) {
-
 		SQObjectPtr closure;
 		if (_delegable(o1)->GetMetaMethod(this, mm, closure)) {
 			Push(o1);
@@ -224,6 +224,7 @@ bool SQVM::ArithMetaMethod(SQInteger op, const SQObjectPtr& o1, const SQObjectPt
 			return CallMetaMethod(closure, mm, 2, dest);
 		}
 	}
+
 	Raise_Error(_LC("arith op %c on between '%s' and '%s'"), op, GetTypeName(o1), GetTypeName(o2));
 	return false;
 }
@@ -351,7 +352,7 @@ bool SQVM::CMP_OP(CmpOP op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObje
 	return false;
 }
 
-bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res) {
+bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, SQInteger ident) {
 	switch (type(o)) {
 		case OT_STRING:
 			res = o;
@@ -366,21 +367,67 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res) {
 			scsprintf(_sp(sq_rsl(6)), sq_rsl(6), _integer(o) ? _LC("true") : _LC("false"));
 			break;
 		case OT_TABLE: {
-			// SQObjectPtr refidx, key, val, res;
-			// SQInteger idx;
+			SQObjectPtr refidx, key, val, rs, str = SQString::Create(_ss(this), _LC("(table) {\n"));
+			SQInteger idx;
 
-			// scsprintf(_sp(sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR)), sq_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR), _LC("(%s) {"), GetTypeName(o));
-			// scprintf("(table) {\n");
+			/* TODO: optimize */
+			while ((idx = _table(o)->Next(false, refidx, key, val)) != -1) {
+				refidx = idx;
+				this->ToString(val, rs, ident + 1);
+				for (int i = 0; i < ident + 1; ++i) {
+					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+				}
+				this->StringCat(str, key, str);
+				this->StringCat(str, SQString::Create(_ss(this), _LC(" = ")), str);
+				this->StringCat(str, rs, str);
+				this->StringCat(str, SQString::Create(_ss(this), _LC(",\n")), str);
+			}
 
-			// while ((idx = _table(o)->Next(false, refidx, key, val)) != -1) {
-			// 	refidx = idx;
-			// 	this->ToString(val, res);
-			// 	scprintf("  \"%s\": %s\n", _string(key)->_val, _string(res)->_val);
-			// }
+			if (!_table(o)->CountUsed()) {
+				for (int i = 0; i < ident + 1; ++i) {
+					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+				}
+				this->StringCat(str, SQString::Create(_ss(this), _LC("(empty)\n")), str);
+			}
 
-			// scprintf("}\n");
-			// scsprintf(_sp(sq_rsl(2)), sq_rsl(2), "}");
-			// break;
+			for (int i = 0; i < ident; ++i) {
+				this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+			}
+			this->StringCat(str, SQString::Create(_ss(this), _LC("}")), str);
+			res = str;
+			return true;
+		}
+		case OT_ARRAY: {
+			SQObjectPtr refidx, key, val, rs, str = SQString::Create(_ss(this), _LC("(array) [\n"));
+			SQInteger idx;
+
+			/* TODO: optimize */
+			while ((idx = _array(o)->Next(refidx, key, val)) != -1) {
+				refidx = idx;
+				this->ToString(val, rs, ident + 1);
+				for (int i = 0; i < ident + 1; ++i) {
+					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+				}
+				this->StringCat(str, SQString::Create(_ss(this), _LC("[")), str);
+				this->StringCat(str, key, str);
+				this->StringCat(str, SQString::Create(_ss(this), _LC("] = ")), str);
+				this->StringCat(str, rs, str);
+				this->StringCat(str, SQString::Create(_ss(this), _LC(",\n")), str);
+			}
+
+			if (!_array(o)->Size()) {
+				for (int i = 0; i < ident + 1; ++i) {
+					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+				}
+				this->StringCat(str, SQString::Create(_ss(this), _LC("(empty)\n")), str);
+			}
+
+			for (int i = 0; i < ident; ++i) {
+				this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+			}
+			this->StringCat(str, SQString::Create(_ss(this), _LC("]")), str);
+			res = str;
+			return true;
 		}
 		case OT_USERDATA:
 		case OT_INSTANCE:
