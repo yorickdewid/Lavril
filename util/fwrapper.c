@@ -7,10 +7,8 @@
 #include <lavril.h>
 
 #ifdef SQUNICODE
-
 #define scvprintf vfwprintf
 #else
-
 #define scvprintf vfprintf
 #endif
 
@@ -114,6 +112,7 @@ int main(int argc, char *argv[]) {
 	init_module(system, v);
 	init_module(math, v);
 	init_module(crypto, v);
+	init_module(json, v);
 
 	lv_registererrorhandlers(v);
 

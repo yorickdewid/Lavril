@@ -1,12 +1,10 @@
-CC = g++
-BIN = minimal
 LIBDIR = -L../lib
 DEBUG = -g -O0
 LIBS = -llvcore -llvmods
 DEFINE = -D_DEBUG
 INCLUDE = -I../include -I. -Iinclude
 CXXFLAGS = -c $(DEBUG) $(DEFINE) -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
-CFLAGS = -c $(DEBUG) $(DEFINE) -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)
+CFLAGS = -c $(DEBUG) $(DEFINE) -Wall -fno-strict-aliasing $(INCLUDE) -std=gnu99
 LFLAGS = -Wall $(DEBUG) $(LIBDIR) $(LIBS)
 
 LBITS := $(shell getconf LONG_BIT)
@@ -15,28 +13,26 @@ ifeq ($(LBITS),64)
    CXXFLAGS += -m64
 endif
 
-OBJS= \
-	minimal.o
+all: minimal compiler runner vmext lvsh
 
-all: $(OBJS)
-	$(CC) $(OBJS) $(LFLAGS) -o $(BIN)
+minimal: minimal.o
+	$(CXX) minimal.o $(LFLAGS) -o minimal
 
 compiler: compiler.o
-	$(CC) compiler.o $(LFLAGS) -o compiler
+	$(CXX) compiler.o $(LFLAGS) -o compiler
 
 runner: runner.o
-	$(CC) runner.o $(LFLAGS) -o runner
+	$(CXX) runner.o $(LFLAGS) -o runner
 
 vmext: vmext.o
-	$(CC) vmext.o $(LFLAGS) -o vmext
+	$(CXX) vmext.o $(LFLAGS) -o vmext
 
 lvsh: lvsh.o
-	$(CC) lvsh.o $(LFLAGS) -o lvsh
+	$(CXX) lvsh.o $(LFLAGS) -o lvsh
 
 fwrapper: fwrapper.o
-	$(CC) fwrapper.o $(LFLAGS) -lfcgi -o fwrapper
+	$(CXX) fwrapper.o $(LFLAGS) -lfcgi -o fwrapper
 
 clean:
 	$(RM) *.o
-	$(RM) $(BIN)
-	$(RM) compiler runner vmext
+	$(RM) minimal compiler runner vmext lvsh fwrapper

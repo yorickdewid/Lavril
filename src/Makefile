@@ -1,4 +1,3 @@
-CC = g++
 BIN = ../lib/liblvcore.a
 DEBUG = -g -O0
 LIBS =

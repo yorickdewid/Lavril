@@ -1,4 +1,3 @@
-CC = g++
 DEBUG = -g -O0
 LIBS =
 DEFINE = -D_DEBUG
