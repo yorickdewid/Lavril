@@ -279,7 +279,7 @@ void interactive(VMHANDLE v) {
 	lv_pushuserpointer(v, &done);
 	lv_newclosure(v, quit, 1);
 	lv_setparamscheck(v, 1, NULL);
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pop(v, 1);
 
 	while (!done) {
@@ -351,15 +351,15 @@ void interactive(VMHANDLE v) {
 		i = scstrlen(buffer);
 		if (i > 0) {
 			SQInteger oldtop = lv_gettop(v);
-			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), SQTrue))) {
+			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), LVTrue))) {
 				lv_pushroottable(v);
-				if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue)) && retval) {
+				if (LV_SUCCEEDED(lv_call(v, 1, retval, LVTrue)) && retval) {
 					lv_pushroottable(v);
 					lv_pushstring(v, _LC("println"), -1);
 					lv_get(v, -2);
 					lv_pushroottable(v);
 					lv_push(v, -4);
-					lv_call(v, 2, SQFalse, SQTrue);
+					lv_call(v, 2, LVFalse, LVTrue);
 					// retval = 0;
 				}
 			}

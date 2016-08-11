@@ -80,7 +80,7 @@ SQRESULT mod_init_crypto(VMHANDLE v) {
 		lv_newclosure(v, cryptolib_funcs[i].f, 0);
 		lv_setparamscheck(v, cryptolib_funcs[i].nparamscheck, cryptolib_funcs[i].typemask);
 		lv_setnativeclosurename(v, -1, cryptolib_funcs[i].name);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
 

@@ -39,12 +39,12 @@ void register_curl_setopt(VMHANDLE v) {
 	SQInteger i = 0;
 	// lv_pushstring(v, _LC("CURLOPT_POST"), -1);
 	// lv_pushinteger(v, CURLOPT_POST);
-	// lv_newslot(v, -3, SQFalse);
+	// lv_newslot(v, -3, LVFalse);
 
 	while (mod_curl_opt[i] != 0) {
 		lv_pushstring(v, _LC("CURLOPT_POSTFIELDS"), -1);
 		lv_pushinteger(v, CURLOPT_POSTFIELDS);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
 }
@@ -140,7 +140,7 @@ static SQInteger _curl_setopt(VMHANDLE v) {
 	// curl_easy_setopt(self->_curl, CURLOPT_VERBOSE, 1L);
 
 	printf("opt %lld, str %s\n", opt, str);
-	/*if (sqstd_rex_search(self, str + start, &begin, &end) == SQTrue) {
+	/*if (sqstd_rex_search(self, str + start, &begin, &end) == LVTrue) {
 		SQInteger n = sqstd_rex_getsubexpcount(self);
 		SQRexMatch match;
 		sq_newarray(v, 0);
@@ -216,17 +216,17 @@ SQInteger mod_init_curl(VMHANDLE v) {
 	SQInteger i = 0;
 
 	lv_pushstring(v, _LC("curl"), -1);
-	lv_newclass(v, SQFalse);
+	lv_newclass(v, LVFalse);
 	while (curlobj_funcs[i].name != 0) {
 		const SQRegFunction& f = curlobj_funcs[i];
 		lv_pushstring(v, f.name, -1);
 		lv_newclosure(v, f.f, 0);
 		lv_setparamscheck(v, f.nparamscheck, f.typemask);
 		lv_setnativeclosurename(v, -1, f.name);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	// register_curl_setopt(v);
 	return 1;
 }

@@ -71,7 +71,7 @@ void LVLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up, Compil
 	_lasttokenline = _currentline = 1;
 	_currentcolumn = 0;
 	_prevtoken = -1;
-	_reached_eof = SQFalse;
+	_reached_eof = LVFalse;
 	Next();
 }
 
@@ -89,7 +89,7 @@ void LVLexer::Next() {
 		return;
 	}
 	_currdata = SQUIRREL_EOB;
-	_reached_eof = SQTrue;
+	_reached_eof = LVTrue;
 }
 
 const SQChar *LVLexer::Tok2Str(SQInteger tok) {

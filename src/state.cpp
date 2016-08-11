@@ -481,7 +481,6 @@ SQUnsignedInteger RefTable::GetRefCount(SQObject& obj) {
 	return ref->refs;
 }
 
-
 SQBool RefTable::Release(SQObject& obj) {
 	SQHash mainpos;
 	RefNode *prev;
@@ -499,12 +498,12 @@ SQBool RefTable::Release(SQObject& obj) {
 			_slotused--;
 			ref->obj.Null();
 			//<<FIXME>>test for shrink?
-			return SQTrue;
+			return LVTrue;
 		}
 	} else {
 		assert(0);
 	}
-	return SQFalse;
+	return LVFalse;
 }
 
 void RefTable::Resize(SQUnsignedInteger size) {

@@ -86,15 +86,15 @@ static SQInteger apprun(VMHANDLE v) {
 void create_webapp_core(VMHANDLE v) {
 	lv_pushroottable(v);
 	lv_pushstring(v, _LC("webapp"), -1);
-	lv_newclass(v, SQFalse);
+	lv_newclass(v, LVFalse);
 
 	lv_pushstring(v, _LC("run"), -1);
 	lv_newclosure(v, apprun, 0);
 	lv_setparamscheck(v, 2, ".s");
 	lv_setnativeclosurename(v, -1, _LC("run"));
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pop(v, 1);
 }
 
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		scprintf("Content-type: text/html\r\n\r\n");
-		if (LV_FAILED(lv_execfile(v, script, SQFalse, SQTrue)))  {
+		if (LV_FAILED(lv_execfile(v, script, LVFalse, LVTrue)))  {
 			const SQChar *err;
 			lv_getlasterror(v);
 			if (LV_SUCCEEDED(lv_getstring(v, -1, &err))) {

@@ -73,7 +73,7 @@ static SQInteger _sqlite_exec(VMHANDLE v) {
 	if (self->_rc != SQLITE_OK) {
 		return lv_throwerror(v, sqlite3_errmsg(self->_db));
 	}
-	lv_pushbool(v, SQTrue);
+	lv_pushbool(v, LVTrue);
 	return 1;
 }
 
@@ -106,16 +106,16 @@ SQRESULT mod_init_sqlite(VMHANDLE v) {
 	SQInteger i = 0;
 
 	lv_pushstring(v, _LC("sqlite"), -1);
-	lv_newclass(v, SQFalse);
+	lv_newclass(v, LVFalse);
 	while (sqlitelib_funcs[i].name != 0) {
 		lv_pushstring(v, sqlitelib_funcs[i].name, -1);
 		lv_newclosure(v, sqlitelib_funcs[i].f, 0);
 		lv_setparamscheck(v, sqlitelib_funcs[i].nparamscheck, sqlitelib_funcs[i].typemask);
 		lv_setnativeclosurename(v, -1, sqlitelib_funcs[i].name);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 
 	return LV_OK;
 }

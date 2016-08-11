@@ -42,7 +42,7 @@ void call_test(VMHANDLE v, int n, float f, const SQChar *s) {
 		lv_pushinteger(v, n);
 		lv_pushfloat(v, f);
 		lv_pushstring(v, s, -1);
-		lv_call(v, 4, SQFalse, SQTrue);
+		lv_call(v, 4, LVFalse, LVTrue);
 	}
 
 	/* Restore the original stack size */
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 	lv_pushroottable(v);
 
 	/* Print syntax errors if any */
-	if (LV_SUCCEEDED(lv_execfile(v, _LC("test.lav"), SQFalse, SQTrue)))  {
+	if (LV_SUCCEEDED(lv_execfile(v, _LC("test.lav"), LVFalse, LVTrue)))  {
 		call_test(v, 1, 2.5, _LC("teststring"));
 	}
 

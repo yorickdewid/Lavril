@@ -140,9 +140,9 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 			int i = scstrlen(statement);
 			if (i > 0) {
 				SQInteger oldtop = lv_gettop(v);
-				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _LC("lv"), SQTrue))) {
+				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _LC("lv"), LVTrue))) {
 					lv_pushroottable(v);
-					lv_call(v, 1, _retval, SQTrue);
+					lv_call(v, 1, _retval, LVTrue);
 				}
 
 				lv_settop(v, oldtop);
@@ -163,7 +163,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 			arg++;
 
 			if (compiles_only) {
-				if (LV_SUCCEEDED(lv_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
 					const SQChar *outfile = _LC("out.lavc");
 					if (output) {
 #ifdef SQUNICODE
@@ -179,7 +179,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 					}
 				}
 			} else {
-				if (LV_SUCCEEDED(lv_loadfile(v, filename, SQTrue))) {
+				if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
 					int callargs = 1;
 					lv_pushroottable(v);
 
@@ -197,7 +197,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 						callargs++;
 					}
 
-					if (LV_SUCCEEDED(lv_call(v, callargs, SQTrue, SQTrue))) {
+					if (LV_SUCCEEDED(lv_call(v, callargs, LVTrue, LVTrue))) {
 						SQObjectType type = lv_gettype(v, -1);
 						if (type == OT_INTEGER) {
 							*retval = type;
@@ -233,7 +233,7 @@ void interactive(VMHANDLE v) {
 	lv_pushuserpointer(v, &done);
 	lv_newclosure(v, quit, 1);
 	lv_setparamscheck(v, 1, NULL);
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pop(v, 1);
 
 	while (!done) {
@@ -281,15 +281,15 @@ void interactive(VMHANDLE v) {
 		i = scstrlen(buffer);
 		if (i > 0) {
 			SQInteger oldtop = lv_gettop(v);
-			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), SQTrue))) {
+			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), LVTrue))) {
 				lv_pushroottable(v);
-				if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue)) && retval) {
+				if (LV_SUCCEEDED(lv_call(v, 1, retval, LVTrue)) && retval) {
 					lv_pushroottable(v);
 					lv_pushstring(v, _LC("println"), -1);
 					lv_get(v, -2);
 					lv_pushroottable(v);
 					lv_push(v, -4);
-					lv_call(v, 2, SQFalse, SQTrue);
+					lv_call(v, 2, LVFalse, LVTrue);
 					retval = 0;
 				}
 			}
@@ -314,6 +314,8 @@ int main(int argc, char *argv[]) {
 
 	/* Load modules */
 	lv_init_modules(v);
+
+	init_module(sqlite, v);
 
 	lv_registererrorhandlers(v);
 

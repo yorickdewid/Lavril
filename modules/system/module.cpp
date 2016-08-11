@@ -123,7 +123,7 @@ SQInteger mod_init_system(VMHANDLE v) {
 		lv_newclosure(v, systemlib_funcs[i].f, 0);
 		lv_setparamscheck(v, systemlib_funcs[i].nparamscheck, systemlib_funcs[i].typemask);
 		lv_setnativeclosurename(v, -1, systemlib_funcs[i].name);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
 	return 1;

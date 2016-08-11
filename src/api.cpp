@@ -160,9 +160,10 @@ SQUnsignedInteger lv_getrefcount(VMHANDLE v, HSQOBJECT *po) {
 }
 
 SQBool lv_release(VMHANDLE v, HSQOBJECT *po) {
-	if (!ISREFCOUNTED(type(*po))) return SQTrue;
+	if (!ISREFCOUNTED(type(*po)))
+		return LVTrue;
 #ifdef NO_GARBAGE_COLLECTOR
-	bool ret = (po->_unVal.pRefCounted->_uiRef <= 1) ? SQTrue : SQFalse;
+	bool ret = (po->_unVal.pRefCounted->_uiRef <= 1) ? LVTrue : LVFalse;
 	__Release(po->_type, po->_unVal);
 	return ret; //the ret val doesn't work(and cannot be fixed)
 #else
@@ -201,7 +202,7 @@ SQBool lv_objtobool(const HSQOBJECT *o) {
 	if (lv_isbool(*o)) {
 		return _integer(*o);
 	}
-	return SQFalse;
+	return LVFalse;
 }
 
 SQUserPointer lv_objtouserpointer(const HSQOBJECT *o) {
@@ -280,7 +281,7 @@ SQBool lv_instanceof(VMHANDLE v) {
 	SQObjectPtr& cl = stack_get(v, -2);
 	if (type(inst) != OT_INSTANCE || type(cl) != OT_CLASS)
 		return lv_throwerror(v, _LC("invalid param type"));
-	return _instance(inst)->InstanceOf(_class(cl)) ? SQTrue : SQFalse;
+	return _instance(inst)->InstanceOf(_class(cl)) ? LVTrue : LVFalse;
 }
 
 SQRESULT lv_arrayappend(VMHANDLE v, SQInteger idx) {
@@ -587,7 +588,7 @@ SQRESULT lv_tostring(VMHANDLE v, SQInteger idx) {
 
 void lv_tobool(VMHANDLE v, SQInteger idx, SQBool *b) {
 	SQObjectPtr& o = stack_get(v, idx);
-	*b = SQVM::IsFalse(o) ? SQFalse : SQTrue;
+	*b = SQVM::IsFalse(o) ? LVFalse : LVTrue;
 }
 
 SQRESULT lv_getinteger(VMHANDLE v, SQInteger idx, SQInteger *i) {
@@ -1336,7 +1337,7 @@ SQRESULT lv_getmemberhandle(VMHANDLE v, SQInteger idx, HSQMEMBERHANDLE *handle) 
 	SQTable *m = _class(*o)->_members;
 	SQObjectPtr val;
 	if (m->Get(key, val)) {
-		handle->_static = _isfield(val) ? SQFalse : SQTrue;
+		handle->_static = _isfield(val) ? LVFalse : LVTrue;
 		handle->_index = _member_idx(val);
 		v->Pop();
 		return LV_OK;

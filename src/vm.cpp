@@ -149,9 +149,9 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o
 
 SQVM::SQVM(SQSharedState *ss) {
 	_sharedstate = ss;
-	_suspended = SQFalse;
+	_suspended = LVFalse;
 	_suspended_target = -1;
-	_suspended_root = SQFalse;
+	_suspended_root = LVFalse;
 	_suspended_traps = -1;
 	_foreignptr = NULL;
 	_nnativecalls = 0;
@@ -825,19 +825,19 @@ bool SQVM::Execute(SQObjectPtr& closure, SQInteger nargs, SQInteger stackbase, S
 				outres = STK(_top - nargs);
 				return true;
 			}
-			ci->_root = SQTrue;
+			ci->_root = LVTrue;
 		}
 		break;
 		case ET_RESUME_GENERATOR:
 			_generator(closure)->Resume(this, outres);
-			ci->_root = SQTrue;
+			ci->_root = LVTrue;
 			traps += ci->_etraps;
 			break;
 		case ET_RESUME_VM:
 		case ET_RESUME_THROW_VM:
 			traps = _suspended_traps;
 			ci->_root = _suspended_root;
-			_suspended = SQFalse;
+			_suspended = LVFalse;
 			if (et  == ET_RESUME_THROW_VM) {
 				SQ_THROW();
 			}
@@ -895,7 +895,7 @@ exception_restore:
 							bool suspend;
 							_GUARD(CallNative(_nativeclosure(clo), arg3, _stackbase + arg2, clo, suspend));
 							if (suspend) {
-								_suspended = SQTrue;
+								_suspended = LVTrue;
 								_suspended_target = sarg0;
 								_suspended_root = ci->_root;
 								_suspended_traps = traps;
@@ -1350,7 +1350,7 @@ void SQVM::CallErrorHandler(SQObjectPtr& error) {
 		SQObjectPtr out;
 		Push(_roottable);
 		Push(error);
-		Call(_errorhandler, 2, _top - 2, out, SQFalse);
+		Call(_errorhandler, 2, _top - 2, out, LVFalse);
 		Pop(2);
 	}
 }
@@ -1371,7 +1371,7 @@ void SQVM::CallDebugHook(SQInteger type, SQInteger forcedline) {
 		Push(func->_sourcename);
 		Push(forcedline ? forcedline : func->GetLine(ci->_ip));
 		Push(func->_name);
-		Call(_debughook_closure, nparams, _top - nparams, temp_reg, SQFalse);
+		Call(_debughook_closure, nparams, _top - nparams, temp_reg, LVFalse);
 		Pop(nparams);
 	}
 	_debughook = true;
@@ -1570,7 +1570,7 @@ SQInteger SQVM::FallBackGet(const SQObjectPtr& self, const SQObjectPtr& key, SQO
 				Push(key);
 				_nmetamethodscall++;
 				AutoDec ad(&_nmetamethodscall);
-				if (Call(closure, 2, _top - 2, dest, SQFalse)) {
+				if (Call(closure, 2, _top - 2, dest, LVFalse)) {
 					Pop(2);
 					return FALLBACK_OK;
 				} else {
@@ -1645,7 +1645,7 @@ SQInteger SQVM::FallBackSet(const SQObjectPtr& self, const SQObjectPtr& key, con
 				Push(val);
 				_nmetamethodscall++;
 				AutoDec ad(&_nmetamethodscall);
-				if (Call(closure, 3, _top - 3, t, SQFalse)) {
+				if (Call(closure, 3, _top - 3, t, LVFalse)) {
 					Pop(3);
 					return FALLBACK_OK;
 				} else {
@@ -1860,7 +1860,7 @@ bool SQVM::CallMetaMethod(SQObjectPtr& closure, SQMetaMethod LV_UNUSED_ARG(mm), 
 	//SQObjectPtr closure;
 
 	_nmetamethodscall++;
-	if (Call(closure, nparams, _top - nparams, outres, SQFalse)) {
+	if (Call(closure, nparams, _top - nparams, outres, LVFalse)) {
 		_nmetamethodscall--;
 		Pop(nparams);
 		return true;
@@ -1902,7 +1902,7 @@ bool SQVM::EnterFrame(SQInteger newbase, SQInteger newtop, bool tailcall) {
 		ci->_etraps = 0;
 		ci->_ncalls = 1;
 		ci->_generator = NULL;
-		ci->_root = SQFalse;
+		ci->_root = LVFalse;
 	} else {
 		ci->_ncalls++;
 	}

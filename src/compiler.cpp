@@ -1257,7 +1257,7 @@ class LVCompiler {
 		Expect(_LC(')'));
 
 		if (_ss(_vm)->_unitloaderhandler) {
-			if (LV_FAILED(_ss(_vm)->_unitloaderhandler(_vm, _stringval(unitname), SQTrue)))
+			if (LV_FAILED(_ss(_vm)->_unitloaderhandler(_vm, _stringval(unitname), LVTrue)))
 				Error(_LC("cannot load include"));
 		} else {
 			Error(_LC("unexpected 'include'"));

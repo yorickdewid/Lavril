@@ -188,7 +188,7 @@ SQRESULT lv_createfile(VMHANDLE v, LVFILE file, SQBool own) {
 		} else {
 			lv_pushnull(v); //false
 		}
-		if (LV_SUCCEEDED(lv_call(v, 3, SQTrue, SQFalse))) {
+		if (LV_SUCCEEDED(lv_call(v, 3, LVTrue, LVFalse))) {
 			lv_remove(v, -2);
 			return LV_OK;
 		}
@@ -388,7 +388,7 @@ SQRESULT lv_loadfile(VMHANDLE v, const SQChar *filename, SQBool printerror) {
 SQRESULT lv_execfile(VMHANDLE v, const SQChar *filename, SQBool retval, SQBool printerror) {
 	if (LV_SUCCEEDED(lv_loadfile(v, filename, printerror))) {
 		lv_push(v, -2);
-		if (LV_SUCCEEDED(lv_call(v, 1, retval, SQTrue))) {
+		if (LV_SUCCEEDED(lv_call(v, 1, retval, LVTrue))) {
 			lv_remove(v, retval ? -2 : -1); //removes the closure
 			return 1;
 		}
@@ -411,7 +411,7 @@ SQRESULT lv_writeclosuretofile(VMHANDLE v, const SQChar *filename) {
 
 SQInteger _g_io_loadfile(VMHANDLE v) {
 	const SQChar *filename;
-	SQBool printerror = SQFalse;
+	SQBool printerror = LVFalse;
 	lv_getstring(v, 2, &filename);
 	if (lv_gettop(v) >= 3) {
 		lv_getbool(v, 3, &printerror);
@@ -431,19 +431,19 @@ SQInteger _g_io_writeclosuretofile(VMHANDLE v) {
 
 SQInteger _g_io_execfile(VMHANDLE v) {
 	const SQChar *filename;
-	SQBool printerror = SQFalse;
+	SQBool printerror = LVFalse;
 	lv_getstring(v, 2, &filename);
 	if (lv_gettop(v) >= 3) {
 		lv_getbool(v, 3, &printerror);
 	}
 	lv_push(v, 1); //repush the this
-	if (LV_SUCCEEDED(lv_execfile(v, filename, SQTrue, printerror)))
+	if (LV_SUCCEEDED(lv_execfile(v, filename, LVTrue, printerror)))
 		return 1;
 	return LV_ERROR; //propagates the error
 }
 
 CALLBACK SQInteger callback_loadunit(VMHANDLE v, const SQChar *sSource, SQBool printerror) {
-	if (LV_FAILED(lv_execfile(v, sSource, SQTrue, printerror))) {
+	if (LV_FAILED(lv_execfile(v, sSource, LVTrue, printerror))) {
 		return LV_ERROR;
 	}
 	return LV_OK;
@@ -462,14 +462,14 @@ SQRESULT mod_init_io(VMHANDLE v) {
 	//create delegate
 	declare_stream(v, _LC("file"), (SQUserPointer)SQ_FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
 	lv_pushstring(v, _LC("stdout"), -1);
-	lv_createfile(v, stdout, SQFalse);
-	lv_newslot(v, -3, SQFalse);
+	lv_createfile(v, stdout, LVFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("stdin"), -1);
-	lv_createfile(v, stdin, SQFalse);
-	lv_newslot(v, -3, SQFalse);
+	lv_createfile(v, stdin, LVFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("stderr"), -1);
-	lv_createfile(v, stderr, SQFalse);
-	lv_newslot(v, -3, SQFalse);
+	lv_createfile(v, stderr, LVFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_settop(v, top);
 
 	lv_setunitloader(v, callback_loadunit);

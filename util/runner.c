@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
 	lv_registererrorhandlers(v);
 
-	if (LV_SUCCEEDED(lv_loadfile(v, argv[1], SQTrue))) {
+	if (LV_SUCCEEDED(lv_loadfile(v, argv[1], LVTrue))) {
 		int callargs = 1;
 		lv_pushroottable(v);
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 			callargs++;
 		}
 
-		if (LV_SUCCEEDED(lv_call(v, callargs, SQTrue, SQTrue))) {
+		if (LV_SUCCEEDED(lv_call(v, callargs, LVTrue, LVTrue))) {
 			SQObjectType type = lv_gettype(v, -1);
 			if (type == OT_INTEGER) {
 				retval = type;

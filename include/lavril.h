@@ -40,8 +40,8 @@ extern "C" {
 #endif
 #endif
 
-#define SQTrue  (1)
-#define SQFalse (0)
+#define LVTrue  (1)
+#define LVFalse (0)
 
 struct SQVM;
 struct SQTable;

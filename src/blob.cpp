@@ -343,7 +343,7 @@ SQUserPointer lv_createblob(VMHANDLE v, SQInteger size) {
 		lv_push(v, 1); // push the this
 		lv_pushinteger(v, size); //size
 		SQBlob *blob = NULL;
-		if (LV_SUCCEEDED(lv_call(v, 2, SQTrue, SQFalse))
+		if (LV_SUCCEEDED(lv_call(v, 2, LVTrue, LVFalse))
 		        && LV_SUCCEEDED(lv_getinstanceup(v, -1, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG))) {
 			lv_remove(v, -2);
 			return blob->GetBuf();

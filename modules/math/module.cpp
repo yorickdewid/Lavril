@@ -94,16 +94,16 @@ SQRESULT mod_init_math(VMHANDLE v) {
 		lv_newclosure(v, mathlib_funcs[i].f, 0);
 		lv_setparamscheck(v, mathlib_funcs[i].nparamscheck, mathlib_funcs[i].typemask);
 		lv_setnativeclosurename(v, -1, mathlib_funcs[i].name);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
 
 	lv_pushstring(v, _LC("RAND_MAX"), -1);
 	lv_pushinteger(v, RAND_MAX);
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("PI"), -1);
 	lv_pushfloat(v, (SQFloat)M_PI);
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 
 	return LV_OK;
 }

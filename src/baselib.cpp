@@ -46,9 +46,9 @@ static SQBool isfmtchr(SQChar ch) {
 		case ' ':
 		case '#':
 		case '0':
-			return SQTrue;
+			return LVTrue;
 	}
-	return SQFalse;
+	return LVFalse;
 }
 
 static SQInteger validate_format(VMHANDLE v, SQChar *fmt, const SQChar *src, SQInteger n, SQInteger& width) {
@@ -249,7 +249,7 @@ static SQInteger base_setdebughook(VMHANDLE v) {
 static SQInteger base_enabledebuginfo(VMHANDLE v) {
 	SQObjectPtr& o = stack_get(v, 2);
 
-	lv_enabledebuginfo(v, SQVM::IsFalse(o) ? SQFalse : SQTrue);
+	lv_enabledebuginfo(v, SQVM::IsFalse(o) ? LVFalse : LVTrue);
 	return 0;
 }
 
@@ -268,24 +268,24 @@ static SQInteger __getcallstackinfos(VMHANDLE v, SQInteger level) {
 		lv_newtable(v);
 		lv_pushstring(v, _LC("func"), -1);
 		lv_pushstring(v, fn, -1);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pushstring(v, _LC("src"), -1);
 		lv_pushstring(v, src, -1);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pushstring(v, _LC("line"), -1);
 		lv_pushinteger(v, si.line);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pushstring(v, _LC("variables"), -1);
 		lv_newtable(v);
 		seq = 0;
 		while ((name = lv_getlocal(v, level, seq))) {
 			lv_pushstring(v, name, -1);
 			lv_push(v, -2);
-			lv_newslot(v, -4, SQFalse);
+			lv_newslot(v, -4, LVFalse);
 			lv_pop(v, 1);
 			seq++;
 		}
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		return 1;
 	}
 
@@ -381,7 +381,7 @@ static SQInteger base_compilestring(VMHANDLE v) {
 	if (nargs > 2) {
 		lv_getstring(v, 3, &name);
 	}
-	if (LV_SUCCEEDED(lv_compilebuffer(v, src, size, name, SQFalse)))
+	if (LV_SUCCEEDED(lv_compilebuffer(v, src, size, name, LVFalse)))
 		return 1;
 	else
 		return LV_ERROR;
@@ -464,7 +464,7 @@ void lv_base_register(VMHANDLE v) {
 		lv_newclosure(v, base_funcs[i].f, 0);
 		lv_setnativeclosurename(v, -1, base_funcs[i].name);
 		lv_setparamscheck(v, base_funcs[i].nparamscheck, base_funcs[i].typemask);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
 
@@ -476,26 +476,26 @@ void lv_base_register(VMHANDLE v) {
 	/* Global variables */
 	lv_pushstring(v, _LC("_versionnumber_"), -1);
 	lv_pushinteger(v, LAVRIL_VERSION_NUMBER);
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_version_"), -1);
 	lv_pushstring(v, LAVRIL_VERSION, -1);
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_charsize_"), -1);
 	lv_pushinteger(v, sizeof(SQChar));
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_intsize_"), -1);
 	lv_pushinteger(v, sizeof(SQInteger));
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_floatsize_"), -1);
 	lv_pushinteger(v, sizeof(SQFloat));
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_debug_"), -1);
 #ifdef _DEBUG
-	lv_pushbool(v, SQTrue);
+	lv_pushbool(v, LVTrue);
 #else
-	lv_pushbool(v, SQFalse);
+	lv_pushbool(v, LVFalse);
 #endif
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_pop(v, 1);
 }
 
@@ -586,17 +586,17 @@ static SQInteger number_delegate_tochar(VMHANDLE v) {
 //TABLE DEFAULT DELEGATE
 
 static SQInteger table_rawdelete(VMHANDLE v) {
-	if (LV_FAILED(lv_rawdeleteslot(v, 1, SQTrue)))
+	if (LV_FAILED(lv_rawdeleteslot(v, 1, LVTrue)))
 		return LV_ERROR;
 	return 1;
 }
 
 static SQInteger container_rawexists(VMHANDLE v) {
 	if (LV_SUCCEEDED(lv_rawget(v, -2))) {
-		lv_pushbool(v, SQTrue);
+		lv_pushbool(v, LVTrue);
 		return 1;
 	}
-	lv_pushbool(v, SQFalse);
+	lv_pushbool(v, LVFalse);
 	return 1;
 }
 
@@ -650,7 +650,7 @@ static SQInteger array_reverse(VMHANDLE v) {
 }
 
 static SQInteger array_pop(VMHANDLE v) {
-	return LV_SUCCEEDED(lv_arraypop(v, 1, SQTrue)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_arraypop(v, 1, LVTrue)) ? 1 : LV_ERROR;
 }
 
 static SQInteger array_top(VMHANDLE v) {
@@ -703,7 +703,7 @@ static SQInteger __map_array(SQArray *dest, SQArray *src, VMHANDLE v) {
 		src->Get(n, temp);
 		v->Push(src);
 		v->Push(temp);
-		if (LV_FAILED(lv_call(v, 2, SQTrue, SQFalse))) {
+		if (LV_FAILED(lv_call(v, 2, LVTrue, LVFalse))) {
 			return LV_ERROR;
 		}
 		dest->Set(n, v->GetUp(-1));
@@ -745,7 +745,7 @@ static SQInteger array_reduce(VMHANDLE v) {
 			v->Push(o);
 			v->Push(res);
 			v->Push(other);
-			if (LV_FAILED(lv_call(v, 3, SQTrue, SQFalse))) {
+			if (LV_FAILED(lv_call(v, 3, LVTrue, LVFalse))) {
 				return LV_ERROR;
 			}
 			res = v->GetUp(-1);
@@ -767,7 +767,7 @@ static SQInteger array_filter(VMHANDLE v) {
 		v->Push(o);
 		v->Push(n);
 		v->Push(val);
-		if (LV_FAILED(lv_call(v, 3, SQTrue, SQFalse))) {
+		if (LV_FAILED(lv_call(v, 3, LVTrue, LVFalse))) {
 			return LV_ERROR;
 		}
 		if (!SQVM::IsFalse(v->GetUp(-1))) {
@@ -805,7 +805,7 @@ static bool _sort_compare(VMHANDLE v, SQObjectPtr& a, SQObjectPtr& b, SQInteger 
 		lv_pushroottable(v);
 		v->Push(a);
 		v->Push(b);
-		if (LV_FAILED(lv_call(v, 3, SQTrue, SQFalse))) {
+		if (LV_FAILED(lv_call(v, 3, LVTrue, LVFalse))) {
 			if (!lv_isstring( v->_lasterror))
 				v->Raise_Error(_LC("compare func failed"));
 			return false;
@@ -1026,11 +1026,11 @@ const SQRegFunction SQSharedState::_number_default_delegate_funcz[] = {
 
 //CLOSURE DEFAULT DELEGATE//////////////////////////
 static SQInteger closure_pcall(VMHANDLE v) {
-	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, SQTrue, SQFalse)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, LVTrue, LVFalse)) ? 1 : LV_ERROR;
 }
 
 static SQInteger closure_call(VMHANDLE v) {
-	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, SQTrue, SQTrue)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, LVTrue, LVTrue)) ? 1 : LV_ERROR;
 }
 
 static SQInteger _closure_acall(VMHANDLE v, SQBool raiseerror) {
@@ -1038,15 +1038,15 @@ static SQInteger _closure_acall(VMHANDLE v, SQBool raiseerror) {
 	SQInteger nparams = aparams->Size();
 	v->Push(stack_get(v, 1));
 	for (SQInteger i = 0; i < nparams; i++)v->Push(aparams->_values[i]);
-	return LV_SUCCEEDED(lv_call(v, nparams, SQTrue, raiseerror)) ? 1 : LV_ERROR;
+	return LV_SUCCEEDED(lv_call(v, nparams, LVTrue, raiseerror)) ? 1 : LV_ERROR;
 }
 
 static SQInteger closure_acall(VMHANDLE v) {
-	return _closure_acall(v, SQTrue);
+	return _closure_acall(v, LVTrue);
 }
 
 static SQInteger closure_pacall(VMHANDLE v) {
-	return _closure_acall(v, SQFalse);
+	return _closure_acall(v, LVFalse);
 }
 
 static SQInteger closure_bindenv(VMHANDLE v) {
@@ -1155,7 +1155,7 @@ static SQInteger thread_call(VMHANDLE v) {
 		_thread(o)->Push(_thread(o)->_roottable);
 		for (SQInteger i = 2; i < (nparams + 1); i++)
 			lv_move(_thread(o), v, i);
-		if (LV_SUCCEEDED(lv_call(_thread(o), nparams, SQTrue, SQTrue))) {
+		if (LV_SUCCEEDED(lv_call(_thread(o), nparams, LVTrue, LVTrue))) {
 			lv_move(v, _thread(o), -1);
 			lv_pop(_thread(o), 1);
 			return 1;
@@ -1182,11 +1182,11 @@ static SQInteger thread_wakeup(VMHANDLE v) {
 			}
 		}
 
-		SQInteger wakeupret = lv_gettop(v) > 1 ? SQTrue : SQFalse;
+		SQInteger wakeupret = lv_gettop(v) > 1 ? LVTrue : LVFalse;
 		if (wakeupret) {
 			lv_move(thread, v, 2);
 		}
-		if (LV_SUCCEEDED(lv_wakeupvm(thread, wakeupret, SQTrue, SQTrue, SQFalse))) {
+		if (LV_SUCCEEDED(lv_wakeupvm(thread, wakeupret, LVTrue, LVTrue, LVFalse))) {
 			lv_move(v, thread, -1);
 			lv_pop(thread, 1); //pop retval
 			if (lv_getvmstate(thread) == LV_VMSTATE_IDLE) {
@@ -1219,11 +1219,11 @@ static SQInteger thread_wakeupthrow(VMHANDLE v) {
 
 		lv_move(thread, v, 2);
 		lv_throwobject(thread);
-		SQBool rethrow_error = SQTrue;
+		SQBool rethrow_error = LVTrue;
 		if (lv_gettop(v) > 2) {
 			lv_getbool(v, 3, &rethrow_error);
 		}
-		if (LV_SUCCEEDED(lv_wakeupvm(thread, SQFalse, SQTrue, SQTrue, SQTrue))) {
+		if (LV_SUCCEEDED(lv_wakeupvm(thread, LVFalse, LVTrue, LVTrue, LVTrue))) {
 			lv_move(v, thread, -1);
 			lv_pop(thread, 1); //pop retval
 			if (lv_getvmstate(thread) == LV_VMSTATE_IDLE) {
@@ -1318,7 +1318,7 @@ static SQInteger class_getbase(VMHANDLE v) {
 
 static SQInteger class_newmember(VMHANDLE v) {
 	SQInteger top = lv_gettop(v);
-	SQBool bstatic = SQFalse;
+	SQBool bstatic = LVFalse;
 	if (top == 5) {
 		lv_tobool(v, -1, &bstatic);
 		lv_pop(v, 1);
@@ -1332,7 +1332,7 @@ static SQInteger class_newmember(VMHANDLE v) {
 
 static SQInteger class_rawnewmember(VMHANDLE v) {
 	SQInteger top = lv_gettop(v);
-	SQBool bstatic = SQFalse;
+	SQBool bstatic = LVFalse;
 	if (top == 5) {
 		lv_tobool(v, -1, &bstatic);
 		lv_pop(v, 1);

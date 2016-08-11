@@ -248,7 +248,7 @@ void init_streamclass(VMHANDLE v) {
 	lv_pushstring(v, _LC("std_stream"), -1);
 	if (LV_FAILED(lv_get(v, -2))) {
 		lv_pushstring(v, _LC("std_stream"), -1);
-		lv_newclass(v, SQFalse);
+		lv_newclass(v, LVFalse);
 		lv_settypetag(v, -1, (SQUserPointer)SQ_STREAM_TYPE_TAG);
 		SQInteger i = 0;
 		while (_stream_methods[i].name != 0) {
@@ -256,15 +256,15 @@ void init_streamclass(VMHANDLE v) {
 			lv_pushstring(v, f.name, -1);
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);
-			lv_newslot(v, -3, SQFalse);
+			lv_newslot(v, -3, LVFalse);
 			i++;
 		}
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pushroottable(v);
 		lv_pushstring(v, _LC("stream"), -1);
 		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_get(v, -4);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pop(v, 1);
 	} else {
 		lv_pop(v, 1); //result
@@ -282,7 +282,7 @@ SQRESULT declare_stream(VMHANDLE v, const SQChar *name, SQUserPointer typetag, c
 	lv_pushstring(v, reg_name, -1);
 	lv_pushstring(v, _LC("std_stream"), -1);
 	if (LV_SUCCEEDED(lv_get(v, -3))) {
-		lv_newclass(v, SQTrue);
+		lv_newclass(v, LVTrue);
 		lv_settypetag(v, -1, typetag);
 		SQInteger i = 0;
 		while (methods[i].name != 0) {
@@ -291,10 +291,10 @@ SQRESULT declare_stream(VMHANDLE v, const SQChar *name, SQUserPointer typetag, c
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);
 			lv_setnativeclosurename(v, -1, f.name);
-			lv_newslot(v, -3, SQFalse);
+			lv_newslot(v, -3, LVFalse);
 			i++;
 		}
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pop(v, 1);
 
 		i = 0;
@@ -304,7 +304,7 @@ SQRESULT declare_stream(VMHANDLE v, const SQChar *name, SQUserPointer typetag, c
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);
 			lv_setnativeclosurename(v, -1, f.name);
-			lv_newslot(v, -3, SQFalse);
+			lv_newslot(v, -3, LVFalse);
 			i++;
 		}
 		//register the class in the target table
@@ -313,7 +313,7 @@ SQRESULT declare_stream(VMHANDLE v, const SQChar *name, SQUserPointer typetag, c
 		lv_pushstring(v, reg_name, -1);
 		lv_get(v, -2);
 		lv_remove(v, -2);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 
 		lv_settop(v, top);
 		return LV_OK;

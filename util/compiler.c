@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 	lv_pushroottable(v);
 	lv_registererrorhandlers(v);
 
-	if (LV_SUCCEEDED(lv_loadfile(v, argv[1], SQTrue))) {
+	if (LV_SUCCEEDED(lv_loadfile(v, argv[1], LVTrue))) {
 		lv_writeclosuretofile(v, get_file_out(argv[1]));
 	}
 

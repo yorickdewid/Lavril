@@ -565,7 +565,7 @@ static int parse_level(VMHANDLE v, const char *js, jsmntok_t *t, size_t count) {
 				tbuf[i] = tolower(tbuf[i]);
 			}
 			if (!strcmp(tbuf, "false")) {
-				lv_pushbool(v, SQFalse);
+				lv_pushbool(v, LVFalse);
 				return 1;
 			}
 		}
@@ -576,7 +576,7 @@ static int parse_level(VMHANDLE v, const char *js, jsmntok_t *t, size_t count) {
 				tbuf[i] = tolower(tbuf[i]);
 			}
 			if (!strcmp(tbuf, "true")) {
-				lv_pushbool(v, SQTrue);
+				lv_pushbool(v, LVTrue);
 				return 1;
 			} else if (!strcmp(tbuf, "null")) {
 				lv_pushnull(v);
@@ -657,7 +657,7 @@ SQRESULT mod_init_json(VMHANDLE v) {
 		lv_newclosure(v, jsonlib_funcs[i].f, 0);
 		lv_setparamscheck(v, jsonlib_funcs[i].nparamscheck, jsonlib_funcs[i].typemask);
 		lv_setnativeclosurename(v, -1, jsonlib_funcs[i].name);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
 

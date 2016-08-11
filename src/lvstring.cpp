@@ -177,9 +177,9 @@ static SQInteger _string_startswith(VMHANDLE v) {
 	lv_getstring(v, 3, &cmp);
 	SQInteger len = lv_getsize(v, 2);
 	SQInteger cmplen = lv_getsize(v, 3);
-	SQBool ret = SQFalse;
+	SQBool ret = LVFalse;
 	if (cmplen <= len) {
-		ret = memcmp(str, cmp, sq_rsl(cmplen)) == 0 ? SQTrue : SQFalse;
+		ret = memcmp(str, cmp, sq_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
 	}
 	lv_pushbool(v, ret);
 	return 1;
@@ -191,9 +191,9 @@ static SQInteger _string_endswith(VMHANDLE v) {
 	lv_getstring(v, 3, &cmp);
 	SQInteger len = lv_getsize(v, 2);
 	SQInteger cmplen = lv_getsize(v, 3);
-	SQBool ret = SQFalse;
+	SQBool ret = LVFalse;
 	if (cmplen <= len) {
-		ret = memcmp(&str[len - cmplen], cmp, sq_rsl(cmplen)) == 0 ? SQTrue : SQFalse;
+		ret = memcmp(&str[len - cmplen], cmp, sq_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
 	}
 	lv_pushbool(v, ret);
 	return 1;
@@ -214,11 +214,11 @@ static SQInteger _regexp_match(VMHANDLE v) {
 	SETUP_REX(v);
 	const SQChar *str;
 	lv_getstring(v, 2, &str);
-	if (sqstd_rex_match(self, str) == SQTrue) {
-		lv_pushbool(v, SQTrue);
+	if (sqstd_rex_match(self, str) == LVTrue) {
+		lv_pushbool(v, LVTrue);
 		return 1;
 	}
-	lv_pushbool(v, SQFalse);
+	lv_pushbool(v, LVFalse);
 	return 1;
 }
 
@@ -239,7 +239,7 @@ static SQInteger _regexp_search(VMHANDLE v) {
 	lv_getstring(v, 2, &str);
 	if (lv_gettop(v) > 2)
 		lv_getinteger(v, 3, &start);
-	if (sqstd_rex_search(self, str + start, &begin, &end) == SQTrue) {
+	if (sqstd_rex_search(self, str + start, &begin, &end) == LVTrue) {
 		_addrexmatch(v, str, begin, end);
 		return 1;
 	}
@@ -253,7 +253,7 @@ static SQInteger _regexp_capture(VMHANDLE v) {
 	lv_getstring(v, 2, &str);
 	if (lv_gettop(v) > 2)
 		lv_getinteger(v, 3, &start);
-	if (sqstd_rex_search(self, str + start, &begin, &end) == SQTrue) {
+	if (sqstd_rex_search(self, str + start, &begin, &end) == LVTrue) {
 		SQInteger n = sqstd_rex_getsubexpcount(self);
 		SQRexMatch match;
 		sq_newarray(v, 0);
@@ -323,17 +323,17 @@ SQInteger mod_init_string(VMHANDLE v) {
 
 	/*#ifdef REGEX
 		lv_pushstring(v, _LC("regexp"), -1);
-		sq_newclass(v, SQFalse);
+		sq_newclass(v, LVFalse);
 		while (rexobj_funcs[i].name != 0) {
 			const SQRegFunction& f = rexobj_funcs[i];
 			lv_pushstring(v, f.name, -1);
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);
 			lv_setnativeclosurename(v, -1, f.name);
-			lv_newslot(v, -3, SQFalse);
+			lv_newslot(v, -3, LVFalse);
 			i++;
 		}
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 	#endif*/
 
 	i = 0;
@@ -342,7 +342,7 @@ SQInteger mod_init_string(VMHANDLE v) {
 		lv_newclosure(v, stringlib_funcs[i].f, 0);
 		lv_setparamscheck(v, stringlib_funcs[i].nparamscheck, stringlib_funcs[i].typemask);
 		lv_setnativeclosurename(v, -1, stringlib_funcs[i].name);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		i++;
 	}
 	return 1;
