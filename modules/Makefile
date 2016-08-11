@@ -5,6 +5,7 @@ MODS = \
 	crypto \
 	curl \
 	json \
+	sqlite \
 	system
 
 all: build
