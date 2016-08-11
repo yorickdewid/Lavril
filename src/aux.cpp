@@ -80,7 +80,7 @@ CALLBACK static void printcallstack(VMHANDLE v) {
 						pf(v, _LC("[%s] WEAKREF\n"), name);
 						break;
 					case OT_BOOL: {
-						SQBool bval;
+						LVBool bval;
 						sq_getbool(v, -1, &bval);
 						pf(v, _LC("[%s] %s\n"), name, bval == SQTrue ? _LC("true") : _LC("false"));
 					}

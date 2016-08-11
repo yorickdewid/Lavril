@@ -1,2 +1,7 @@
 *.o
 minimal
+compiler
+lvsh
+minimal
+runner
+vmext

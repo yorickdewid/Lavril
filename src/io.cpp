@@ -16,7 +16,7 @@ SQInteger lv_fread(void *buffer, SQInteger size, SQInteger count, LVFILE file) {
 	return ret;
 }
 
-SQInteger lv_fwrite(const SQUserPointer buffer, SQInteger size, SQInteger count, LVFILE file) {
+SQInteger lv_fwrite(const LVUserPointer buffer, SQInteger size, SQInteger count, LVFILE file) {
 	return (SQInteger)fwrite(buffer, size, count, (FILE *)file);
 }
 
@@ -123,7 +123,7 @@ static SQInteger _file__typeof(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _file_releasehook(SQUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static SQInteger _file_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
 	SQFile *self = (SQFile *)p;
 	self->~SQFile();
 	lv_free(self, sizeof(SQFile));
@@ -159,7 +159,7 @@ static SQInteger _file_constructor(VMHANDLE v) {
 
 static SQInteger _file_close(VMHANDLE v) {
 	SQFile *self = NULL;
-	if (LV_SUCCEEDED(lv_getinstanceup(v, 1, (SQUserPointer *)&self, (SQUserPointer)SQ_FILE_TYPE_TAG))
+	if (LV_SUCCEEDED(lv_getinstanceup(v, 1, (LVUserPointer *)&self, (LVUserPointer)SQ_FILE_TYPE_TAG))
 	        && self != NULL) {
 		self->Close();
 	}
@@ -175,7 +175,7 @@ static const SQRegFunction _file_methods[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-SQRESULT lv_createfile(VMHANDLE v, LVFILE file, SQBool own) {
+LVRESULT lv_createfile(VMHANDLE v, LVFILE file, LVBool own) {
 	SQInteger top = lv_gettop(v);
 	lv_pushregistrytable(v);
 	lv_pushstring(v, _LC("std_file"), -1);
@@ -197,9 +197,9 @@ SQRESULT lv_createfile(VMHANDLE v, LVFILE file, SQBool own) {
 	return LV_ERROR;
 }
 
-SQRESULT lv_getfile(VMHANDLE v, SQInteger idx, LVFILE *file) {
+LVRESULT lv_getfile(VMHANDLE v, SQInteger idx, LVFILE *file) {
 	SQFile *fileobj = NULL;
-	if (LV_SUCCEEDED(lv_getinstanceup(v, idx, (SQUserPointer *)&fileobj, (SQUserPointer)SQ_FILE_TYPE_TAG))) {
+	if (LV_SUCCEEDED(lv_getinstanceup(v, idx, (LVUserPointer *)&fileobj, (LVUserPointer)SQ_FILE_TYPE_TAG))) {
 		*file = fileobj->GetHandle();
 		return LV_OK;
 	}
@@ -248,14 +248,14 @@ SQInteger _read_two_bytes(IOBuffer *iobuffer) {
 	return 0;
 }
 
-static SQInteger _io_file_lexfeed_PLAIN(SQUserPointer iobuf) {
+static SQInteger _io_file_lexfeed_PLAIN(LVUserPointer iobuf) {
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	return _read_byte(iobuffer);
 
 }
 
 #ifdef LVUNICODE
-static SQInteger _io_file_lexfeed_UTF8(SQUserPointer iobuf) {
+static SQInteger _io_file_lexfeed_UTF8(LVUserPointer iobuf) {
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 #define READ(iobuf) \
 	if((inchar = (unsigned char)_read_byte(iobuf)) == 0) \
@@ -292,7 +292,7 @@ static SQInteger _io_file_lexfeed_UTF8(SQUserPointer iobuf) {
 }
 #endif
 
-static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer iobuf) {
+static SQInteger _io_file_lexfeed_UCS2_LE(LVUserPointer iobuf) {
 	SQInteger ret;
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	if ( (ret = _read_two_bytes(iobuffer)) > 0 )
@@ -300,7 +300,7 @@ static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer iobuf) {
 	return 0;
 }
 
-static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf) {
+static SQInteger _io_file_lexfeed_UCS2_BE(LVUserPointer iobuf) {
 	SQInteger c;
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	if ( (c = _read_two_bytes(iobuffer)) > 0 ) {
@@ -310,18 +310,18 @@ static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf) {
 	return 0;
 }
 
-SQInteger file_read(SQUserPointer file, SQUserPointer buf, SQInteger size) {
+SQInteger file_read(LVUserPointer file, LVUserPointer buf, SQInteger size) {
 	SQInteger ret;
 	if ((ret = lv_fread(buf, 1, size, (LVFILE)file )) != 0)
 		return ret;
 	return -1;
 }
 
-SQInteger file_write(SQUserPointer file, SQUserPointer p, SQInteger size) {
+SQInteger file_write(LVUserPointer file, LVUserPointer p, SQInteger size) {
 	return lv_fwrite(p, 1, size, (LVFILE)file);
 }
 
-SQRESULT lv_loadfile(VMHANDLE v, const SQChar *filename, SQBool printerror) {
+LVRESULT lv_loadfile(VMHANDLE v, const SQChar *filename, LVBool printerror) {
 	LVFILE file = lv_fopen(filename, _LC("rb"));
 
 	SQInteger ret;
@@ -385,7 +385,7 @@ SQRESULT lv_loadfile(VMHANDLE v, const SQChar *filename, SQBool printerror) {
 	return lv_throwerror(v, _LC("cannot open the file"));
 }
 
-SQRESULT lv_execfile(VMHANDLE v, const SQChar *filename, SQBool retval, SQBool printerror) {
+LVRESULT lv_execfile(VMHANDLE v, const SQChar *filename, LVBool retval, LVBool printerror) {
 	if (LV_SUCCEEDED(lv_loadfile(v, filename, printerror))) {
 		lv_push(v, -2);
 		if (LV_SUCCEEDED(lv_call(v, 1, retval, LVTrue))) {
@@ -397,7 +397,7 @@ SQRESULT lv_execfile(VMHANDLE v, const SQChar *filename, SQBool retval, SQBool p
 	return LV_ERROR;
 }
 
-SQRESULT lv_writeclosuretofile(VMHANDLE v, const SQChar *filename) {
+LVRESULT lv_writeclosuretofile(VMHANDLE v, const SQChar *filename) {
 	LVFILE file = lv_fopen(filename, _LC("wb+"));
 	if (!file)
 		return lv_throwerror(v, _LC("cannot open the file"));
@@ -411,7 +411,7 @@ SQRESULT lv_writeclosuretofile(VMHANDLE v, const SQChar *filename) {
 
 SQInteger _g_io_loadfile(VMHANDLE v) {
 	const SQChar *filename;
-	SQBool printerror = LVFalse;
+	LVBool printerror = LVFalse;
 	lv_getstring(v, 2, &filename);
 	if (lv_gettop(v) >= 3) {
 		lv_getbool(v, 3, &printerror);
@@ -431,7 +431,7 @@ SQInteger _g_io_writeclosuretofile(VMHANDLE v) {
 
 SQInteger _g_io_execfile(VMHANDLE v) {
 	const SQChar *filename;
-	SQBool printerror = LVFalse;
+	LVBool printerror = LVFalse;
 	lv_getstring(v, 2, &filename);
 	if (lv_gettop(v) >= 3) {
 		lv_getbool(v, 3, &printerror);
@@ -442,7 +442,7 @@ SQInteger _g_io_execfile(VMHANDLE v) {
 	return LV_ERROR; //propagates the error
 }
 
-CALLBACK SQInteger callback_loadunit(VMHANDLE v, const SQChar *sSource, SQBool printerror) {
+CALLBACK SQInteger callback_loadunit(VMHANDLE v, const SQChar *sSource, LVBool printerror) {
 	if (LV_FAILED(lv_execfile(v, sSource, LVTrue, printerror))) {
 		return LV_ERROR;
 	}
@@ -457,10 +457,10 @@ static const SQRegFunction iolib_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-SQRESULT mod_init_io(VMHANDLE v) {
+LVRESULT mod_init_io(VMHANDLE v) {
 	SQInteger top = lv_gettop(v);
 	//create delegate
-	declare_stream(v, _LC("file"), (SQUserPointer)SQ_FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
+	declare_stream(v, _LC("file"), (LVUserPointer)SQ_FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
 	lv_pushstring(v, _LC("stdout"), -1);
 	lv_createfile(v, stdout, LVFalse);
 	lv_newslot(v, -3, LVFalse);

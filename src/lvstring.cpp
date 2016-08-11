@@ -177,7 +177,7 @@ static SQInteger _string_startswith(VMHANDLE v) {
 	lv_getstring(v, 3, &cmp);
 	SQInteger len = lv_getsize(v, 2);
 	SQInteger cmplen = lv_getsize(v, 3);
-	SQBool ret = LVFalse;
+	LVBool ret = LVFalse;
 	if (cmplen <= len) {
 		ret = memcmp(str, cmp, sq_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
 	}
@@ -191,7 +191,7 @@ static SQInteger _string_endswith(VMHANDLE v) {
 	lv_getstring(v, 3, &cmp);
 	SQInteger len = lv_getsize(v, 2);
 	SQInteger cmplen = lv_getsize(v, 3);
-	SQBool ret = LVFalse;
+	LVBool ret = LVFalse;
 	if (cmplen <= len) {
 		ret = memcmp(&str[len - cmplen], cmp, sq_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
 	}
@@ -202,9 +202,9 @@ static SQInteger _string_endswith(VMHANDLE v) {
 /*#ifdef REGEX
 #define SETUP_REX(v) \
 	SQRex *self = NULL; \
-	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
+	sq_getinstanceup(v,1,(LVUserPointer *)&self,0);
 
-static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger SQ_UNUSED_ARG(size)) {
+static SQInteger _rexobj_releasehook(LVUserPointer p, SQInteger SQ_UNUSED_ARG(size)) {
 	SQRex *self = ((SQRex *)p);
 	sqstd_rex_free(self);
 	return 1;

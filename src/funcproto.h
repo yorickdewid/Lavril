@@ -70,7 +70,7 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 	                                 SQInteger nlineinfos, SQInteger nlocalvarinfos, SQInteger ndefaultparams) {
 		FunctionPrototype *f;
 		//I compact the whole class and members in a single memory allocation
-		f = (FunctionPrototype *)sq_vm_malloc(_FUNC_SIZE(ninstructions, nliterals, nparameters, nfunctions, noutervalues, nlineinfos, nlocalvarinfos, ndefaultparams));
+		f = (FunctionPrototype *)lv_vm_malloc(_FUNC_SIZE(ninstructions, nliterals, nparameters, nfunctions, noutervalues, nlineinfos, nlocalvarinfos, ndefaultparams));
 		new (f) FunctionPrototype(ss);
 		f->_ninstructions = ninstructions;
 		f->_literals = (SQObjectPtr *)&f->_instructions[ninstructions];
@@ -96,6 +96,7 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 		_CONSTRUCT_VECTOR(SQLocalVarInfo, f->_nlocalvarinfos, f->_localvarinfos);
 		return f;
 	}
+
 	void Release() {
 		_DESTRUCT_VECTOR(SQObjectPtr, _nliterals, _literals);
 		_DESTRUCT_VECTOR(SQObjectPtr, _nparameters, _parameters);
@@ -105,13 +106,13 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 		_DESTRUCT_VECTOR(SQLocalVarInfo, _nlocalvarinfos, _localvarinfos);
 		SQInteger size = _FUNC_SIZE(_ninstructions, _nliterals, _nparameters, _nfunctions, _noutervalues, _nlineinfos, _nlocalvarinfos, _ndefaultparams);
 		this->~FunctionPrototype();
-		sq_vm_free(this, size);
+		lv_vm_free(this, size);
 	}
 
 	const SQChar *GetLocal(SQVM *v, SQUnsignedInteger stackbase, SQUnsignedInteger nseq, SQUnsignedInteger nop);
 	SQInteger GetLine(SQInstruction *curr);
-	bool Save(SQVM *v, SQUserPointer up, SQWRITEFUNC write);
-	static bool Load(SQVM *v, SQUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
+	bool Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write);
+	static bool Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
 	void Finalize() {

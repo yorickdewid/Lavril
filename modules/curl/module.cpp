@@ -52,7 +52,7 @@ void register_curl_setopt(VMHANDLE v) {
 
 #define OBJECT_INSTANCE(v) \
 	LVCURLObj *self = NULL; \
-	lv_getinstanceup(v,1,(SQUserPointer *)&self, 0);
+	lv_getinstanceup(v,1,(LVUserPointer *)&self, 0);
 
 void mod_curl_free(LVCURLObj *exp) {
 	if (exp) {
@@ -74,7 +74,7 @@ static void mod_curl_error(LVCURLObj *exp, const SQChar *error) {
 	longjmp(*((jmp_buf *)exp->_jmpbuf), -1);
 }
 
-static SQInteger mod_curl_releasehook(SQUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static SQInteger mod_curl_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
 	LVCURLObj *self = ((LVCURLObj *)p);
 	mod_curl_free(self);
 	return 1;

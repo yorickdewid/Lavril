@@ -13,7 +13,7 @@ struct LVSQLITEObj {
 
 #define OBJECT_INSTANCE(v) \
 	LVSQLITEObj *self = NULL; \
-	lv_getinstanceup(v,1,(SQUserPointer *)&self, 0);
+	lv_getinstanceup(v,1,(LVUserPointer *)&self, 0);
 
 void mod_sqlite_free(LVSQLITEObj *exp) {
 	if (exp) {
@@ -30,7 +30,7 @@ static void mod_sqlite_error(LVSQLITEObj *exp, const SQChar *error) {
 	longjmp(*((jmp_buf *)exp->_jmpbuf), -1);
 }
 
-static SQInteger mod_sqlite_releasehook(SQUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static SQInteger mod_sqlite_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
 	LVSQLITEObj *self = ((LVSQLITEObj *)p);
 	mod_sqlite_free(self);
 	return 1;
@@ -102,7 +102,7 @@ static const SQRegFunction sqlitelib_funcs[] = {
 };
 #undef _DECL_SQLITE_FUNC
 
-SQRESULT mod_init_sqlite(VMHANDLE v) {
+LVRESULT mod_init_sqlite(VMHANDLE v) {
 	SQInteger i = 0;
 
 	lv_pushstring(v, _LC("sqlite"), -1);

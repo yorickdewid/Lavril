@@ -575,7 +575,7 @@ bool SQVM::StartCall(SQClosure *closure, SQInteger target, SQInteger args, SQInt
 }
 
 bool SQVM::Return(SQInteger _arg0, SQInteger _arg1, SQObjectPtr& retval) {
-	SQBool    _isroot      = ci->_root;
+	LVBool    _isroot      = ci->_root;
 	SQInteger callerbase   = _stackbase - ci->_prevstkbase;
 
 	if (_debughook) {
@@ -635,7 +635,7 @@ bool SQVM::DerefInc(SQInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObje
 #define arg3 (_i_._arg3)
 #define sarg3 ((SQInteger)*((const signed char *)&_i_._arg3))
 
-SQRESULT SQVM::Suspend() {
+LVRESULT SQVM::Suspend() {
 	if (_suspended)
 		return lv_throwerror(this, _LC("cannot suspend an already suspended vm"));
 	if (_nnativecalls != 2)
@@ -785,9 +785,9 @@ bool SQVM::IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res) {
 }
 
 bool SQVM::IsFalse(SQObjectPtr& o) {
-	if (((type(o) & SQOBJECT_CANBEFALSE)
+	if (((type(o) & OBJECT_CANBEFALSE)
 	        && ( ((type(o) == OT_FLOAT) && (_float(o) == SQFloat(0.0))) ))
-#if !defined(SQUSEDOUBLE) || (defined(SQUSEDOUBLE) && defined(_LV64))
+#if !defined(USEDOUBLE) || (defined(USEDOUBLE) && defined(_LV64))
 	        || (_integer(o) == 0) )  //OT_NULL|OT_INTEGER|OT_BOOL
 #else
 	        || (((type(o) != OT_FLOAT) && (_integer(o) == 0))) )  //OT_NULL|OT_INTEGER|OT_BOOL
@@ -799,7 +799,7 @@ bool SQVM::IsFalse(SQObjectPtr& o) {
 }
 
 extern SQInstructionDesc g_InstrDesc[];
-bool SQVM::Execute(SQObjectPtr& closure, SQInteger nargs, SQInteger stackbase, SQObjectPtr& outres, SQBool raiseerror, ExecutionType et) {
+bool SQVM::Execute(SQObjectPtr& closure, SQInteger nargs, SQInteger stackbase, SQObjectPtr& outres, LVBool raiseerror, ExecutionType et) {
 	if ((_nnativecalls + 1) > MAX_NATIVE_CALLS) {
 		Raise_Error(_LC("Native stack overflow"));
 		return false;
@@ -1820,7 +1820,7 @@ bool SQVM::DeleteSlot(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectP
 	return true;
 }
 
-bool SQVM::Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQObjectPtr& outres, SQBool raiseerror) {
+bool SQVM::Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQObjectPtr& outres, LVBool raiseerror) {
 #ifdef _DEBUG
 	SQInteger prevstackbase = _stackbase;
 #endif

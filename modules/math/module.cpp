@@ -87,7 +87,7 @@ static const SQRegFunction mathlib_funcs[] = {
 #define M_PI (3.14159265358979323846)
 #endif
 
-SQRESULT mod_init_math(VMHANDLE v) {
+LVRESULT mod_init_math(VMHANDLE v) {
 	SQInteger i = 0;
 	while (mathlib_funcs[i].name != 0) {
 		lv_pushstring(v, mathlib_funcs[i].name, -1);

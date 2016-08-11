@@ -129,7 +129,7 @@ struct SQObjectPtr;
 }
 
 #define type(obj) ((obj)._type)
-#define is_delegable(t) (type(t)&SQOBJECT_DELEGABLE)
+#define is_delegable(t) (type(t) & OBJECT_DELEGABLE)
 #define raw_type(obj) _RAW_TYPE((obj)._type)
 
 #define _integer(obj) ((obj)._unVal.nInteger)
@@ -153,13 +153,12 @@ struct SQObjectPtr;
 #define _rawval(obj) ((obj)._unVal.raw)
 
 #define _stringval(obj) (obj)._unVal.pString->_val
-#define _userdataval(obj) ((SQUserPointer)sq_aligning((obj)._unVal.pUserData + 1))
+#define _userdataval(obj) ((LVUserPointer)sq_aligning((obj)._unVal.pUserData + 1))
 
 #define tofloat(num) ((type(num)==OT_INTEGER)?(SQFloat)_integer(num):_float(num))
 #define tointeger(num) ((type(num)==OT_FLOAT)?(SQInteger)_float(num):_integer(num))
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-#if defined(SQUSEDOUBLE) && !defined(_SQ64) || !defined(SQUSEDOUBLE) && defined(_LV64)
+
+#if defined(USEDOUBLE) && !defined(_SQ64) || !defined(USEDOUBLE) && defined(_LV64)
 #define SQ_REFOBJECT_INIT() SQ_OBJECT_RAWINIT()
 #else
 #define SQ_REFOBJECT_INIT()
@@ -239,7 +238,7 @@ struct SQObjectPtr : public SQObject {
 
 	_SCALAR_TYPE_DECL(OT_INTEGER, SQInteger, nInteger)
 	_SCALAR_TYPE_DECL(OT_FLOAT, SQFloat, fFloat)
-	_SCALAR_TYPE_DECL(OT_USERPOINTER, SQUserPointer, pUserPointer)
+	_SCALAR_TYPE_DECL(OT_USERPOINTER, LVUserPointer, pUserPointer)
 
 	SQObjectPtr(bool bBool) {
 		SQ_OBJECT_RAWINIT()

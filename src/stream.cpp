@@ -3,14 +3,14 @@
 
 #define SETUP_STREAM(v) \
 	SQStream *self = NULL; \
-	if(LV_FAILED(lv_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQ_STREAM_TYPE_TAG))) \
+	if(LV_FAILED(lv_getinstanceup(v,1,(LVUserPointer*)&self,(LVUserPointer)SQ_STREAM_TYPE_TAG))) \
 		return lv_throwerror(v,_LC("invalid type tag")); \
 	if(!self || !self->IsValid())  \
 		return lv_throwerror(v,_LC("the stream is invalid"));
 
 SQInteger _stream_readblob(VMHANDLE v) {
 	SETUP_STREAM(v);
-	SQUserPointer data, blobp;
+	LVUserPointer data, blobp;
 	SQInteger size, res;
 	lv_getinteger(v, 2, &size);
 	if (size > self->Len()) {
@@ -90,7 +90,7 @@ SQInteger _stream_readn(VMHANDLE v) {
 }
 
 SQInteger _stream_writeblob(VMHANDLE v) {
-	SQUserPointer data;
+	LVUserPointer data;
 	SQInteger size;
 	SETUP_STREAM(v);
 	if (LV_FAILED(lv_getblob(v, 2, &data)))
@@ -249,7 +249,7 @@ void init_streamclass(VMHANDLE v) {
 	if (LV_FAILED(lv_get(v, -2))) {
 		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_newclass(v, LVFalse);
-		lv_settypetag(v, -1, (SQUserPointer)SQ_STREAM_TYPE_TAG);
+		lv_settypetag(v, -1, (LVUserPointer)SQ_STREAM_TYPE_TAG);
 		SQInteger i = 0;
 		while (_stream_methods[i].name != 0) {
 			const SQRegFunction& f = _stream_methods[i];
@@ -272,7 +272,7 @@ void init_streamclass(VMHANDLE v) {
 	lv_pop(v, 1);
 }
 
-SQRESULT declare_stream(VMHANDLE v, const SQChar *name, SQUserPointer typetag, const SQChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals) {
+LVRESULT declare_stream(VMHANDLE v, const SQChar *name, LVUserPointer typetag, const SQChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals) {
 	if (lv_gettype(v, -1) != OT_TABLE)
 		return lv_throwerror(v, _LC("table expected"));
 	SQInteger top = lv_gettop(v);

@@ -45,7 +45,7 @@ void error_func(VMHANDLE v, const SQChar *s, ...) {
 // 		lv_pushinteger(v, n);
 // 		lv_pushfloat(v, f);
 // 		lv_pushstring(v, s, -1);
-// 		lv_call(v, 4, SQFalse, SQTrue);
+// 		lv_call(v, 4, LVFalse, LVTrue);
 // 	}
 
 // 	/* Restore the original stack size */
@@ -99,19 +99,19 @@ int main(int argc, char *argv[]) {
 	// Function
 	lv_pushstring(v, _LC("kaas"), -1);
 	lv_newclosure(v, kaas, 0); //create a new function
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 
 	// Static var
 	lv_pushstring(v, _LC("WOEI"), -1);
 	lv_pushinteger(v, 17);
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 
 	// Function ex
 	lv_pushstring(v, _LC("kaas_ex"), -1);
 	lv_newclosure(v, kaas_ex, 0);
 	lv_setparamscheck(v, 0, NULL);
 	lv_setnativeclosurename(v, -1, _LC("kaas_ex"));
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 
 	// New table
 	// lv_newtable(v);
@@ -126,16 +126,16 @@ int main(int argc, char *argv[]) {
 
 	//////////////////////////////
 	lv_pushstring(v, _LC("troll"), -1);
-	lv_newclass(v, SQFalse);
+	lv_newclass(v, LVFalse);
 
 	lv_pushstring(v, _LC("method"), -1);
 	lv_newclosure(v, method, 0);
 	lv_setparamscheck(v, 0, NULL);
 	lv_setnativeclosurename(v, -1, _LC("method"));
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_stackdump(v);
 
-	lv_newslot(v, -3, SQFalse);
+	lv_newslot(v, -3, LVFalse);
 	lv_poptop(v);
 
 
@@ -147,24 +147,24 @@ int main(int argc, char *argv[]) {
 	lv_pushstring(v, _LC("std_stream"), -1);
 	if (LV_FAILED(lv_get(v, -2))) {
 		lv_pushstring(v, _LC("std_stream"), -1);
-		lv_newclass(v, SQFalse);
-		lv_settypetag(v, -1, (SQUserPointer)SQ_STREAM_TYPE_TAG);
+		lv_newclass(v, LVFalse);
+		lv_settypetag(v, -1, (LVUserPointer)SQ_STREAM_TYPE_TAG);
 		SQInteger i = 0;
 		while (_stream_methods[i].name != 0) {
 			const SQRegFunction& f = _stream_methods[i];
 			lv_pushstring(v, f.name, -1);
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);
-			lv_newslot(v, -3, SQFalse);
+			lv_newslot(v, -3, LVFalse);
 			i++;
 		}
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 
 		lv_pushroottable(v);
 		lv_pushstring(v, _LC("stream"), -1);
 		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_get(v, -4);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pop(v, 1);
 	} else {
 		lv_pop(v, 1); //result
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
 	lv_pushstring(v, _LC("ace_troll"), -1);
 	lv_pushstring(v, _LC("std_stream"), -1);
 	if (LV_SUCCEEDED(lv_get(v, -3))) {
-		lv_newclass(v, SQTrue);
+		lv_newclass(v, LVTrue);
 		lv_settypetag(v, -1, 1/*tag*/);
 
 		// SQInteger i = 0;
@@ -186,11 +186,11 @@ int main(int argc, char *argv[]) {
 		lv_newclosure(v, method, 0);
 		lv_setparamscheck(v, 0, NULL);
 		lv_setnativeclosurename(v, -1, "method");
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		// i++;
 		// }
 
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 		lv_pop(v, 1); // pop registry
 
 		// i = 0;
@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
 		// lv_newclosure(v, f.f, 0);
 		// lv_setparamscheck(v, f.nparamscheck, f.typemask);
 		// lv_setnativeclosurename(v, -1, f.name);
-		// lv_newslot(v, -3, SQFalse);
+		// lv_newslot(v, -3, LVFalse);
 
 		// i++;
 		// }
@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
 		lv_pushstring(v, _LC("ace_troll"), -1);
 		lv_get(v, -2);
 		lv_remove(v, -2);
-		lv_newslot(v, -3, SQFalse);
+		lv_newslot(v, -3, LVFalse);
 
 		// lv_settop(v, top);
 		// return LV_OK;
@@ -230,16 +230,16 @@ int main(int argc, char *argv[]) {
 
 	SQInteger _retval = 0;
 	SQInteger sz = scstrlen(statement);
-	if (LV_SUCCEEDED(lv_compilebuffer(v, statement, sz, _LC("vmext"), SQTrue))) {
+	if (LV_SUCCEEDED(lv_compilebuffer(v, statement, sz, _LC("vmext"), LVTrue))) {
 		lv_pushroottable(v);
-		if (LV_SUCCEEDED(lv_call(v, 1, _retval, SQTrue)) && _retval) {
+		if (LV_SUCCEEDED(lv_call(v, 1, _retval, LVTrue)) && _retval) {
 			// scprintf(_LC("\n"));
 			// lv_pushroottable(v);
 			// lv_pushstring(v, _LC("print"), -1);
 			// lv_get(v, -2);
 			// lv_pushroottable(v);
 			// lv_push(v, -4);
-			// lv_call(v, 2, SQFalse, SQTrue);
+			// lv_call(v, 2, LVFalse, LVTrue);
 			// _retval = 0;
 			// scprintf(_LC("\n"));
 		}

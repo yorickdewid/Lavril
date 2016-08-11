@@ -72,5 +72,5 @@ struct SQVM;
 #define TK_INCLUDE 325
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);
-bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo);
+bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, LVUserPointer up, const SQChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo);
 #endif // _COMPILER_H_

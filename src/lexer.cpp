@@ -8,7 +8,7 @@
 
 #define CUR_CHAR (_currdata)
 #define RETURN_TOKEN(t) { _prevtoken = _curtoken; _curtoken = t; return t;}
-#define IS_EOB() (CUR_CHAR <= SQUIRREL_EOB)
+#define IS_EOB() (CUR_CHAR <= LAVRIL_EOB)
 #define NEXT() {Next();_currentcolumn++;}
 #define INIT_TEMP_STRING() { _longstr.resize(0);}
 #define APPEND_CHAR(c) { _longstr.push_back(c);}
@@ -21,7 +21,7 @@ LVLexer::~LVLexer() {
 	_keywords->Release();
 }
 
-void LVLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up, CompilerErrorFunc efunc, void *ed) {
+void LVLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, LVUserPointer up, CompilerErrorFunc efunc, void *ed) {
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
@@ -88,7 +88,7 @@ void LVLexer::Next() {
 		_currdata = (LexChar)t;
 		return;
 	}
-	_currdata = SQUIRREL_EOB;
+	_currdata = LAVRIL_EOB;
 	_reached_eof = LVTrue;
 }
 
@@ -119,7 +119,7 @@ void LVLexer::LexBlockComment() {
 				_currentline++;
 				NEXT();
 				continue;
-			case SQUIRREL_EOB:
+			case LAVRIL_EOB:
 				Error(_LC("missing \"*/\" in comment"));
 			default:
 				NEXT();
@@ -134,7 +134,7 @@ void LVLexer::LexLineComment() {
 
 SQInteger LVLexer::Lex() {
 	_lasttokenline = _currentline;
-	while (CUR_CHAR != SQUIRREL_EOB) {
+	while (CUR_CHAR != LAVRIL_EOB) {
 		switch (CUR_CHAR) {
 			case _LC('\t'):
 			case _LC('\r'):
@@ -327,7 +327,7 @@ SQInteger LVLexer::Lex() {
 					NEXT();
 					RETURN_TOKEN(TK_PLUSPLUS);
 				} else RETURN_TOKEN('+');
-			case SQUIRREL_EOB:
+			case LAVRIL_EOB:
 				return 0;
 			default: {
 				if (scisdigit(CUR_CHAR)) {
@@ -422,7 +422,7 @@ SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim) {
 		while (CUR_CHAR != ndelim) {
 			SQInteger x = CUR_CHAR;
 			switch (x) {
-				case SQUIRREL_EOB:
+				case LAVRIL_EOB:
 					Error(_LC("unfinished string"));
 					return -1;
 				case _LC('\n'):

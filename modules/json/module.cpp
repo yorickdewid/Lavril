@@ -650,7 +650,7 @@ static const SQRegFunction jsonlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQRESULT mod_init_json(VMHANDLE v) {
+LVRESULT mod_init_json(VMHANDLE v) {
 	SQInteger i = 0;
 	while (jsonlib_funcs[i].name != 0) {
 		lv_pushstring(v, jsonlib_funcs[i].name, -1);

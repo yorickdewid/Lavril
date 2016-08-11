@@ -34,7 +34,7 @@ struct RefTable {
 	RefTable();
 	~RefTable();
 	void AddRef(SQObject& obj);
-	SQBool Release(SQObject& obj);
+	LVBool Release(SQObject& obj);
 	SQUnsignedInteger GetRefCount(SQObject& obj);
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
@@ -111,7 +111,7 @@ struct SQSharedState {
 	SQPRINTFUNCTION _errorfunc;
 	bool _debuginfo;
 	bool _notifyallexceptions;
-	SQUserPointer _foreignptr;
+	LVUserPointer _foreignptr;
 	SQRELEASEHOOK _releasehook;
 
   private:

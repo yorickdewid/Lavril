@@ -73,7 +73,7 @@ static const SQRegFunction cryptolib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQRESULT mod_init_crypto(VMHANDLE v) {
+LVRESULT mod_init_crypto(VMHANDLE v) {
 	SQInteger i = 0;
 	while (cryptolib_funcs[i].name != 0) {
 		lv_pushstring(v, cryptolib_funcs[i].name, -1);

@@ -105,7 +105,7 @@ struct SQBlob : public SQStream {
 	SQInteger Len() {
 		return _size;
 	}
-	SQUserPointer GetBuf() {
+	LVUserPointer GetBuf() {
 		return _buf;
 	}
 
@@ -119,7 +119,7 @@ struct SQBlob : public SQStream {
 
 #define SETUP_BLOB(v) \
 	SQBlob *self = NULL; \
-	{ if(LV_FAILED(lv_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQ_BLOB_TYPE_TAG))) \
+	{ if(LV_FAILED(lv_getinstanceup(v,1,(LVUserPointer*)&self,(LVUserPointer)SQ_BLOB_TYPE_TAG))) \
 		return lv_throwerror(v,_LC("invalid type tag"));  } \
 	if(!self || !self->IsValid())  \
 		return lv_throwerror(v,_LC("the blob is invalid"));
@@ -210,7 +210,7 @@ static SQInteger _blob__typeof(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _blob_releasehook(SQUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static SQInteger _blob_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
 	SQBlob *self = (SQBlob *)p;
 	self->~SQBlob();
 	lv_free(self, sizeof(SQBlob));
@@ -239,7 +239,7 @@ static SQInteger _blob_constructor(VMHANDLE v) {
 static SQInteger _blob__cloned(VMHANDLE v) {
 	SQBlob *other = NULL;
 	{
-		if (LV_FAILED(lv_getinstanceup(v, 2, (SQUserPointer *)&other, (SQUserPointer)SQ_BLOB_TYPE_TAG)))
+		if (LV_FAILED(lv_getinstanceup(v, 2, (LVUserPointer *)&other, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
 			return LV_ERROR;
 	}
 	//SQBlob *thisone = new SQBlob(other->Len());
@@ -319,9 +319,9 @@ static const SQRegFunction bloblib_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-SQRESULT lv_getblob(VMHANDLE v, SQInteger idx, SQUserPointer *ptr) {
+LVRESULT lv_getblob(VMHANDLE v, SQInteger idx, LVUserPointer *ptr) {
 	SQBlob *blob;
-	if (LV_FAILED(lv_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG)))
+	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
 		return -1;
 	*ptr = blob->GetBuf();
 	return LV_OK;
@@ -329,12 +329,12 @@ SQRESULT lv_getblob(VMHANDLE v, SQInteger idx, SQUserPointer *ptr) {
 
 SQInteger lv_getblobsize(VMHANDLE v, SQInteger idx) {
 	SQBlob *blob;
-	if (LV_FAILED(lv_getinstanceup(v, idx, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG)))
+	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
 		return -1;
 	return blob->Len();
 }
 
-SQUserPointer lv_createblob(VMHANDLE v, SQInteger size) {
+LVUserPointer lv_createblob(VMHANDLE v, SQInteger size) {
 	SQInteger top = lv_gettop(v);
 	lv_pushregistrytable(v);
 	lv_pushstring(v, _LC("std_blob"), -1);
@@ -344,7 +344,7 @@ SQUserPointer lv_createblob(VMHANDLE v, SQInteger size) {
 		lv_pushinteger(v, size); //size
 		SQBlob *blob = NULL;
 		if (LV_SUCCEEDED(lv_call(v, 2, LVTrue, LVFalse))
-		        && LV_SUCCEEDED(lv_getinstanceup(v, -1, (SQUserPointer *)&blob, (SQUserPointer)SQ_BLOB_TYPE_TAG))) {
+		        && LV_SUCCEEDED(lv_getinstanceup(v, -1, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG))) {
 			lv_remove(v, -2);
 			return blob->GetBuf();
 		}
@@ -353,6 +353,6 @@ SQUserPointer lv_createblob(VMHANDLE v, SQInteger size) {
 	return NULL;
 }
 
-SQRESULT mod_init_blob(VMHANDLE v) {
-	return declare_stream(v, _LC("blob"), (SQUserPointer)SQ_BLOB_TYPE_TAG, _LC("std_blob"), _blob_methods, bloblib_funcs);
+LVRESULT mod_init_blob(VMHANDLE v) {
+	return declare_stream(v, _LC("blob"), (LVUserPointer)SQ_BLOB_TYPE_TAG, _LC("std_blob"), _blob_methods, bloblib_funcs);
 }

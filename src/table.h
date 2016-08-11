@@ -43,7 +43,7 @@ struct SQTable : public SQDelegable {
 
   public:
 	static SQTable *Create(SQSharedState *ss, SQInteger nInitialSize) {
-		SQTable *newtable = (SQTable *)SQ_MALLOC(sizeof(SQTable));
+		SQTable *newtable = (SQTable *)LV_MALLOC(sizeof(SQTable));
 		new (newtable) SQTable(ss, nInitialSize);
 		newtable->_delegate = NULL;
 		return newtable;
@@ -55,7 +55,7 @@ struct SQTable : public SQDelegable {
 		REMOVE_FROM_CHAIN(&_sharedstate->_gc_chain, this);
 		for (SQInteger i = 0; i < _numofnodes; i++)
 			_nodes[i].~_HashNode();
-		SQ_FREE(_nodes, _numofnodes * sizeof(_HashNode));
+		LV_FREE(_nodes, _numofnodes * sizeof(_HashNode));
 	}
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);

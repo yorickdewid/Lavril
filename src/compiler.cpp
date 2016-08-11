@@ -69,7 +69,7 @@ struct SQScope {
 
 class LVCompiler {
   public:
-	LVCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, bool raiseerror, bool lineinfo) {
+	LVCompiler(SQVM *v, SQLEXREADFUNC rg, LVUserPointer up, const SQChar *sourcename, bool raiseerror, bool lineinfo) {
 		_vm = v;
 		_lex.Init(_ss(v), rg, up, ThrowError, this);
 		_sourcename = SQString::Create(_ss(v), sourcename);
@@ -148,7 +148,7 @@ class LVCompiler {
 	}
 
 	bool IsEndOfStatement() {
-		return ((_lex._prevtoken == _LC('\n')) || (_token == SQUIRREL_EOB) || (_token == _LC('}')) || (_token == _LC(';')));
+		return ((_lex._prevtoken == _LC('\n')) || (_token == LAVRIL_EOB) || (_token == _LC('}')) || (_token == _LC(';')));
 	}
 
 	void OptionalSemicolon() {
@@ -1812,7 +1812,7 @@ class LVCompiler {
 	SQVM *_vm;
 };
 
-bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo) {
+bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, LVUserPointer up, const SQChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo) {
 	LVCompiler compiler(vm, rg, up, sourcename, raiseerror, lineinfo);
 	return compiler.StartCompiler(out);
 }

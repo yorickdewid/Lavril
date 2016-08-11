@@ -52,7 +52,7 @@ struct SQVM : public CHAINABLE_OBJ {
 		SQInt32 _prevtop;
 		SQInt32 _target;
 		SQInt32 _ncalls;
-		SQBool _root;
+		LVBool _root;
 	};
 
 	typedef sqvector<CallInfo> CallInfoVec;
@@ -63,15 +63,15 @@ struct SQVM : public CHAINABLE_OBJ {
 	SQVM(SQSharedState *ss);
 	~SQVM();
 	bool Init(SQVM *friendvm, SQInteger stacksize);
-	bool Execute(SQObjectPtr& func, SQInteger nargs, SQInteger stackbase, SQObjectPtr& outres, SQBool raiseerror, ExecutionType et = ET_CALL);
+	bool Execute(SQObjectPtr& func, SQInteger nargs, SQInteger stackbase, SQObjectPtr& outres, LVBool raiseerror, ExecutionType et = ET_CALL);
 	//starts a native call return when the NATIVE closure returns
 	bool CallNative(SQNativeClosure *nclosure, SQInteger nargs, SQInteger newbase, SQObjectPtr& retval, bool& suspend);
 	//starts a SQUIRREL call in the same "Execution loop"
 	bool StartCall(SQClosure *closure, SQInteger target, SQInteger nargs, SQInteger stackbase, bool tailcall);
 	bool CreateClassInstance(SQClass *theclass, SQObjectPtr& inst, SQObjectPtr& constructor);
 	//call a generic closure pure SQUIRREL or NATIVE
-	bool Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQObjectPtr& outres, SQBool raiseerror);
-	SQRESULT Suspend();
+	bool Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQObjectPtr& outres, LVBool raiseerror);
+	LVRESULT Suspend();
 
 	void CallDebugHook(SQInteger type, SQInteger forcedline = 0);
 	void CallErrorHandler(SQObjectPtr& e);
@@ -178,7 +178,7 @@ struct SQVM : public CHAINABLE_OBJ {
 
 	ExceptionsTraps _etraps;
 	CallInfo *ci;
-	SQUserPointer _foreignptr;
+	LVUserPointer _foreignptr;
 
 	/* VMs sharing the same state */
 	SQSharedState *_sharedstate;
@@ -187,8 +187,8 @@ struct SQVM : public CHAINABLE_OBJ {
 	SQRELEASEHOOK _releasehook;
 
 	/* Suspend infos */
-	SQBool _suspended;
-	SQBool _suspended_root;
+	LVBool _suspended;
+	LVBool _suspended_root;
 	SQInteger _suspended_target;
 	SQInteger _suspended_traps;
 };

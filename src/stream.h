@@ -24,5 +24,5 @@ SQInteger _stream_eos(VMHANDLE v);
 SQInteger _stream_flush(VMHANDLE v);
 
 #define _DECL_STREAM_FUNC(name,nparams,typecheck) {_LC(#name),_stream_##name,nparams,typecheck}
-SQRESULT declare_stream(VMHANDLE v, const SQChar *name, SQUserPointer typetag, const SQChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals);
+LVRESULT declare_stream(VMHANDLE v, const SQChar *name, LVUserPointer typetag, const SQChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals);
 #endif // _STREAM_H_

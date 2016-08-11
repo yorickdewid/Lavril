@@ -36,7 +36,7 @@ int MemAllocHook(int allocType, void *userData, size_t size, int blockType,
 
 SQInteger quit(VMHANDLE v) {
 	int *done;
-	lv_getuserpointer(v, -1, (SQUserPointer *)&done);
+	lv_getuserpointer(v, -1, (LVUserPointer *)&done);
 	*done = 1;
 	return 0;
 }

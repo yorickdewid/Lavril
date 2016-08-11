@@ -23,14 +23,13 @@ typedef unsigned int SQHash; /*should be the same size of a pointer*/
 #define LVFORMATINT3 "%03d"
 #endif
 
-
-#ifdef SQUSEDOUBLE
+#ifdef USEDOUBLE
 typedef double SQFloat;
 #else
 typedef float SQFloat;
 #endif
 
-#if defined(SQUSEDOUBLE) && !defined(_LV64) || !defined(SQUSEDOUBLE) && defined(_LV64)
+#if defined(USEDOUBLE) && !defined(_LV64) || !defined(USEDOUBLE) && defined(_LV64)
 #ifdef _MSC_VER
 typedef __int64 SQRawObjectVal; //must be 64bits
 #else
@@ -42,17 +41,17 @@ typedef SQUnsignedInteger SQRawObjectVal; //is 32 bits on 32 bits builds and 64 
 #define SQ_OBJECT_RAWINIT()
 #endif
 
-#ifndef SQ_ALIGNMENT // SQ_ALIGNMENT shall be less than or equal to SQ_MALLOC alignments, and its value shall be power of 2.
-#if defined(SQUSEDOUBLE) || defined(_LV64)
+#ifndef SQ_ALIGNMENT // SQ_ALIGNMENT shall be less than or equal to LV_MALLOC alignments, and its value shall be power of 2.
+#if defined(USEDOUBLE) || defined(_LV64)
 #define SQ_ALIGNMENT 8
 #else
 #define SQ_ALIGNMENT 4
 #endif
 #endif
 
-typedef void *SQUserPointer;
-typedef SQUnsignedInteger SQBool;
-typedef SQInteger SQRESULT;
+typedef void *LVUserPointer;
+typedef SQUnsignedInteger LVBool;
+typedef SQInteger LVRESULT;
 
 #ifdef LVUNICODE
 #include <wchar.h>
@@ -65,7 +64,7 @@ typedef wchar_t SQChar;
 #define scsprintf   _snwprintf
 #else
 #define scsprintf   swprintf
-#endif
+#endif // _WIN32
 #define scstrlen    wcslen
 #define scstrcpy    wcscpy
 #define scstrcat    wcscat
@@ -74,7 +73,7 @@ typedef wchar_t SQChar;
 #define scstrtol    wcstoll
 #else
 #define scstrtol    wcstol
-#endif
+#endif // _LV64
 #define scstrtoul   wcstoul
 #define scvsprintf  vswprintf
 #define scstrstr    wcsstr
@@ -88,7 +87,7 @@ typedef wchar_t SQChar;
 #define WCHAR_SIZE 4
 #define WCHAR_SHIFT_MUL 2
 #define MAX_CHAR 0xFFFFFFFF
-#endif
+#endif // _WIN32
 
 #define _LC(a) L##a
 
@@ -110,7 +109,7 @@ typedef char SQChar;
 #define scsprintf   _snprintf
 #else
 #define scsprintf   snprintf
-#endif
+#endif // _MSC_VER
 #define scstrlen    strlen
 #define scstrcpy    strcpy
 #define scstrcat    strcat
@@ -120,10 +119,10 @@ typedef char SQChar;
 #define scstrtol    _strtoi64
 #else
 #define scstrtol    strtoll
-#endif
+#endif // _MSC_VER
 #else
 #define scstrtol    strtol
-#endif
+#endif // _LV64
 #define scstrtoul   strtoul
 #define scvsprintf  vsnprintf
 #define scstrstr    strstr
@@ -139,11 +138,11 @@ typedef char SQChar;
 
 #define sq_rsl(l) (l)
 
-#endif
+#endif // LVUNICODE
 
 #ifdef _LV64
 #define _PRINT_INT_PREC _LC("ll")
 #define _PRINT_INT_FMT _LC("%lld")
 #else
 #define _PRINT_INT_FMT _LC("%d")
-#endif
+#endif // _LV64

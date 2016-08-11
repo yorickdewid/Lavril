@@ -10,7 +10,7 @@ typedef unsigned char LexChar;
 struct LVLexer {
 	LVLexer();
 	~LVLexer();
-	void Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up, CompilerErrorFunc efunc, void *ed);
+	void Init(SQSharedState *ss, SQLEXREADFUNC rg, LVUserPointer up, CompilerErrorFunc efunc, void *ed);
 	void Error(const SQChar *err);
 	SQInteger Lex();
 	const SQChar *Tok2Str(SQInteger tok);
@@ -33,7 +33,7 @@ struct LVLexer {
 	SQInteger ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits);
 	SQInteger _curtoken;
 	SQTable *_keywords;
-	SQBool _reached_eof;
+	LVBool _reached_eof;
 
   public:
 	SQInteger _prevtoken;
@@ -44,7 +44,7 @@ struct LVLexer {
 	SQInteger _nvalue;
 	SQFloat _fvalue;
 	SQLEXREADFUNC _readf;
-	SQUserPointer _up;
+	LVUserPointer _up;
 	LexChar _currdata;
 	SQSharedState *_sharedstate;
 	sqvector<SQChar> _longstr;

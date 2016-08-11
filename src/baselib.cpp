@@ -39,7 +39,7 @@ static bool str2num(const SQChar *s, SQObjectPtr& res, SQInteger base) {
 #define MAX_WFORMAT_LEN 3
 #define ADDITIONAL_FORMAT_SPACE (100*sizeof(SQChar))
 
-static SQBool isfmtchr(SQChar ch) {
+static LVBool isfmtchr(SQChar ch) {
 	switch (ch) {
 		case '-':
 		case '+':
@@ -96,7 +96,7 @@ static SQInteger validate_format(VMHANDLE v, SQChar *fmt, const SQChar *src, SQI
 	return n;
 }
 
-SQRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQChar **output) {
+LVRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQChar **output) {
 	const SQChar *format;
 	SQChar *dest;
 	SQChar fmt[MAX_FORMAT_LEN];
@@ -1033,7 +1033,7 @@ static SQInteger closure_call(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, LVTrue, LVTrue)) ? 1 : LV_ERROR;
 }
 
-static SQInteger _closure_acall(VMHANDLE v, SQBool raiseerror) {
+static SQInteger _closure_acall(VMHANDLE v, LVBool raiseerror) {
 	SQArray *aparams = _array(stack_get(v, 2));
 	SQInteger nparams = aparams->Size();
 	v->Push(stack_get(v, 1));
@@ -1219,7 +1219,7 @@ static SQInteger thread_wakeupthrow(VMHANDLE v) {
 
 		lv_move(thread, v, 2);
 		lv_throwobject(thread);
-		SQBool rethrow_error = LVTrue;
+		LVBool rethrow_error = LVTrue;
 		if (lv_gettop(v) > 2) {
 			lv_getbool(v, 3, &rethrow_error);
 		}
@@ -1266,7 +1266,7 @@ static SQInteger thread_getstackinfos(VMHANDLE v) {
 		SQInteger threadtop = lv_gettop(thread);
 		SQInteger level;
 		lv_getinteger(v, -1, &level);
-		SQRESULT res = __getcallstackinfos(thread, level);
+		LVRESULT res = __getcallstackinfos(thread, level);
 		if (LV_FAILED(res)) {
 			lv_settop(thread, threadtop);
 			if (type(thread->_lasterror) == OT_STRING) {
@@ -1318,7 +1318,7 @@ static SQInteger class_getbase(VMHANDLE v) {
 
 static SQInteger class_newmember(VMHANDLE v) {
 	SQInteger top = lv_gettop(v);
-	SQBool bstatic = LVFalse;
+	LVBool bstatic = LVFalse;
 	if (top == 5) {
 		lv_tobool(v, -1, &bstatic);
 		lv_pop(v, 1);
@@ -1332,7 +1332,7 @@ static SQInteger class_newmember(VMHANDLE v) {
 
 static SQInteger class_rawnewmember(VMHANDLE v) {
 	SQInteger top = lv_gettop(v);
-	SQBool bstatic = LVFalse;
+	LVBool bstatic = LVFalse;
 	if (top == 5) {
 		lv_tobool(v, -1, &bstatic);
 		lv_pop(v, 1);

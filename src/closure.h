@@ -20,7 +20,7 @@ struct SQClosure : public CHAINABLE_OBJ {
   public:
 	static SQClosure *Create(SQSharedState *ss, FunctionPrototype *func, SQWeakRef *root) {
 		SQInteger size = _CALC_CLOSURE_SIZE(func);
-		SQClosure *nc = (SQClosure *)SQ_MALLOC(size);
+		SQClosure *nc = (SQClosure *)LV_MALLOC(size);
 		new (nc) SQClosure(ss, func);
 		nc->_outervalues = (SQObjectPtr *)(nc + 1);
 		nc->_defaultparams = &nc->_outervalues[func->_noutervalues];
@@ -38,7 +38,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 		_DESTRUCT_VECTOR(SQObjectPtr, f->_ndefaultparams, _defaultparams);
 		__ObjRelease(_function);
 		this->~SQClosure();
-		sq_vm_free(this, size);
+		lv_vm_free(this, size);
 	}
 
 	void SetRoot(SQWeakRef *r) {
@@ -59,8 +59,8 @@ struct SQClosure : public CHAINABLE_OBJ {
 
 	~SQClosure();
 
-	bool Save(SQVM *v, SQUserPointer up, SQWRITEFUNC write);
-	static bool Load(SQVM *v, SQUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
+	bool Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write);
+	static bool Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
 
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
@@ -96,7 +96,7 @@ struct SQOuter : public CHAINABLE_OBJ {
 
   public:
 	static SQOuter *Create(SQSharedState *ss, SQObjectPtr *outer) {
-		SQOuter *nc  = (SQOuter *)SQ_MALLOC(sizeof(SQOuter));
+		SQOuter *nc  = (SQOuter *)LV_MALLOC(sizeof(SQOuter));
 		new (nc) SQOuter(ss, outer);
 		return nc;
 	}
@@ -106,7 +106,7 @@ struct SQOuter : public CHAINABLE_OBJ {
 
 	void Release() {
 		this->~SQOuter();
-		sq_vm_free(this, sizeof(SQOuter));
+		lv_vm_free(this, sizeof(SQOuter));
 	}
 
 #ifndef NO_GARBAGE_COLLECTOR
@@ -143,7 +143,7 @@ struct SQGenerator : public CHAINABLE_OBJ {
 	}
   public:
 	static SQGenerator *Create(SQSharedState *ss, SQClosure *closure) {
-		SQGenerator *nc = (SQGenerator *)SQ_MALLOC(sizeof(SQGenerator));
+		SQGenerator *nc = (SQGenerator *)LV_MALLOC(sizeof(SQGenerator));
 		new (nc) SQGenerator(ss, closure);
 		return nc;
 	}
@@ -193,7 +193,7 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
   public:
 	static SQNativeClosure *Create(SQSharedState *ss, SQFUNCTION func, SQInteger nouters) {
 		SQInteger size = _CALC_NATVIVECLOSURE_SIZE(nouters);
-		SQNativeClosure *nc = (SQNativeClosure *)SQ_MALLOC(size);
+		SQNativeClosure *nc = (SQNativeClosure *)LV_MALLOC(size);
 		new (nc) SQNativeClosure(ss, func);
 		nc->_outervalues = (SQObjectPtr *)(nc + 1);
 		nc->_noutervalues = nouters;

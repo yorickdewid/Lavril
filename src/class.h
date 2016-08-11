@@ -29,7 +29,7 @@ struct SQClass : public CHAINABLE_OBJ {
 
   public:
 	static SQClass *Create(SQSharedState *ss, SQClass *base) {
-		SQClass *newclass = (SQClass *)SQ_MALLOC(sizeof(SQClass));
+		SQClass *newclass = (SQClass *)LV_MALLOC(sizeof(SQClass));
 		new (newclass) SQClass(ss, base);
 		return newclass;
 	}
@@ -91,7 +91,7 @@ struct SQClass : public CHAINABLE_OBJ {
 	SQClassMemberVec _methods;
 	SQObjectPtr _metamethods[MT_LAST];
 	SQObjectPtr _attributes;
-	SQUserPointer _typetag;
+	LVUserPointer _typetag;
 	SQRELEASEHOOK _hook;
 	bool _locked;
 	SQInteger _constructoridx;
@@ -109,7 +109,7 @@ struct SQInstance : public SQDelegable {
   public:
 	static SQInstance *Create(SQSharedState *ss, SQClass *theclass) {
 		SQInteger size = calcinstancesize(theclass);
-		SQInstance *newinst = (SQInstance *)SQ_MALLOC(size);
+		SQInstance *newinst = (SQInstance *)LV_MALLOC(size);
 		new (newinst) SQInstance(ss, theclass, size);
 		if (theclass->_udsize) {
 			newinst->_userpointer = ((unsigned char *)newinst) + (size - theclass->_udsize);
@@ -119,7 +119,7 @@ struct SQInstance : public SQDelegable {
 
 	SQInstance *Clone(SQSharedState *ss) {
 		SQInteger size = calcinstancesize(_class);
-		SQInstance *newinst = (SQInstance *)SQ_MALLOC(size);
+		SQInstance *newinst = (SQInstance *)LV_MALLOC(size);
 		new (newinst) SQInstance(ss, this, size);
 		if (_class->_udsize) {
 			newinst->_userpointer = ((unsigned char *)newinst) + (size - _class->_udsize);
@@ -160,7 +160,7 @@ struct SQInstance : public SQDelegable {
 		if (_uiRef > 0) return;
 		SQInteger size = _memsize;
 		this->~SQInstance();
-		SQ_FREE(this, size);
+		LV_FREE(this, size);
 	}
 
 	void Finalize();
@@ -177,7 +177,7 @@ struct SQInstance : public SQDelegable {
 	bool GetMetaMethod(SQVM *v, SQMetaMethod mm, SQObjectPtr& res);
 
 	SQClass *_class;
-	SQUserPointer _userpointer;
+	LVUserPointer _userpointer;
 	SQRELEASEHOOK _hook;
 	SQInteger _memsize;
 	SQObjectPtr _values[1];

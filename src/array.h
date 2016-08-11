@@ -15,7 +15,7 @@ struct SQArray : public CHAINABLE_OBJ {
 
   public:
 	static SQArray *Create(SQSharedState *ss, SQInteger nInitialSize) {
-		SQArray *newarray = (SQArray *)SQ_MALLOC(sizeof(SQArray));
+		SQArray *newarray = (SQArray *)LV_MALLOC(sizeof(SQArray));
 		new (newarray) SQArray(ss, nInitialSize);
 		return newarray;
 	}
