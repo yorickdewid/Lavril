@@ -244,9 +244,9 @@ void lv_pushthread(VMHANDLE v, VMHANDLE thread) {
 }
 
 LVUserPointer lv_newuserdata(VMHANDLE v, SQUnsignedInteger size) {
-	SQUserData *ud = SQUserData::Create(_ss(v), size + SQ_ALIGNMENT);
+	SQUserData *ud = SQUserData::Create(_ss(v), size + LV_ALIGNMENT);
 	v->Push(ud);
-	return (LVUserPointer)sq_aligning(ud + 1);
+	return (LVUserPointer)LV_ALIGN(ud + 1);
 }
 
 void lv_newtable(VMHANDLE v) {
@@ -405,7 +405,7 @@ LVRESULT lv_setparamscheck(VMHANDLE v, SQInteger nparamscheck, const SQChar *typ
 	} else {
 		nc->_typecheck.resize(0);
 	}
-	if (nparamscheck == SQ_MATCHTYPEMASKSTRING) {
+	if (nparamscheck == LV_MATCHTYPEMASKSTRING) {
 		nc->_nparamscheck = nc->_typecheck.size();
 	}
 	return LV_OK;

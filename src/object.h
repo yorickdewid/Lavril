@@ -153,7 +153,7 @@ struct SQObjectPtr;
 #define _rawval(obj) ((obj)._unVal.raw)
 
 #define _stringval(obj) (obj)._unVal.pString->_val
-#define _userdataval(obj) ((LVUserPointer)sq_aligning((obj)._unVal.pUserData + 1))
+#define _userdataval(obj) ((LVUserPointer)LV_ALIGN((obj)._unVal.pUserData + 1))
 
 #define tofloat(num) ((type(num)==OT_INTEGER)?(SQFloat)_integer(num):_float(num))
 #define tointeger(num) ((type(num)==OT_FLOAT)?(SQInteger)_float(num):_integer(num))

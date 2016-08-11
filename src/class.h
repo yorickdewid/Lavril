@@ -99,7 +99,7 @@ struct SQClass : public CHAINABLE_OBJ {
 };
 
 #define calcinstancesize(_theclass_) \
-    (_theclass_->_udsize + sq_aligning(sizeof(SQInstance) +  (sizeof(SQObjectPtr)*(_theclass_->_defaultvalues.size()>0?_theclass_->_defaultvalues.size()-1:0))))
+    (_theclass_->_udsize + LV_ALIGN(sizeof(SQInstance) +  (sizeof(SQObjectPtr)*(_theclass_->_defaultvalues.size()>0?_theclass_->_defaultvalues.size()-1:0))))
 
 struct SQInstance : public SQDelegable {
 	void Init(SQSharedState *ss);

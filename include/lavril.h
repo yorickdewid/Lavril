@@ -64,10 +64,10 @@ struct SQOuter;
 
 #include "sqconfig.h"
 
-#define LAVRIL_VERSION    _LC("Lavril 1.1-beta")
+#define LAVRIL_VERSION    _LC("Lavril 1.2-beta")
 #define LAVRIL_COPYRIGHT  _LC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
 #define LAVRIL_AUTHOR     _LC("Quenza Inc.")
-#define LAVRIL_VERSION_NUMBER 110
+#define LAVRIL_VERSION_NUMBER 120
 
 #define LV_VMSTATE_IDLE         0
 #define LV_VMSTATE_RUNNING      1
@@ -81,7 +81,7 @@ struct SQOuter;
 #define OBJECT_DELEGABLE      0x02000000
 #define OBJECT_CANBEFALSE     0x01000000
 
-#define SQ_MATCHTYPEMASKSTRING (-99999)
+#define LV_MATCHTYPEMASKSTRING (-99999)
 
 #define _RT_MASK 0x00FFFFFF
 #define _RAW_TYPE(type) (type&_RT_MASK)

@@ -1,5 +1,4 @@
 #ifdef _LV64
-
 #ifdef _MSC_VER
 typedef __int64 SQInteger;
 typedef unsigned __int64 SQUnsignedInteger;
@@ -10,7 +9,7 @@ typedef unsigned long long SQUnsignedInteger;
 typedef unsigned long long SQHash; /*should be the same size of a pointer*/
 #define LVFORMATINT "%lld"
 #define LVFORMATINT3 "%03lld"
-#endif
+#endif // _MSC_VER
 typedef int SQInt32;
 typedef unsigned int SQUnsignedInteger32;
 #else
@@ -21,13 +20,13 @@ typedef unsigned int SQUnsignedInteger;
 typedef unsigned int SQHash; /*should be the same size of a pointer*/
 #define LVFORMATINT "%d"
 #define LVFORMATINT3 "%03d"
-#endif
+#endif // _LV64
 
 #ifdef USEDOUBLE
 typedef double SQFloat;
 #else
 typedef float SQFloat;
-#endif
+#endif // USEDOUBLE
 
 #if defined(USEDOUBLE) && !defined(_LV64) || !defined(USEDOUBLE) && defined(_LV64)
 #ifdef _MSC_VER
@@ -41,13 +40,13 @@ typedef SQUnsignedInteger SQRawObjectVal; //is 32 bits on 32 bits builds and 64 
 #define SQ_OBJECT_RAWINIT()
 #endif
 
-#ifndef SQ_ALIGNMENT // SQ_ALIGNMENT shall be less than or equal to LV_MALLOC alignments, and its value shall be power of 2.
+#ifndef LV_ALIGNMENT /* shall be less than or equal to LV_MALLOC alignments, and its value shall be power of 2. */
 #if defined(USEDOUBLE) || defined(_LV64)
-#define SQ_ALIGNMENT 8
+#define LV_ALIGNMENT 8
 #else
-#define SQ_ALIGNMENT 4
+#define LV_ALIGNMENT 4
 #endif
-#endif
+#endif // LV_ALIGNMENT
 
 typedef void *LVUserPointer;
 typedef SQUnsignedInteger LVBool;

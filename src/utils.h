@@ -12,7 +12,7 @@ void lv_vm_free(void *p, SQUnsignedInteger size);
 #define LV_FREE(__ptr,__size) lv_vm_free((__ptr),(__size));
 #define LV_REALLOC(__ptr,__oldsize,__size) lv_vm_realloc((__ptr),(__oldsize),(__size));
 
-#define sq_aligning(v) (((size_t)(v) + (SQ_ALIGNMENT-1)) & (~(SQ_ALIGNMENT-1)))
+#define LV_ALIGN(v) (((size_t)(v) + (LV_ALIGNMENT-1)) & (~(LV_ALIGNMENT-1)))
 
 template<typename T>
 class sqvector {
@@ -34,7 +34,7 @@ class sqvector {
 		if (_size) {
 			resize(0); //destroys all previous stuff
 		}
-		//resize(v._size);
+
 		if (v._size > _allocated) {
 			_realloc(v._size);
 		}

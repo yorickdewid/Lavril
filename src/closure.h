@@ -84,7 +84,6 @@ struct SQClosure : public CHAINABLE_OBJ {
 	SQObjectPtr *_defaultparams;
 };
 
-//////////////////////////////////////////////
 struct SQOuter : public CHAINABLE_OBJ {
   private:
 	SQOuter(SQSharedState *ss, SQObjectPtr *outer) {
@@ -100,6 +99,7 @@ struct SQOuter : public CHAINABLE_OBJ {
 		new (nc) SQOuter(ss, outer);
 		return nc;
 	}
+
 	~SQOuter() {
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
@@ -111,9 +111,11 @@ struct SQOuter : public CHAINABLE_OBJ {
 
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
+
 	void Finalize() {
 		_value.Null();
 	}
+
 	SQObjectType GetType() {
 		return OT_OUTER;
 	}
@@ -125,7 +127,6 @@ struct SQOuter : public CHAINABLE_OBJ {
 	SQOuter     *_next;    /* pointer to next outer when frame is open   */
 };
 
-//////////////////////////////////////////////
 struct SQGenerator : public CHAINABLE_OBJ {
 	enum SQGeneratorState {
 		eRunning,
@@ -141,20 +142,24 @@ struct SQGenerator : public CHAINABLE_OBJ {
 		INIT_CHAIN();
 		ADD_TO_CHAIN(&_ss(this)->_gc_chain, this);
 	}
+
   public:
 	static SQGenerator *Create(SQSharedState *ss, SQClosure *closure) {
 		SQGenerator *nc = (SQGenerator *)LV_MALLOC(sizeof(SQGenerator));
 		new (nc) SQGenerator(ss, closure);
 		return nc;
 	}
+
 	~SQGenerator() {
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
+
 	void Kill() {
 		_state = eDead;
 		_stack.resize(0);
 		_closure.Null();
 	}
+
 	void Release() {
 		sq_delete(this, SQGenerator);
 	}
@@ -163,10 +168,12 @@ struct SQGenerator : public CHAINABLE_OBJ {
 	bool Resume(SQVM *v, SQObjectPtr& dest);
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
+
 	void Finalize() {
 		_stack.resize(0);
 		_closure.Null();
 	}
+
 	SQObjectType GetType() {
 		return OT_GENERATOR;
 	}
@@ -200,6 +207,7 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 		_CONSTRUCT_VECTOR(SQObjectPtr, nc->_noutervalues, nc->_outervalues);
 		return nc;
 	}
+
 	SQNativeClosure *Clone() {
 		SQNativeClosure *ret = SQNativeClosure::Create(_opt_ss(this), _function, _noutervalues);
 		ret->_env = _env;
@@ -210,10 +218,12 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 		ret->_nparamscheck = _nparamscheck;
 		return ret;
 	}
+
 	~SQNativeClosure() {
 		__ObjRelease(_env);
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
+
 	void Release() {
 		SQInteger size = _CALC_NATVIVECLOSURE_SIZE(_noutervalues);
 		_DESTRUCT_VECTOR(SQObjectPtr, _noutervalues, _outervalues);
@@ -223,9 +233,11 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
+
 	void Finalize() {
 		_NULL_SQOBJECT_VECTOR(_outervalues, _noutervalues);
 	}
+
 	SQObjectType GetType() {
 		return OT_NATIVECLOSURE;
 	}
