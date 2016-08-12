@@ -76,23 +76,26 @@ static SQInteger _pgsql_query(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	const SQChar *query;
 	lv_getstring(v, 2, &query);
-
 	self->_res = PQexec(self->_conn, query);
 	if (PQresultStatus(self->_res) != PGRES_TUPLES_OK) {
 		return lv_throwerror(v, PQerrorMessage(self->_conn));
 	}
-
-	for (SQInteger j = 0; j < PQnfields(self->_res); ++j)
-		printf("%-15s", PQfname(self->_res, j));
-	printf("\n\n");
-
-	for (SQInteger i = 0; i < PQntuples(self->_res); ++i) {
-		for (SQInteger j = 0; j < PQnfields(self->_res); ++j)
-			printf("%-15s", PQgetvalue(self->_res, i, j));
-		printf("\n");
-	}
-
 	lv_pushbool(v, LVTrue);
+	return 1;
+}
+
+static SQInteger _pgsql_fetch(VMHANDLE v) {
+	OBJECT_INSTANCE(v);
+	lv_newarray(v, 0);
+	for (SQInteger i = 0; i < PQntuples(self->_res); ++i) {
+		lv_newtable(v);
+		for (SQInteger j = 0; j < PQnfields(self->_res); ++j) {
+			lv_pushstring(v, PQfname(self->_res, j), -1);
+			lv_pushstring(v, PQgetvalue(self->_res, i, j), -1);
+			lv_rawset(v, -3);
+		}
+		lv_arrayappend(v, -2);
+	}
 	return 1;
 }
 
@@ -141,6 +144,7 @@ static const SQRegFunction pgsqllib_funcs[] = {
 	_DECL_PGSQL_FUNC(constructor, 2, _LC(".s")),
 	_DECL_PGSQL_FUNC(exec, 2, _LC("xs")),
 	_DECL_PGSQL_FUNC(query, 2, _LC("xs")),
+	_DECL_PGSQL_FUNC(fetch, 1, _LC("x")),
 	_DECL_PGSQL_FUNC(rows, 1, _LC("x")),
 	_DECL_PGSQL_FUNC(version, 1, _LC("x")),
 	_DECL_PGSQL_FUNC(database, 1, _LC("x")),
