@@ -1,8 +1,11 @@
+var rs_tests = 0;
+var rs_passed = 0;
+
 class testcase {
 	tests = [];
 
 	constructor(name) {
-		println("Run testcase " + name);
+		println("[*] Run testcase " + name);
 	}
 
 	function register(test) {
@@ -10,10 +13,47 @@ class testcase {
 	}
 
 	function setup() {}
+
 	function run() {
+		rs_tests += tests.size();
 		foreach(test in tests) {
 			test();
 		}
 	}
-	function teardown() {}	
+
+	function teardown() {
+		tests.clear();
+	}	
+}
+
+function assertTrue(check) {
+	if (!check)
+		throw "\n=> truth expectation failed\n=> got: 'false'\n=> expected: 'true'";
+
+	rs_passed++;
+}
+
+function expectInteger(got, expected) {
+	if (type(expected) != "integer") {
+		throw "parameter must be integer";
+	}
+	if (got != expected)
+		throw "\n=> integer expectation failed\n=> got: '" + got + "'\n=> expected: '" + expected + "'";
+
+	rs_passed++;
+}
+
+function expectString(got, expected) {
+	if (type(expected) != "string") {
+		throw "parameter must be string";
+	}
+	if (got != expected)
+		throw "\n=> string expectation failed\n=> got: '" + got + "'\n=> expected: '" + expected + "'";
+
+	rs_passed++;
+}
+
+function print_results() {
+	printf("\nTime: %f\n", clock());
+	printf("Results: OK (%d tests, %d assertions)\n", rs_tests, rs_passed);
 }

@@ -2,9 +2,9 @@ include("testcase.lav");
 
 var cases = [];
 
-class baselib_case extends testcase {
+class base_case extends testcase {
 	constructor() {
-		base("baselib");
+		base("base");
 	}
 
 	function setup() {
@@ -21,12 +21,17 @@ class baselib_case extends testcase {
 
 		/* Dummy function */
 		blub();
+
+		assertTrue(true);
 	}
 
 	function outputtest() {
 		print(">> default output\n");
+		echo(">> another output\n");
 		println(">> newline");
 		error(">> some error\n");
+
+		assertTrue(true);
 	}
 
 	function closuretest() {
@@ -39,8 +44,8 @@ class baselib_case extends testcase {
 			]
 		}
 
-		assert(lg.indexes[2] == 3);
-		assert(lg.options[2] == "C#");
+		expectInteger(lg.indexes[2], 3);
+		expectString(lg.options[2], "C#");
 	}
 
 	function arraytest() {
@@ -48,17 +53,82 @@ class baselib_case extends testcase {
 		ar.append(true);
 		ar.insert(0, 1);
 		ar[1] = false;
-		assert(ar.length() == 4);
+		expectInteger(ar.length(), 4);
 	}
 
 	function stringtest() {
 		var str = "Foo";
-		assert(str.tolower() == "foo");
-		assert(str.size() == 3);
+		expectString(str.tolower(), "foo");
+		expectInteger(str.size(), 3);
 	}
 }
 
-cases.append(baselib_case);
+class modules_case extends testcase {
+	constructor() {
+		base("modules");
+	}
+
+	function setup() {
+		register(this.json_decode_test);
+		register(this.json_encode_test);
+		register(this.time_test);
+		register(this.other_test);
+		register(this.crypto_test);
+	}
+
+	function json_decode_test() {
+		var string = "{\"menu\":{\"id\":\"file\",\"value\":\"File\",\"popup\":{\"menuitem\":" + 
+			"[{\"value\":\"New\",\"onclick\":\"CreateNewDoc()\"},{\"value\":\"Open\"," +
+			"\"onclick\":\"OpenDoc()\"},{\"value\":\"Close\",\"onclick\":\"CloseDoc()\"}]}}}";
+		var object = json_decode(string);
+		expectString(object->menu["id"], "file");
+		expectInteger(object->menu->popup.menuitem.size(), 3);
+	}
+
+	function json_encode_test() {
+		var json = {
+			name = "sjaak"
+			"active": true,
+			"phone": "+31641074371",
+			"languages": [
+				"C", "C++", "C#"
+			],
+			"opt": {
+				"test_1" : "check",
+				"test_2" : "check",
+				"test_3" : "fail",
+			}
+		}
+		var string = json_encode(json);
+		expectString(string, "{\"opt\":{\"test_1\":\"check\",\"test_2\":\"check\"," +
+			"\"test_3\":\"fail\"},\"phone\":\"+31641074371\",\"name\":\"sjaak\"," +
+			"\"languages\":[\"C\",\"C++\",\"C#\"],\"active\":true}");
+	}
+
+	function time_test() {
+		assertTrue(time() > 1400000000);
+		assertTrue(date()->year >= 2016);
+	}
+
+	function other_test() {
+		assertTrue(user().size() > 0);
+		assertTrue(host().size() > 0);
+	}
+
+	function crypto_test() {
+		expectString(sha1("ABC@123"), "9cfd6e7eb791b8aad23c2a729139bf6ee842991f");
+		expectString(base64_encode("n3gx4o8@tr32746rO*%23"), "bjNneDRvOEB0cjMyNzQ2ck8qJTIz");
+		expectString(base64_decode("NzN0ZzdvZmJ0NDM3b3R5bzkzNHI3d2V5aWZWJlUlUkAqT0RS"),
+			"73tg7ofbt437otyo934r7weyifV&U%R@*ODR");
+		expectString(url_encode("https://github.com/trending?since=weekly&auth=:unset:"),
+			"https%3a%2f%2fgithub.com%2ftrending%3fsince%3dweekly%26auth%3d%3aunset%3a");
+		expectString(url_decode("https%3a%2f%2fgithub.com%2ftrending%3fsince%3dweekly%26auth%3d%3aunset%3a"),
+			"https://github.com/trending?since=weekly&auth=:unset:");
+	}
+}
+
+cases.append(base_case);
+cases.append(modules_case);
 
 /* Basic info */
 function main() {
@@ -66,6 +136,8 @@ function main() {
 	print("char size\t" + _charsize_ + "\n");
 	print("int size\t" + _intsize_ + "\n");
 	print("float size\t" + _floatsize_ + "\n");
+	print("debug\t\t" + _debug_ + "\n");
+	print("\n");
 
 	/* Call each case */
 	foreach(_case in cases) {
@@ -74,6 +146,8 @@ function main() {
 		_case.run();
 		_case.teardown();
 	}
+
+	print_results();
 }
 
 main();

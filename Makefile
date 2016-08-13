@@ -1,6 +1,7 @@
 SRC = src
 MOD = modules
 CLI = cli
+TEST = test
 UTIL = util
 
 la64: folders
@@ -19,6 +20,9 @@ sqprof: folders
 	cd squirrel; $(MAKE) sqprof
 	cd sqstdlib; $(MAKE) sqprof
 	cd sq; $(MAKE) sqprof
+
+test: la64
+	$(MAKE) -C $(TEST)
 
 folders:
 	@mkdir -p lib
