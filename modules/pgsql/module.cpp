@@ -1,6 +1,7 @@
 #include <lavril.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <string.h>
 #include <postgresql/libpq-fe.h>
 
 struct LVPGSQLObj {
@@ -40,16 +41,20 @@ static SQInteger mod_pgsql_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(
 	return 1;
 }
 
-LVPGSQLObj *mod_pgsql_init(const SQChar *connstr, const SQChar **error) {
+LVPGSQLObj *mod_pgsql_init(VMHANDLE v, const SQChar *connstr, const SQChar **error) {
 	LVPGSQLObj *volatile exp = (LVPGSQLObj *)lv_malloc(sizeof(LVPGSQLObj));
 	exp->_conninfo = NULL;
 	exp->_conn = NULL;
+	exp->_res = NULL;
 	exp->_error = error;
 	exp->_jmpbuf = lv_malloc(sizeof(jmp_buf));
 	if (setjmp(*((jmp_buf *)exp->_jmpbuf)) == 0) {
 		exp->_conn = PQconnectdb(connstr);
 		if (PQstatus(exp->_conn) != CONNECTION_OK) {
-			mod_pgsql_error(exp, PQerrorMessage(exp->_conn));
+			char *pgerror = PQerrorMessage(exp->_conn);
+			SQChar *temp = lv_getscratchpad(v, scstrlen(pgerror) + 1);
+			scstrcpy(temp, pgerror);
+			mod_pgsql_error(exp, temp);
 		}
 	} else {
 		mod_pgsql_free(exp);
@@ -126,9 +131,10 @@ static SQInteger _pgsql_user(VMHANDLE v) {
 static SQInteger _pgsql_constructor(VMHANDLE v) {
 	const SQChar *error, *connstr;
 	lv_getstring(v, 2, &connstr);
-	LVPGSQLObj *db = mod_pgsql_init(connstr, &error);
-	if (!db)
+	LVPGSQLObj *db = mod_pgsql_init(v, connstr, &error);
+	if (!db) {
 		return lv_throwerror(v, error);
+	}
 	lv_setinstanceup(v, 1, db);
 	lv_setreleasehook(v, 1, mod_pgsql_releasehook);
 	return 0;

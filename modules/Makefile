@@ -6,6 +6,7 @@ MODS = \
 	curl \
 	json \
 	sqlite \
+	pgsql \
 	system
 
 all: build

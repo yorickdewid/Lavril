@@ -8,6 +8,7 @@ register_module(crypto);
 register_module(curl);
 register_module(json);
 register_module(sqlite);
+register_module(pgsql);
 
 /* Modules places here are loaded at startup */
 #define lv_init_modules(v) { \
