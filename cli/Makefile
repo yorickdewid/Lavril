@@ -1,7 +1,7 @@
 BIN = ../bin/lv
 LIBDIR = -L../lib
 DEBUG = -g -O0
-LIBS = -llvcore -llvmods -lcurl
+LIBS = -llvcore -llvmods -lcurl -lpq
 DEFINE = -D_DEBUG
 INCLUDE = -I../include -I. -Iinclude
 CXXFLAGS = -c $(DEBUG) $(DEFINE) -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing $(INCLUDE)

@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #ifdef LVUNICODE
 #include <wchar.h>
@@ -34,6 +35,26 @@ static LVInteger _system_system(VMHANDLE v) {
 		return 1;
 	}
 	return lv_throwerror(v, _LC("wrong param"));
+}
+
+static LVInteger _system_user(VMHANDLE v) {
+	LVChar s[64];
+	if (!getlogin_r(s, sizeof(s))) {
+		s[sizeof(s) - 1] = '\0';
+		lv_pushstring(v, s, -1);
+		return 1;
+	}
+	return 0;
+}
+
+static LVInteger _system_host(VMHANDLE v) {
+	LVChar s[1024];
+	if (!gethostname(s, sizeof(s))) {
+		s[sizeof(s) - 1] = '\0';
+		lv_pushstring(v, s, -1);
+		return 1;
+	}
+	return 0;
 }
 
 static LVInteger _system_clock(VMHANDLE v) {
@@ -107,6 +128,8 @@ static LVInteger _system_date(VMHANDLE v) {
 static const SQRegFunction systemlib_funcs[] = {
 	_DECL_FUNC(getenv, 2, _LC(".s")),
 	_DECL_FUNC(system, 2, _LC(".s")),
+	_DECL_FUNC(user, 1, _LC(".")),
+	_DECL_FUNC(host, 1, _LC(".")),
 	_DECL_FUNC(clock, 0, NULL),
 	_DECL_FUNC(time, 1, NULL),
 	_DECL_FUNC(date, -1, _LC(".nn")),
