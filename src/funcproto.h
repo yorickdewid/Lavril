@@ -37,14 +37,14 @@ struct SQLocalVarInfo {
 	}
 
 	SQObjectPtr _name;
-	SQUnsignedInteger _start_op;
-	SQUnsignedInteger _end_op;
-	SQUnsignedInteger _pos;
+	LVUnsignedInteger _start_op;
+	LVUnsignedInteger _end_op;
+	LVUnsignedInteger _pos;
 };
 
 struct SQLineInfo {
-	SQInteger _line;
-	SQInteger _op;
+	LVInteger _line;
+	LVInteger _op;
 };
 
 typedef sqvector<SQOuterVar> SQOuterVarVec;
@@ -55,7 +55,7 @@ typedef sqvector<SQLineInfo> SQLineInfoVec;
         +((ni-1)*sizeof(SQInstruction))+(nl*sizeof(SQObjectPtr)) \
         +(nparams*sizeof(SQObjectPtr))+(nfuncs*sizeof(SQObjectPtr)) \
         +(nouters*sizeof(SQOuterVar))+(nlineinf*sizeof(SQLineInfo)) \
-        +(localinf*sizeof(SQLocalVarInfo))+(defparams*sizeof(SQInteger)))
+        +(localinf*sizeof(SQLocalVarInfo))+(defparams*sizeof(LVInteger)))
 
 
 struct FunctionPrototype : public CHAINABLE_OBJ {
@@ -64,10 +64,10 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 	~FunctionPrototype();
 
   public:
-	static FunctionPrototype *Create(SQSharedState *ss, SQInteger ninstructions,
-	                                 SQInteger nliterals, SQInteger nparameters,
-	                                 SQInteger nfunctions, SQInteger noutervalues,
-	                                 SQInteger nlineinfos, SQInteger nlocalvarinfos, SQInteger ndefaultparams) {
+	static FunctionPrototype *Create(SQSharedState *ss, LVInteger ninstructions,
+	                                 LVInteger nliterals, LVInteger nparameters,
+	                                 LVInteger nfunctions, LVInteger noutervalues,
+	                                 LVInteger nlineinfos, LVInteger nlocalvarinfos, LVInteger ndefaultparams) {
 		FunctionPrototype *f;
 		//I compact the whole class and members in a single memory allocation
 		f = (FunctionPrototype *)lv_vm_malloc(_FUNC_SIZE(ninstructions, nliterals, nparameters, nfunctions, noutervalues, nlineinfos, nlocalvarinfos, ndefaultparams));
@@ -85,7 +85,7 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 		f->_nlineinfos = nlineinfos;
 		f->_localvarinfos = (SQLocalVarInfo *)&f->_lineinfos[nlineinfos];
 		f->_nlocalvarinfos = nlocalvarinfos;
-		f->_defaultparams = (SQInteger *)&f->_localvarinfos[nlocalvarinfos];
+		f->_defaultparams = (LVInteger *)&f->_localvarinfos[nlocalvarinfos];
 		f->_ndefaultparams = ndefaultparams;
 
 		_CONSTRUCT_VECTOR(SQObjectPtr, f->_nliterals, f->_literals);
@@ -104,13 +104,13 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 		_DESTRUCT_VECTOR(SQOuterVar, _noutervalues, _outervalues);
 		//_DESTRUCT_VECTOR(SQLineInfo,_nlineinfos,_lineinfos); //not required are 2 integers
 		_DESTRUCT_VECTOR(SQLocalVarInfo, _nlocalvarinfos, _localvarinfos);
-		SQInteger size = _FUNC_SIZE(_ninstructions, _nliterals, _nparameters, _nfunctions, _noutervalues, _nlineinfos, _nlocalvarinfos, _ndefaultparams);
+		LVInteger size = _FUNC_SIZE(_ninstructions, _nliterals, _nparameters, _nfunctions, _noutervalues, _nlineinfos, _nlocalvarinfos, _ndefaultparams);
 		this->~FunctionPrototype();
 		lv_vm_free(this, size);
 	}
 
-	const SQChar *GetLocal(SQVM *v, SQUnsignedInteger stackbase, SQUnsignedInteger nseq, SQUnsignedInteger nop);
-	SQInteger GetLine(SQInstruction *curr);
+	const LVChar *GetLocal(SQVM *v, LVUnsignedInteger stackbase, LVUnsignedInteger nseq, LVUnsignedInteger nop);
+	LVInteger GetLine(SQInstruction *curr);
 	bool Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write);
 	static bool Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
 #ifndef NO_GARBAGE_COLLECTOR
@@ -125,32 +125,32 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 
 	SQObjectPtr _sourcename;
 	SQObjectPtr _name;
-	SQInteger _stacksize;
+	LVInteger _stacksize;
 	bool _bgenerator;
-	SQInteger _varparams;
+	LVInteger _varparams;
 
-	SQInteger _nlocalvarinfos;
+	LVInteger _nlocalvarinfos;
 	SQLocalVarInfo *_localvarinfos;
 
-	SQInteger _nlineinfos;
+	LVInteger _nlineinfos;
 	SQLineInfo *_lineinfos;
 
-	SQInteger _nliterals;
+	LVInteger _nliterals;
 	SQObjectPtr *_literals;
 
-	SQInteger _nparameters;
+	LVInteger _nparameters;
 	SQObjectPtr *_parameters;
 
-	SQInteger _nfunctions;
+	LVInteger _nfunctions;
 	SQObjectPtr *_functions;
 
-	SQInteger _noutervalues;
+	LVInteger _noutervalues;
 	SQOuterVar *_outervalues;
 
-	SQInteger _ndefaultparams;
-	SQInteger *_defaultparams;
+	LVInteger _ndefaultparams;
+	LVInteger *_defaultparams;
 
-	SQInteger _ninstructions;
+	LVInteger _ninstructions;
 	SQInstruction _instructions[1];
 };
 

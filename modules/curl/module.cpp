@@ -16,11 +16,11 @@ struct cbbuffer {
 struct LVCURLObj {
 	CURL *_curl;
 	CURLcode res;
-	const SQChar *_url;
-	SQInteger _nallocated;
+	const LVChar *_url;
+	LVInteger _nallocated;
 	struct curl_slist *_hlist;
 	void *_jmpbuf;
-	const SQChar **_error;
+	const LVChar **_error;
 	struct cbbuffer _chunk;
 };
 
@@ -36,7 +36,7 @@ const int mod_curl_opt[] = {
 
 #if 0
 void register_curl_setopt(VMHANDLE v) {
-	SQInteger i = 0;
+	LVInteger i = 0;
 	// lv_pushstring(v, _LC("CURLOPT_POST"), -1);
 	// lv_pushinteger(v, CURLOPT_POST);
 	// lv_newslot(v, -3, LVFalse);
@@ -68,13 +68,13 @@ void mod_curl_free(LVCURLObj *exp) {
 	}
 }
 
-static void mod_curl_error(LVCURLObj *exp, const SQChar *error) {
+static void mod_curl_error(LVCURLObj *exp, const LVChar *error) {
 	if (exp->_error)
 		*exp->_error = error;
 	longjmp(*((jmp_buf *)exp->_jmpbuf), -1);
 }
 
-static SQInteger mod_curl_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static LVInteger mod_curl_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
 	LVCURLObj *self = ((LVCURLObj *)p);
 	mod_curl_free(self);
 	return 1;
@@ -99,11 +99,11 @@ static size_t callback_buffer(void *ptr, size_t size, size_t nmemb, struct cbbuf
 	return size * nmemb;
 }
 
-LVCURLObj *mod_curl_init(const SQChar *location, const SQChar **error) {
+LVCURLObj *mod_curl_init(const LVChar *location, const LVChar **error) {
 	LVCURLObj *volatile exp = (LVCURLObj *)lv_malloc(sizeof(LVCURLObj));
 	exp->_curl = NULL;
 	exp->_url = location;
-	exp->_nallocated = (SQInteger)scstrlen(location) * sizeof(SQChar);
+	exp->_nallocated = (LVInteger)scstrlen(location) * sizeof(LVChar);
 	exp->_hlist = NULL;
 	exp->_error = error;
 	exp->_jmpbuf = lv_malloc(sizeof(jmp_buf));
@@ -130,10 +130,10 @@ LVCURLObj *mod_curl_init(const SQChar *location, const SQChar **error) {
 }
 
 #if 0
-static SQInteger _curl_setopt(VMHANDLE v) {
+static LVInteger _curl_setopt(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
-	const SQChar *str;
-	SQInteger opt = 0;
+	const LVChar *str;
+	LVInteger opt = 0;
 	lv_getinteger(v, 2, &opt);
 	lv_getstring(v, 3, &str);
 
@@ -141,10 +141,10 @@ static SQInteger _curl_setopt(VMHANDLE v) {
 
 	printf("opt %lld, str %s\n", opt, str);
 	/*if (sqstd_rex_search(self, str + start, &begin, &end) == LVTrue) {
-		SQInteger n = sqstd_rex_getsubexpcount(self);
+		LVInteger n = sqstd_rex_getsubexpcount(self);
 		SQRexMatch match;
 		sq_newarray(v, 0);
-		for (SQInteger i = 0; i < n; i++) {
+		for (LVInteger i = 0; i < n; i++) {
 			sqstd_rex_getsubexp(self, i, &match);
 			if (match.len > 0)
 				_addrexmatch(v, str, match.begin, match.begin + match.len);
@@ -158,12 +158,12 @@ static SQInteger _curl_setopt(VMHANDLE v) {
 }
 #endif
 
-static SQInteger _curl_setheader(VMHANDLE v) {
+static LVInteger _curl_setheader(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
-	const SQChar *key, *value;
+	const LVChar *key, *value;
 	lv_getstring(v, 2, &key);
 	lv_getstring(v, 3, &value);
-	SQChar *temp = lv_getscratchpad(v, scstrlen(key) + scstrlen(value) + 3);
+	LVChar *temp = lv_getscratchpad(v, scstrlen(key) + scstrlen(value) + 3);
 	scstrcpy(temp, key);
 	scstrcat(temp, ": ");
 	scstrcat(temp, value);
@@ -171,7 +171,7 @@ static SQInteger _curl_setheader(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _curl_exec(VMHANDLE v) {
+static LVInteger _curl_exec(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	if (self->_hlist) {
 		self->res = curl_easy_setopt(self->_curl, CURLOPT_HTTPHEADER, self->_hlist);
@@ -185,8 +185,8 @@ static SQInteger _curl_exec(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _curl_constructor(VMHANDLE v) {
-	const SQChar *error, *location;
+static LVInteger _curl_constructor(VMHANDLE v) {
+	const LVChar *error, *location;
 	lv_getstring(v, 2, &location);
 	LVCURLObj *curl = mod_curl_init(location, &error);
 	if (!curl)
@@ -196,7 +196,7 @@ static SQInteger _curl_constructor(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _curl__typeof(VMHANDLE v) {
+static LVInteger _curl__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("curl"), -1);
 	return 1;
 }
@@ -212,8 +212,8 @@ static const SQRegFunction curlobj_funcs[] = {
 };
 #undef _DECL_CURL_FUNC
 
-SQInteger mod_init_curl(VMHANDLE v) {
-	SQInteger i = 0;
+LVInteger mod_init_curl(VMHANDLE v) {
+	LVInteger i = 0;
 
 	lv_pushstring(v, _LC("curl"), -1);
 	lv_newclass(v, LVFalse);

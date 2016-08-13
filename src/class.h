@@ -19,8 +19,8 @@ typedef sqvector<SQClassMember> SQClassMemberVec;
 
 #define _ismethod(o) (_integer(o)&MEMBER_TYPE_METHOD)
 #define _isfield(o) (_integer(o)&MEMBER_TYPE_FIELD)
-#define _make_method_idx(i) ((SQInteger)(MEMBER_TYPE_METHOD|i))
-#define _make_field_idx(i) ((SQInteger)(MEMBER_TYPE_FIELD|i))
+#define _make_method_idx(i) ((LVInteger)(MEMBER_TYPE_METHOD|i))
+#define _make_field_idx(i) ((LVInteger)(MEMBER_TYPE_FIELD|i))
 #define _member_type(o) (_integer(o)&0xFF000000)
 #define _member_idx(o) (_integer(o)&0x00FFFFFF)
 
@@ -83,7 +83,7 @@ struct SQClass : public CHAINABLE_OBJ {
 	}
 #endif
 
-	SQInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval);
+	LVInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval);
 	SQInstance *CreateInstance();
 	SQTable *_members;
 	SQClass *_base;
@@ -94,8 +94,8 @@ struct SQClass : public CHAINABLE_OBJ {
 	LVUserPointer _typetag;
 	SQRELEASEHOOK _hook;
 	bool _locked;
-	SQInteger _constructoridx;
-	SQInteger _udsize;
+	LVInteger _constructoridx;
+	LVInteger _udsize;
 };
 
 #define calcinstancesize(_theclass_) \
@@ -103,12 +103,12 @@ struct SQClass : public CHAINABLE_OBJ {
 
 struct SQInstance : public SQDelegable {
 	void Init(SQSharedState *ss);
-	SQInstance(SQSharedState *ss, SQClass *c, SQInteger memsize);
-	SQInstance(SQSharedState *ss, SQInstance *c, SQInteger memsize);
+	SQInstance(SQSharedState *ss, SQClass *c, LVInteger memsize);
+	SQInstance(SQSharedState *ss, SQInstance *c, LVInteger memsize);
 
   public:
 	static SQInstance *Create(SQSharedState *ss, SQClass *theclass) {
-		SQInteger size = calcinstancesize(theclass);
+		LVInteger size = calcinstancesize(theclass);
 		SQInstance *newinst = (SQInstance *)LV_MALLOC(size);
 		new (newinst) SQInstance(ss, theclass, size);
 		if (theclass->_udsize) {
@@ -118,7 +118,7 @@ struct SQInstance : public SQDelegable {
 	}
 
 	SQInstance *Clone(SQSharedState *ss) {
-		SQInteger size = calcinstancesize(_class);
+		LVInteger size = calcinstancesize(_class);
 		SQInstance *newinst = (SQInstance *)LV_MALLOC(size);
 		new (newinst) SQInstance(ss, this, size);
 		if (_class->_udsize) {
@@ -158,7 +158,7 @@ struct SQInstance : public SQDelegable {
 		}
 		_uiRef--;
 		if (_uiRef > 0) return;
-		SQInteger size = _memsize;
+		LVInteger size = _memsize;
 		this->~SQInstance();
 		LV_FREE(this, size);
 	}
@@ -179,7 +179,7 @@ struct SQInstance : public SQDelegable {
 	SQClass *_class;
 	LVUserPointer _userpointer;
 	SQRELEASEHOOK _hook;
-	SQInteger _memsize;
+	LVInteger _memsize;
 	SQObjectPtr _values[1];
 };
 

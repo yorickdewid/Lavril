@@ -4,11 +4,11 @@ CALLBACK static void printcallstack(VMHANDLE v) {
 	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		SQStackInfos si;
-		SQInteger level = 1; /* Skip native function */
+		LVInteger level = 1; /* Skip native function */
 		pf(v, _LC("\nBacktrace: (most recent first)\n"));
 		while (LV_SUCCEEDED(lv_stackinfos(v, level, &si))) {
-			const SQChar *fn = _LC("unknown");
-			const SQChar *src = _LC("unknown");
+			const LVChar *fn = _LC("unknown");
+			const LVChar *src = _LC("unknown");
 			if (si.funcname)
 				fn = si.funcname;
 			if (si.source)
@@ -18,11 +18,11 @@ CALLBACK static void printcallstack(VMHANDLE v) {
 		}
 
 #ifdef _DEBUG_DUMP
-		SQInteger i;
-		SQFloat f;
-		SQInteger seq = 0;
-		const SQChar *name = 0;
-		const SQChar *s;
+		LVInteger i;
+		LVFloat f;
+		LVInteger seq = 0;
+		const LVChar *name = 0;
+		const LVChar *s;
 		level = 0;
 		pf(v, _LC("\nLOCALS\n"));
 
@@ -96,10 +96,10 @@ CALLBACK static void printcallstack(VMHANDLE v) {
 	}
 }
 
-CALLBACK static SQInteger callback_printerror(VMHANDLE v) {
+CALLBACK static LVInteger callback_printerror(VMHANDLE v) {
 	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
-		const SQChar *sErr = 0;
+		const LVChar *sErr = 0;
 		if (lv_gettop(v) >= 1) {
 			if (LV_SUCCEEDED(lv_getstring(v, 2, &sErr)))   {
 				pf(v, _LC("fatal error: %s\n"), sErr);
@@ -112,7 +112,7 @@ CALLBACK static SQInteger callback_printerror(VMHANDLE v) {
 	return 0;
 }
 
-CALLBACK void callback_compiler_error(VMHANDLE v, const SQChar *sErr, const SQChar *sSource, SQInteger line, SQInteger column) {
+CALLBACK void callback_compiler_error(VMHANDLE v, const LVChar *sErr, const LVChar *sSource, LVInteger line, LVInteger column) {
 	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		pf(v, _LC("%s:%d:%d: error %s\n"), sSource, line, column, sErr);

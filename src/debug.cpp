@@ -5,8 +5,8 @@
 #include "closure.h"
 #include "lvstring.h"
 
-LVRESULT lv_getfunctioninfo(VMHANDLE v, SQInteger level, SQFunctionInfo *fi) {
-	SQInteger cssize = v->_callsstacksize;
+LVRESULT lv_getfunctioninfo(VMHANDLE v, LVInteger level, SQFunctionInfo *fi) {
+	LVInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
 		SQVM::CallInfo& ci = v->_callsstack[cssize - level - 1];
 		if (lv_isclosure(ci._closure)) {
@@ -22,8 +22,8 @@ LVRESULT lv_getfunctioninfo(VMHANDLE v, SQInteger level, SQFunctionInfo *fi) {
 	return lv_throwerror(v, _LC("the object is not a closure"));
 }
 
-LVRESULT lv_stackinfos(VMHANDLE v, SQInteger level, SQStackInfos *si) {
-	SQInteger cssize = v->_callsstacksize;
+LVRESULT lv_stackinfos(VMHANDLE v, LVInteger level, SQStackInfos *si) {
+	LVInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
 		memset(si, 0, sizeof(SQStackInfos));
 		SQVM::CallInfo& ci = v->_callsstack[cssize - level - 1];
@@ -52,11 +52,11 @@ LVRESULT lv_stackinfos(VMHANDLE v, SQInteger level, SQStackInfos *si) {
 	return LV_ERROR;
 }
 
-void SQVM::Raise_Error(const SQChar *s, ...) {
+void SQVM::Raise_Error(const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
-	SQInteger buffersize = (SQInteger)scstrlen(s) + (NUMBER_MAX_CHAR * 2);
-	scvsprintf(_sp(sq_rsl(buffersize)), buffersize, s, vl);
+	LVInteger buffersize = (LVInteger)scstrlen(s) + (NUMBER_MAX_CHAR * 2);
+	scvsprintf(_sp(lv_rsl(buffersize)), buffersize, s, vl);
 	va_end(vl);
 	_lasterror = SQString::Create(_ss(this), _spval, -1);
 }
@@ -70,11 +70,11 @@ SQString *SQVM::PrintObjVal(const SQObjectPtr& o) {
 		case OT_STRING:
 			return _string(o);
 		case OT_INTEGER:
-			scsprintf(_sp(sq_rsl(NUMBER_MAX_CHAR + 1)), sq_rsl(NUMBER_MAX_CHAR), _PRINT_INT_FMT, _integer(o));
+			scsprintf(_sp(lv_rsl(NUMBER_MAX_CHAR + 1)), lv_rsl(NUMBER_MAX_CHAR), _PRINT_INT_FMT, _integer(o));
 			return SQString::Create(_ss(this), _spval);
 			break;
 		case OT_FLOAT:
-			scsprintf(_sp(sq_rsl(NUMBER_MAX_CHAR + 1)), sq_rsl(NUMBER_MAX_CHAR), _LC("%.14g"), _float(o));
+			scsprintf(_sp(lv_rsl(NUMBER_MAX_CHAR + 1)), lv_rsl(NUMBER_MAX_CHAR), _LC("%.14g"), _float(o));
 			return SQString::Create(_ss(this), _spval);
 			break;
 		default:
@@ -92,11 +92,11 @@ void SQVM::Raise_CompareError(const SQObject& o1, const SQObject& o2) {
 	Raise_Error(_LC("comparison between '%.50s' and '%.50s'"), _stringval(oval1), _stringval(oval2));
 }
 
-void SQVM::Raise_ParamTypeError(SQInteger nparam, SQInteger typemask, SQInteger type) {
+void SQVM::Raise_ParamTypeError(LVInteger nparam, LVInteger typemask, LVInteger type) {
 	SQObjectPtr exptypes = SQString::Create(_ss(this), _LC(""), -1);
-	SQInteger found = 0;
-	for (SQInteger i = 0; i < 16; i++) {
-		SQInteger mask = 0x00000001 << i;
+	LVInteger found = 0;
+	for (LVInteger i = 0; i < 16; i++) {
+		LVInteger mask = 0x00000001 << i;
 		if (typemask & (mask)) {
 			if (found > 0) StringCat(exptypes, SQString::Create(_ss(this), _LC("|"), -1), exptypes);
 			found ++;

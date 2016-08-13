@@ -1,43 +1,39 @@
 #ifdef _LV64
 #ifdef _MSC_VER
-typedef __int64 SQInteger;
-typedef unsigned __int64 SQUnsignedInteger;
-typedef unsigned __int64 SQHash; /*should be the same size of a pointer*/
+typedef __int64 LVInteger;
+typedef unsigned __int64 LVUnsignedInteger;
+typedef unsigned __int64 LVHash; /*should be the same size of a pointer*/
 #else
-typedef long long SQInteger;
-typedef unsigned long long SQUnsignedInteger;
-typedef unsigned long long SQHash; /*should be the same size of a pointer*/
-#define LVFORMATINT "%lld"
-#define LVFORMATINT3 "%03lld"
+typedef long long LVInteger;
+typedef unsigned long long LVUnsignedInteger;
+typedef unsigned long long LVHash; /*should be the same size of a pointer*/
 #endif // _MSC_VER
-typedef int SQInt32;
-typedef unsigned int SQUnsignedInteger32;
+typedef int LVInt32;
+typedef unsigned int LVUnsignedInteger32;
 #else
-typedef int SQInteger;
-typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
-typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
-typedef unsigned int SQUnsignedInteger;
-typedef unsigned int SQHash; /*should be the same size of a pointer*/
+typedef int LVInteger;
+typedef int LVInt32; /*must be 32 bits(also on 64bits processors)*/
+typedef unsigned int LVUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
+typedef unsigned int LVUnsignedInteger;
+typedef unsigned int LVHash; /*should be the same size of a pointer*/
 #define LVFORMATINT "%d"
 #define LVFORMATINT3 "%03d"
 #endif // _LV64
 
 #ifdef USEDOUBLE
-typedef double SQFloat;
+typedef double LVFloat;
 #else
-typedef float SQFloat;
+typedef float LVFloat;
 #endif // USEDOUBLE
 
 #if defined(USEDOUBLE) && !defined(_LV64) || !defined(USEDOUBLE) && defined(_LV64)
 #ifdef _MSC_VER
-typedef __int64 SQRawObjectVal; //must be 64bits
+typedef __int64 LVRawObjectVal; //must be 64bits
 #else
-typedef long long SQRawObjectVal; //must be 64bits
+typedef long long LVRawObjectVal; //must be 64bits
 #endif
-#define SQ_OBJECT_RAWINIT() { _unVal.raw = 0; }
 #else
-typedef SQUnsignedInteger SQRawObjectVal; //is 32 bits on 32 bits builds and 64 bits otherwise
-#define SQ_OBJECT_RAWINIT()
+typedef LVUnsignedInteger LVRawObjectVal; //is 32 bits on 32 bits builds and 64 bits otherwise
 #endif
 
 #ifndef LV_ALIGNMENT /* shall be less than or equal to LV_MALLOC alignments, and its value shall be power of 2. */
@@ -49,14 +45,14 @@ typedef SQUnsignedInteger SQRawObjectVal; //is 32 bits on 32 bits builds and 64 
 #endif // LV_ALIGNMENT
 
 typedef void *LVUserPointer;
-typedef SQUnsignedInteger LVBool;
-typedef SQInteger LVRESULT;
+typedef LVUnsignedInteger LVBool;
+typedef LVInteger LVRESULT;
 
 #ifdef LVUNICODE
 #include <wchar.h>
 #include <wctype.h>
 
-typedef wchar_t SQChar;
+typedef wchar_t LVChar;
 
 #define scstrcmp    wcscmp
 #ifdef _WIN32
@@ -98,10 +94,10 @@ typedef wchar_t SQChar;
 #define sciscntrl   iswcntrl
 #define scisalnum   iswalnum
 
-#define sq_rsl(l) ((l)<<WCHAR_SHIFT_MUL)
+#define lv_rsl(l) ((l)<<WCHAR_SHIFT_MUL)
 
 #else
-typedef char SQChar;
+typedef char LVChar;
 #define _LC(a) a
 #define scstrcmp    strcmp
 #ifdef _MSC_VER
@@ -135,13 +131,15 @@ typedef char SQChar;
 #define scprintf    printf
 #define MAX_CHAR 0xFF
 
-#define sq_rsl(l) (l)
+#define lv_rsl(l) (l)
 
 #endif // LVUNICODE
 
 #ifdef _LV64
 #define _PRINT_INT_PREC _LC("ll")
 #define _PRINT_INT_FMT _LC("%lld")
+#define _PRINT_INT_FMT3 _LC("%03lld")
 #else
 #define _PRINT_INT_FMT _LC("%d")
+#define _PRINT_INT_FMT3 _LC("%03d")
 #endif // _LV64

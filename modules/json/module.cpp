@@ -406,7 +406,7 @@ void jsmn_init(jsmn_parser *parser) {
 
 #define resize(sz) { \
 	if (out->size + sz > out->allocated) { \
-		SQChar *tmp = (SQChar *)malloc(out->allocated * 2); \
+		LVChar *tmp = (LVChar *)malloc(out->allocated * 2); \
 		memcpy(tmp, out->dest, out->size); \
 		free(out->dest); \
 		out->dest = tmp; \
@@ -424,18 +424,18 @@ void jsmn_init(jsmn_parser *parser) {
 }
 
 struct jsonbuffer {
-	SQChar *dest;
-	SQInteger size;
-	SQInteger allocated;
+	LVChar *dest;
+	LVInteger size;
+	LVInteger allocated;
 };
 
 static int descent_level(VMHANDLE v, struct jsonbuffer *out) {
-	const SQChar *s;
+	const LVChar *s;
 	switch (lv_gettype(v, -1)) {
 		case OT_STRING:
 			if (LV_SUCCEEDED(lv_tostring(v, -1))) {
 				if (LV_SUCCEEDED(lv_getstring(v, -1, &s))) {
-					SQInteger strsz = scstrlen(s);
+					LVInteger strsz = scstrlen(s);
 
 					resize(strsz);
 
@@ -453,7 +453,7 @@ static int descent_level(VMHANDLE v, struct jsonbuffer *out) {
 		case OT_BOOL:
 			if (LV_SUCCEEDED(lv_tostring(v, -1))) {
 				if (LV_SUCCEEDED(lv_getstring(v, -1, &s))) {
-					SQInteger strsz = scstrlen(s);
+					LVInteger strsz = scstrlen(s);
 
 					resize(strsz);
 
@@ -474,8 +474,8 @@ static int descent_level(VMHANDLE v, struct jsonbuffer *out) {
 
 			add_single_token("{");
 
-			const SQChar *key;
-			SQInteger count = lv_getsize(v, -1);
+			const LVChar *key;
+			LVInteger count = lv_getsize(v, -1);
 			lv_pushnull(v);
 			while (LV_SUCCEEDED(lv_next(v, -2))) {
 				lv_getstring(v, -2, &key);
@@ -507,7 +507,7 @@ static int descent_level(VMHANDLE v, struct jsonbuffer *out) {
 
 			add_single_token("[");
 
-			SQInteger count = lv_getsize(v, -1);
+			LVInteger count = lv_getsize(v, -1);
 			lv_pushnull(v);
 			while (LV_SUCCEEDED(lv_next(v, -2))) {
 				descent_level(v, out);
@@ -532,13 +532,13 @@ static int descent_level(VMHANDLE v, struct jsonbuffer *out) {
 	return 0;
 }
 
-static SQInteger json_encode(VMHANDLE v) {
+static LVInteger json_encode(VMHANDLE v) {
 	struct jsonbuffer out;
-	out.dest = (SQChar *)malloc(32);
+	out.dest = (LVChar *)malloc(32);
 	out.size = 0;
 	out.allocated = 32;
 
-	SQInteger res = descent_level(v, &out);
+	LVInteger res = descent_level(v, &out);
 	if (!res) {
 		free(out.dest);
 		return 0;
@@ -556,7 +556,7 @@ static int parse_level(VMHANDLE v, const char *js, jsmntok_t *t, size_t count) {
 		return 0;
 	}
 	if (t->type == JSMN_PRIMITIVE) {
-		SQChar tbuf[6];
+		LVChar tbuf[6];
 		size_t tlen = t->end - t->start;
 		if (tlen == 5) {
 			strncpy(tbuf, js + t->start, tlen);
@@ -614,8 +614,8 @@ static int parse_level(VMHANDLE v, const char *js, jsmntok_t *t, size_t count) {
 	return 0;
 }
 
-static SQInteger json_decode(VMHANDLE v) {
-	const SQChar *s;
+static LVInteger json_decode(VMHANDLE v) {
+	const LVChar *s;
 	jsmn_parser p;
 	size_t tokcount = 32;
 
@@ -651,7 +651,7 @@ static const SQRegFunction jsonlib_funcs[] = {
 #undef _DECL_FUNC
 
 LVRESULT mod_init_json(VMHANDLE v) {
-	SQInteger i = 0;
+	LVInteger i = 0;
 	while (jsonlib_funcs[i].name != 0) {
 		lv_pushstring(v, jsonlib_funcs[i].name, -1);
 		lv_newclosure(v, jsonlib_funcs[i].f, 0);

@@ -4,7 +4,7 @@
 #define SQ_BLOB_TYPE_TAG (SQ_STREAM_TYPE_TAG | 0x00000002)
 
 struct SQBlob : public SQStream {
-	SQBlob(SQInteger size) {
+	SQBlob(LVInteger size) {
 		_size = size;
 		_allocated = size;
 		_buf = (unsigned char *)lv_malloc(size);
@@ -15,7 +15,7 @@ struct SQBlob : public SQStream {
 	virtual ~SQBlob() {
 		lv_free(_buf, _allocated);
 	}
-	SQInteger Write(void *buffer, SQInteger size) {
+	LVInteger Write(void *buffer, LVInteger size) {
 		if (!CanAdvance(size)) {
 			GrowBufOf(_ptr + size - _size);
 		}
@@ -23,8 +23,8 @@ struct SQBlob : public SQStream {
 		_ptr += size;
 		return size;
 	}
-	SQInteger Read(void *buffer, SQInteger size) {
-		SQInteger n = size;
+	LVInteger Read(void *buffer, LVInteger size) {
+		LVInteger n = size;
 		if (!CanAdvance(size)) {
 			if ((_size - _ptr) > 0)
 				n = _size - _ptr;
@@ -35,7 +35,7 @@ struct SQBlob : public SQStream {
 		_ptr += n;
 		return n;
 	}
-	bool Resize(SQInteger n) {
+	bool Resize(LVInteger n) {
 		if (!_owns)
 			return false;
 		if (n != _allocated) {
@@ -55,7 +55,7 @@ struct SQBlob : public SQStream {
 		}
 		return true;
 	}
-	bool GrowBufOf(SQInteger n) {
+	bool GrowBufOf(LVInteger n) {
 		bool ret = true;
 		if (_size + n > _allocated) {
 			if (_size + n > _size * 2)
@@ -66,12 +66,12 @@ struct SQBlob : public SQStream {
 		_size = _size + n;
 		return ret;
 	}
-	bool CanAdvance(SQInteger n) {
+	bool CanAdvance(LVInteger n) {
 		if (_ptr + n > _size)
 			return false;
 		return true;
 	}
-	SQInteger Seek(SQInteger offset, SQInteger origin) {
+	LVInteger Seek(LVInteger offset, LVInteger origin) {
 		switch (origin) {
 			case LV_SEEK_SET:
 				if (offset > _size || offset < 0) return -1;
@@ -96,13 +96,13 @@ struct SQBlob : public SQStream {
 	bool EOS() {
 		return _ptr == _size;
 	}
-	SQInteger Flush() {
+	LVInteger Flush() {
 		return 0;
 	}
-	SQInteger Tell() {
+	LVInteger Tell() {
 		return _ptr;
 	}
-	SQInteger Len() {
+	LVInteger Len() {
 		return _size;
 	}
 	LVUserPointer GetBuf() {
@@ -110,9 +110,9 @@ struct SQBlob : public SQStream {
 	}
 
   private:
-	SQInteger _size;
-	SQInteger _allocated;
-	SQInteger _ptr;
+	LVInteger _size;
+	LVInteger _allocated;
+	LVInteger _ptr;
 	unsigned char *_buf;
 	bool _owns;
 };
@@ -125,9 +125,9 @@ struct SQBlob : public SQStream {
 		return lv_throwerror(v,_LC("the blob is invalid"));
 
 
-static SQInteger _blob_resize(VMHANDLE v) {
+static LVInteger _blob_resize(VMHANDLE v) {
 	SETUP_BLOB(v);
-	SQInteger size;
+	LVInteger size;
 	lv_getinteger(v, 2, &size);
 	if (!self->Resize(size))
 		return lv_throwerror(v, _LC("resize failed"));
@@ -145,29 +145,29 @@ static void __swap_word(unsigned short *n) {
 	*n = (unsigned short)((*n >> 8) & 0x00FF) | ((*n << 8) & 0xFF00);
 }
 
-static SQInteger _blob_swap4(VMHANDLE v) {
+static LVInteger _blob_swap4(VMHANDLE v) {
 	SETUP_BLOB(v);
-	SQInteger num = (self->Len() - (self->Len() % 4)) >> 2;
+	LVInteger num = (self->Len() - (self->Len() % 4)) >> 2;
 	unsigned int *t = (unsigned int *)self->GetBuf();
-	for (SQInteger i = 0; i < num; i++) {
+	for (LVInteger i = 0; i < num; i++) {
 		__swap_dword(&t[i]);
 	}
 	return 0;
 }
 
-static SQInteger _blob_swap2(VMHANDLE v) {
+static LVInteger _blob_swap2(VMHANDLE v) {
 	SETUP_BLOB(v);
-	SQInteger num = (self->Len() - (self->Len() % 2)) >> 1;
+	LVInteger num = (self->Len() - (self->Len() % 2)) >> 1;
 	unsigned short *t = (unsigned short *)self->GetBuf();
-	for (SQInteger i = 0; i < num; i++) {
+	for (LVInteger i = 0; i < num; i++) {
 		__swap_word(&t[i]);
 	}
 	return 0;
 }
 
-static SQInteger _blob__set(VMHANDLE v) {
+static LVInteger _blob__set(VMHANDLE v) {
 	SETUP_BLOB(v);
-	SQInteger idx, val;
+	LVInteger idx, val;
 	lv_getinteger(v, 2, &idx);
 	lv_getinteger(v, 3, &val);
 	if (idx < 0 || idx >= self->Len())
@@ -177,9 +177,9 @@ static SQInteger _blob__set(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _blob__get(VMHANDLE v) {
+static LVInteger _blob__get(VMHANDLE v) {
 	SETUP_BLOB(v);
-	SQInteger idx;
+	LVInteger idx;
 	lv_getinteger(v, 2, &idx);
 	if (idx < 0 || idx >= self->Len())
 		return lv_throwerror(v, _LC("index out of range"));
@@ -187,13 +187,13 @@ static SQInteger _blob__get(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _blob__nexti(VMHANDLE v) {
+static LVInteger _blob__nexti(VMHANDLE v) {
 	SETUP_BLOB(v);
 	if (lv_gettype(v, 2) == OT_NULL) {
 		lv_pushinteger(v, 0);
 		return 1;
 	}
-	SQInteger idx;
+	LVInteger idx;
 	if (LV_SUCCEEDED(lv_getinteger(v, 2, &idx))) {
 		if (idx + 1 < self->Len()) {
 			lv_pushinteger(v, idx + 1);
@@ -205,21 +205,21 @@ static SQInteger _blob__nexti(VMHANDLE v) {
 	return lv_throwerror(v, _LC("internal error (_nexti) wrong argument type"));
 }
 
-static SQInteger _blob__typeof(VMHANDLE v) {
+static LVInteger _blob__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("blob"), -1);
 	return 1;
 }
 
-static SQInteger _blob_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static LVInteger _blob_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
 	SQBlob *self = (SQBlob *)p;
 	self->~SQBlob();
 	lv_free(self, sizeof(SQBlob));
 	return 1;
 }
 
-static SQInteger _blob_constructor(VMHANDLE v) {
-	SQInteger nparam = lv_gettop(v);
-	SQInteger size = 0;
+static LVInteger _blob_constructor(VMHANDLE v) {
+	LVInteger nparam = lv_gettop(v);
+	LVInteger size = 0;
 	if (nparam == 2) {
 		lv_getinteger(v, 2, &size);
 	}
@@ -236,7 +236,7 @@ static SQInteger _blob_constructor(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _blob__cloned(VMHANDLE v) {
+static LVInteger _blob__cloned(VMHANDLE v) {
 	SQBlob *other = NULL;
 	{
 		if (LV_FAILED(lv_getinstanceup(v, 2, (LVUserPointer *)&other, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
@@ -270,39 +270,39 @@ static const SQRegFunction _blob_methods[] = {
 
 //GLOBAL FUNCTIONS
 
-static SQInteger _g_blob_casti2f(VMHANDLE v) {
-	SQInteger i;
+static LVInteger _g_blob_casti2f(VMHANDLE v) {
+	LVInteger i;
 	lv_getinteger(v, 2, &i);
-	lv_pushfloat(v, *((const SQFloat *)&i));
+	lv_pushfloat(v, *((const LVFloat *)&i));
 	return 1;
 }
 
-static SQInteger _g_blob_castf2i(VMHANDLE v) {
-	SQFloat f;
+static LVInteger _g_blob_castf2i(VMHANDLE v) {
+	LVFloat f;
 	lv_getfloat(v, 2, &f);
-	lv_pushinteger(v, *((const SQInteger *)&f));
+	lv_pushinteger(v, *((const LVInteger *)&f));
 	return 1;
 }
 
-static SQInteger _g_blob_swap2(VMHANDLE v) {
-	SQInteger i;
+static LVInteger _g_blob_swap2(VMHANDLE v) {
+	LVInteger i;
 	lv_getinteger(v, 2, &i);
 	short s = (short)i;
 	lv_pushinteger(v, (s << 8) | ((s >> 8) & 0x00FF));
 	return 1;
 }
 
-static SQInteger _g_blob_swap4(VMHANDLE v) {
-	SQInteger i;
+static LVInteger _g_blob_swap4(VMHANDLE v) {
+	LVInteger i;
 	lv_getinteger(v, 2, &i);
 	unsigned int t4 = (unsigned int)i;
 	__swap_dword(&t4);
-	lv_pushinteger(v, (SQInteger)t4);
+	lv_pushinteger(v, (LVInteger)t4);
 	return 1;
 }
 
-static SQInteger _g_blob_swapfloat(VMHANDLE v) {
-	SQFloat f;
+static LVInteger _g_blob_swapfloat(VMHANDLE v) {
+	LVFloat f;
 	lv_getfloat(v, 2, &f);
 	__swap_dword((unsigned int *)&f);
 	lv_pushfloat(v, f);
@@ -319,7 +319,7 @@ static const SQRegFunction bloblib_funcs[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-LVRESULT lv_getblob(VMHANDLE v, SQInteger idx, LVUserPointer *ptr) {
+LVRESULT lv_getblob(VMHANDLE v, LVInteger idx, LVUserPointer *ptr) {
 	SQBlob *blob;
 	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
 		return -1;
@@ -327,15 +327,15 @@ LVRESULT lv_getblob(VMHANDLE v, SQInteger idx, LVUserPointer *ptr) {
 	return LV_OK;
 }
 
-SQInteger lv_getblobsize(VMHANDLE v, SQInteger idx) {
+LVInteger lv_getblobsize(VMHANDLE v, LVInteger idx) {
 	SQBlob *blob;
 	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
 		return -1;
 	return blob->Len();
 }
 
-LVUserPointer lv_createblob(VMHANDLE v, SQInteger size) {
-	SQInteger top = lv_gettop(v);
+LVUserPointer lv_createblob(VMHANDLE v, LVInteger size) {
+	LVInteger top = lv_gettop(v);
 	lv_pushregistrytable(v);
 	lv_pushstring(v, _LC("std_blob"), -1);
 	if (LV_SUCCEEDED(lv_get(v, -2))) {

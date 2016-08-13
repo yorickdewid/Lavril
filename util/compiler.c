@@ -17,14 +17,14 @@
 #define scvprintf vfprintf
 #endif
 
-void print_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void print_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void error_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
@@ -38,7 +38,7 @@ const char *get_file_out(char *filename) {
 
 int main(int argc, char *argv[]) {
 	VMHANDLE v;
-	SQInteger retval = 0;
+	LVInteger retval = 0;
 
 	v = lv_open(1024);
 	lv_setprintfunc(v, print_func, error_func);

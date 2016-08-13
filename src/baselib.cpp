@@ -10,12 +10,12 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-static bool str2num(const SQChar *s, SQObjectPtr& res, SQInteger base) {
-	SQChar *end;
-	const SQChar *e = s;
+static bool str2num(const LVChar *s, SQObjectPtr& res, LVInteger base) {
+	LVChar *end;
+	const LVChar *e = s;
 	bool iseintbase = base > 13; //to fix error converting hexadecimals with e like 56f0791e
 	bool isfloat = false;
-	SQChar c;
+	LVChar c;
 	while ((c = *e) != _LC('\0')) {
 		if (c == _LC('.') || (!iseintbase && (c == _LC('E') || c == _LC('e')))) { //e and E is for scientific notation
 			isfloat = true;
@@ -24,11 +24,11 @@ static bool str2num(const SQChar *s, SQObjectPtr& res, SQInteger base) {
 		e++;
 	}
 	if (isfloat) {
-		SQFloat r = SQFloat(scstrtod(s, &end));
+		LVFloat r = LVFloat(scstrtod(s, &end));
 		if (s == end) return false;
 		res = r;
 	} else {
-		SQInteger r = SQInteger(scstrtol(s, &end, (int)base));
+		LVInteger r = LVInteger(scstrtol(s, &end, (int)base));
 		if (s == end) return false;
 		res = r;
 	}
@@ -37,9 +37,9 @@ static bool str2num(const SQChar *s, SQObjectPtr& res, SQInteger base) {
 
 #define MAX_FORMAT_LEN  20
 #define MAX_WFORMAT_LEN 3
-#define ADDITIONAL_FORMAT_SPACE (100*sizeof(SQChar))
+#define ADDITIONAL_FORMAT_SPACE (100*sizeof(LVChar))
 
-static LVBool isfmtchr(SQChar ch) {
+static LVBool isfmtchr(LVChar ch) {
 	switch (ch) {
 		case '-':
 		case '+':
@@ -51,11 +51,11 @@ static LVBool isfmtchr(SQChar ch) {
 	return LVFalse;
 }
 
-static SQInteger validate_format(VMHANDLE v, SQChar *fmt, const SQChar *src, SQInteger n, SQInteger& width) {
-	SQChar *dummy;
-	SQChar swidth[MAX_WFORMAT_LEN];
-	SQInteger wc = 0;
-	SQInteger start = n;
+static LVInteger validate_format(VMHANDLE v, LVChar *fmt, const LVChar *src, LVInteger n, LVInteger& width) {
+	LVChar *dummy;
+	LVChar swidth[MAX_WFORMAT_LEN];
+	LVInteger wc = 0;
+	LVInteger start = n;
 	fmt[0] = '%';
 
 	while (isfmtchr(src[n]))
@@ -91,20 +91,20 @@ static SQInteger validate_format(VMHANDLE v, SQChar *fmt, const SQChar *src, SQI
 	}
 	if (n - start > MAX_FORMAT_LEN )
 		return lv_throwerror(v, _LC("format too long"));
-	memcpy(&fmt[1], &src[start], ((n - start) + 1)*sizeof(SQChar));
+	memcpy(&fmt[1], &src[start], ((n - start) + 1)*sizeof(LVChar));
 	fmt[(n - start) + 2] = '\0';
 	return n;
 }
 
-LVRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQChar **output) {
-	const SQChar *format;
-	SQChar *dest;
-	SQChar fmt[MAX_FORMAT_LEN];
+LVRESULT strformat(VMHANDLE v, LVInteger nformatstringidx, LVInteger *outlen, LVChar **output) {
+	const LVChar *format;
+	LVChar *dest;
+	LVChar fmt[MAX_FORMAT_LEN];
 	lv_getstring(v, nformatstringidx, &format);
-	SQInteger format_size = lv_getsize(v, nformatstringidx);
-	SQInteger allocated = (format_size + 2) * sizeof(SQChar);
+	LVInteger format_size = lv_getsize(v, nformatstringidx);
+	LVInteger allocated = (format_size + 2) * sizeof(LVChar);
 	dest = lv_getscratchpad(v, allocated);
-	SQInteger n = 0, i = 0, nparam = nformatstringidx + 1, w = 0;
+	LVInteger n = 0, i = 0, nparam = nformatstringidx + 1, w = 0;
 
 	//while(format[n] != '\0')
 	while (n < format_size) {
@@ -122,16 +122,16 @@ LVRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQ
 			n = validate_format(v, fmt, format, n, w);
 			if (n < 0)
 				return -1;
-			SQInteger addlen = 0;
-			SQInteger valtype = 0;
-			const SQChar *ts = NULL;
-			SQInteger ti = 0;
-			SQFloat tf = 0;
+			LVInteger addlen = 0;
+			LVInteger valtype = 0;
+			const LVChar *ts = NULL;
+			LVInteger ti = 0;
+			LVFloat tf = 0;
 			switch (format[n]) {
 				case 's':
 					if (LV_FAILED(lv_getstring(v, nparam, &ts)))
 						return lv_throwerror(v, _LC("string expected for the specified format"));
-					addlen = (lv_getsize(v, nparam) * sizeof(SQChar)) + ((w + 1) * sizeof(SQChar));
+					addlen = (lv_getsize(v, nparam) * sizeof(LVChar)) + ((w + 1) * sizeof(LVChar));
 					valtype = 's';
 					break;
 				case 'i':
@@ -143,9 +143,9 @@ LVRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQ
 #ifdef _LV64
 				{
 					size_t flen = scstrlen(fmt);
-					SQInteger fpos = flen - 1;
-					SQChar f = fmt[fpos];
-					const SQChar *prec = (const SQChar *)_PRINT_INT_PREC;
+					LVInteger fpos = flen - 1;
+					LVChar f = fmt[fpos];
+					const LVChar *prec = (const LVChar *)_PRINT_INT_PREC;
 					while (*prec != _LC('\0')) {
 						fmt[fpos++] = *prec++;
 					}
@@ -156,7 +156,7 @@ LVRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQ
 				case 'c':
 					if (LV_FAILED(lv_getinteger(v, nparam, &ti)))
 						return lv_throwerror(v, _LC("integer expected for the specified format"));
-					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
+					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(LVChar));
 					valtype = 'i';
 					break;
 				case 'f':
@@ -166,14 +166,14 @@ LVRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQ
 				case 'E':
 					if (LV_FAILED(lv_getfloat(v, nparam, &tf)))
 						return lv_throwerror(v, _LC("float expected for the specified format"));
-					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(SQChar));
+					addlen = (ADDITIONAL_FORMAT_SPACE) + ((w + 1) * sizeof(LVChar));
 					valtype = 'f';
 					break;
 				default:
 					return lv_throwerror(v, _LC("invalid format"));
 			}
 			n++;
-			allocated += addlen + sizeof(SQChar);
+			allocated += addlen + sizeof(LVChar);
 			dest = lv_getscratchpad(v, allocated);
 			switch (valtype) {
 				case 's':
@@ -195,32 +195,32 @@ LVRESULT strformat(VMHANDLE v, SQInteger nformatstringidx, SQInteger *outlen, SQ
 	return LV_OK;
 }
 
-static SQInteger base_blub(VMHANDLE LV_UNUSED_ARG(v)) {
+static LVInteger base_blub(VMHANDLE LV_UNUSED_ARG(v)) {
 	return 0;
 }
 
 #ifndef NO_GARBAGE_COLLECTOR
-static SQInteger base_collectgarbage(VMHANDLE v) {
+static LVInteger base_collectgarbage(VMHANDLE v) {
 	lv_pushinteger(v, lv_collectgarbage(v));
 	return 1;
 }
-static SQInteger base_resurectureachable(VMHANDLE v) {
+static LVInteger base_resurectureachable(VMHANDLE v) {
 	lv_resurrectunreachable(v);
 	return 1;
 }
 #endif
 
-static SQInteger base_getroottable(VMHANDLE v) {
+static LVInteger base_getroottable(VMHANDLE v) {
 	v->Push(v->_roottable);
 	return 1;
 }
 
-static SQInteger base_getconsttable(VMHANDLE v) {
+static LVInteger base_getconsttable(VMHANDLE v) {
 	v->Push(_ss(v)->_consts);
 	return 1;
 }
 
-static SQInteger base_setroottable(VMHANDLE v) {
+static LVInteger base_setroottable(VMHANDLE v) {
 	SQObjectPtr o = v->_roottable;
 	if (LV_FAILED(lv_setroottable(v)))
 		return LV_ERROR;
@@ -228,7 +228,7 @@ static SQInteger base_setroottable(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger base_setconsttable(VMHANDLE v) {
+static LVInteger base_setconsttable(VMHANDLE v) {
 	SQObjectPtr o = _ss(v)->_consts;
 	if (LV_FAILED(lv_setconsttable(v)))
 		return LV_ERROR;
@@ -236,31 +236,31 @@ static SQInteger base_setconsttable(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger base_seterrorhandler(VMHANDLE v) {
+static LVInteger base_seterrorhandler(VMHANDLE v) {
 	lv_seterrorhandler(v);
 	return 0;
 }
 
-static SQInteger base_setdebughook(VMHANDLE v) {
+static LVInteger base_setdebughook(VMHANDLE v) {
 	lv_setdebughook(v);
 	return 0;
 }
 
-static SQInteger base_enabledebuginfo(VMHANDLE v) {
+static LVInteger base_enabledebuginfo(VMHANDLE v) {
 	SQObjectPtr& o = stack_get(v, 2);
 
 	lv_enabledebuginfo(v, SQVM::IsFalse(o) ? LVFalse : LVTrue);
 	return 0;
 }
 
-static SQInteger __getcallstackinfos(VMHANDLE v, SQInteger level) {
+static LVInteger __getcallstackinfos(VMHANDLE v, LVInteger level) {
 	SQStackInfos si;
-	SQInteger seq = 0;
-	const SQChar *name = NULL;
+	LVInteger seq = 0;
+	const LVChar *name = NULL;
 
 	if (LV_SUCCEEDED(lv_stackinfos(v, level, &si))) {
-		const SQChar *fn = _LC("unknown");
-		const SQChar *src = _LC("unknown");
+		const LVChar *fn = _LC("unknown");
+		const LVChar *src = _LC("unknown");
 		if (si.funcname)
 			fn = si.funcname;
 		if (si.source)
@@ -291,21 +291,21 @@ static SQInteger __getcallstackinfos(VMHANDLE v, SQInteger level) {
 
 	return 0;
 }
-static SQInteger base_getstackinfos(VMHANDLE v) {
-	SQInteger level;
+static LVInteger base_getstackinfos(VMHANDLE v) {
+	LVInteger level;
 	lv_getinteger(v, -1, &level);
 	return __getcallstackinfos(v, level);
 }
 
-static SQInteger base_assert(VMHANDLE v) {
+static LVInteger base_assert(VMHANDLE v) {
 	if (SQVM::IsFalse(stack_get(v, 2))) {
 		return lv_throwerror(v, _LC("assertion failed"));
 	}
 	return 0;
 }
 
-static SQInteger get_slice_params(VMHANDLE v, SQInteger& sidx, SQInteger& eidx, SQObjectPtr& o) {
-	SQInteger top = lv_gettop(v);
+static LVInteger get_slice_params(VMHANDLE v, LVInteger& sidx, LVInteger& eidx, SQObjectPtr& o) {
+	LVInteger top = lv_gettop(v);
 	sidx = 0;
 	eidx = 0;
 	o = stack_get(v, 1);
@@ -326,8 +326,8 @@ static SQInteger get_slice_params(VMHANDLE v, SQInteger& sidx, SQInteger& eidx, 
 	return 1;
 }
 
-static SQInteger base_print(VMHANDLE v) {
-	const SQChar *str;
+static LVInteger base_print(VMHANDLE v) {
+	const LVChar *str;
 	if (LV_SUCCEEDED(lv_tostring(v, 2))) {
 		if (LV_SUCCEEDED(lv_getstring(v, -1, &str))) {
 			if (_ss(v)->_printfunc)
@@ -338,9 +338,9 @@ static SQInteger base_print(VMHANDLE v) {
 	return LV_ERROR;
 }
 
-static SQInteger base_printf(VMHANDLE v) {
-	SQChar *dest;
-	SQInteger length = 0;
+static LVInteger base_printf(VMHANDLE v) {
+	LVChar *dest;
+	LVInteger length = 0;
 	if (LV_FAILED(strformat(v, 2, &length, &dest)))
 		return LV_ERROR;
 	if (_ss(v)->_printfunc)
@@ -348,8 +348,8 @@ static SQInteger base_printf(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger base_println(VMHANDLE v) {
-	const SQChar *str;
+static LVInteger base_println(VMHANDLE v) {
+	const LVChar *str;
 	if (LV_SUCCEEDED(lv_tostring(v, 2))) {
 		if (LV_SUCCEEDED(lv_getstring(v, -1, &str))) {
 			if (_ss(v)->_printfunc)
@@ -360,8 +360,8 @@ static SQInteger base_println(VMHANDLE v) {
 	return LV_ERROR;
 }
 
-static SQInteger base_error(VMHANDLE v) {
-	const SQChar *str;
+static LVInteger base_error(VMHANDLE v) {
+	const LVChar *str;
 	if (LV_SUCCEEDED(lv_tostring(v, 2))) {
 		if (LV_SUCCEEDED(lv_getstring(v, -1, &str))) {
 			if (_ss(v)->_errorfunc)
@@ -372,10 +372,10 @@ static SQInteger base_error(VMHANDLE v) {
 	return LV_ERROR;
 }
 
-static SQInteger base_compilestring(VMHANDLE v) {
-	SQInteger nargs = lv_gettop(v);
-	const SQChar *src = NULL, *name = _LC("unnamedbuffer");
-	SQInteger size;
+static LVInteger base_compilestring(VMHANDLE v) {
+	LVInteger nargs = lv_gettop(v);
+	const LVChar *src = NULL, *name = _LC("unnamedbuffer");
+	LVInteger size;
 	lv_getstring(v, 2, &src);
 	size = lv_getsize(v, 2);
 	if (nargs > 2) {
@@ -387,19 +387,19 @@ static SQInteger base_compilestring(VMHANDLE v) {
 		return LV_ERROR;
 }
 
-static SQInteger base_newthread(VMHANDLE v) {
+static LVInteger base_newthread(VMHANDLE v) {
 	SQObjectPtr& func = stack_get(v, 2);
-	SQInteger stksize = (_closure(func)->_function->_stacksize << 1) + 2;
+	LVInteger stksize = (_closure(func)->_function->_stacksize << 1) + 2;
 	VMHANDLE newv = lv_newthread(v, (stksize < MIN_STACK_OVERHEAD + 2) ? MIN_STACK_OVERHEAD + 2 : stksize);
 	lv_move(newv, v, -2);
 	return 1;
 }
 
-static SQInteger base_suspend(VMHANDLE v) {
+static LVInteger base_suspend(VMHANDLE v) {
 	return lv_suspendvm(v);
 }
 
-static SQInteger base_array(VMHANDLE v) {
+static LVInteger base_array(VMHANDLE v) {
 	SQArray *a;
 	SQObject& size = stack_get(v, 2);
 	if (lv_gettop(v) > 2) {
@@ -412,13 +412,13 @@ static SQInteger base_array(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger base_type(VMHANDLE v) {
+static LVInteger base_type(VMHANDLE v) {
 	SQObjectPtr& o = stack_get(v, 2);
 	v->Push(SQString::Create(_ss(v), GetTypeName(o), -1));
 	return 1;
 }
 
-static SQInteger base_callee(VMHANDLE v) {
+static LVInteger base_callee(VMHANDLE v) {
 	if (v->_callsstacksize > 1) {
 		v->Push(v->_callsstack[v->_callsstacksize - 2]._closure);
 		return 1;
@@ -456,7 +456,7 @@ static const SQRegFunction base_funcs[] = {
 };
 
 void lv_base_register(VMHANDLE v) {
-	SQInteger i = 0;
+	LVInteger i = 0;
 
 	lv_pushroottable(v);
 	while (base_funcs[i].name != 0) {
@@ -481,13 +481,13 @@ void lv_base_register(VMHANDLE v) {
 	lv_pushstring(v, LAVRIL_VERSION, -1);
 	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_charsize_"), -1);
-	lv_pushinteger(v, sizeof(SQChar));
+	lv_pushinteger(v, sizeof(LVChar));
 	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_intsize_"), -1);
-	lv_pushinteger(v, sizeof(SQInteger));
+	lv_pushinteger(v, sizeof(LVInteger));
 	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_floatsize_"), -1);
-	lv_pushinteger(v, sizeof(SQFloat));
+	lv_pushinteger(v, sizeof(LVFloat));
 	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("_debug_"), -1);
 #ifdef _DEBUG
@@ -499,12 +499,12 @@ void lv_base_register(VMHANDLE v) {
 	lv_pop(v, 1);
 }
 
-static SQInteger default_delegate_len(VMHANDLE v) {
-	v->Push(SQInteger(lv_getsize(v, 1)));
+static LVInteger default_delegate_len(VMHANDLE v) {
+	v->Push(LVInteger(lv_getsize(v, 1)));
 	return 1;
 }
 
-static SQInteger default_delegate_tofloat(VMHANDLE v) {
+static LVInteger default_delegate_tofloat(VMHANDLE v) {
 	SQObjectPtr& o = stack_get(v, 1);
 	switch (type(o)) {
 		case OT_STRING: {
@@ -521,7 +521,7 @@ static SQInteger default_delegate_tofloat(VMHANDLE v) {
 			v->Push(SQObjectPtr(tofloat(o)));
 			break;
 		case OT_BOOL:
-			v->Push(SQObjectPtr((SQFloat)(_integer(o) ? 1 : 0)));
+			v->Push(SQObjectPtr((LVFloat)(_integer(o) ? 1 : 0)));
 			break;
 		default:
 			v->PushNull();
@@ -530,9 +530,9 @@ static SQInteger default_delegate_tofloat(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger default_delegate_tointeger(VMHANDLE v) {
+static LVInteger default_delegate_tointeger(VMHANDLE v) {
 	SQObjectPtr& o = stack_get(v, 1);
-	SQInteger base = 10;
+	LVInteger base = 10;
 	if (lv_gettop(v) > 1) {
 		lv_getinteger(v, 2, &base);
 	}
@@ -551,7 +551,7 @@ static SQInteger default_delegate_tointeger(VMHANDLE v) {
 			v->Push(SQObjectPtr(tointeger(o)));
 			break;
 		case OT_BOOL:
-			v->Push(SQObjectPtr(_integer(o) ? (SQInteger)1 : (SQInteger)0));
+			v->Push(SQObjectPtr(_integer(o) ? (LVInteger)1 : (LVInteger)0));
 			break;
 		default:
 			v->PushNull();
@@ -560,38 +560,38 @@ static SQInteger default_delegate_tointeger(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger default_delegate_tostring(VMHANDLE v) {
+static LVInteger default_delegate_tostring(VMHANDLE v) {
 	if (LV_FAILED(lv_tostring(v, 1)))
 		return LV_ERROR;
 	return 1;
 }
 
-static SQInteger obj_delegate_weakref(VMHANDLE v) {
+static LVInteger obj_delegate_weakref(VMHANDLE v) {
 	lv_weakref(v, 1);
 	return 1;
 }
 
-static SQInteger obj_clear(VMHANDLE v) {
+static LVInteger obj_clear(VMHANDLE v) {
 	return lv_clear(v, -1);
 }
 
-static SQInteger number_delegate_tochar(VMHANDLE v) {
+static LVInteger number_delegate_tochar(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
-	SQChar c = (SQChar)tointeger(o);
-	v->Push(SQString::Create(_ss(v), (const SQChar *)&c, 1));
+	LVChar c = (LVChar)tointeger(o);
+	v->Push(SQString::Create(_ss(v), (const LVChar *)&c, 1));
 	return 1;
 }
 
 /////////////////////////////////////////////////////////////////
 //TABLE DEFAULT DELEGATE
 
-static SQInteger table_rawdelete(VMHANDLE v) {
+static LVInteger table_rawdelete(VMHANDLE v) {
 	if (LV_FAILED(lv_rawdeleteslot(v, 1, LVTrue)))
 		return LV_ERROR;
 	return 1;
 }
 
-static SQInteger container_rawexists(VMHANDLE v) {
+static LVInteger container_rawexists(VMHANDLE v) {
 	if (LV_SUCCEEDED(lv_rawget(v, -2))) {
 		lv_pushbool(v, LVTrue);
 		return 1;
@@ -600,22 +600,22 @@ static SQInteger container_rawexists(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger container_rawset(VMHANDLE v) {
+static LVInteger container_rawset(VMHANDLE v) {
 	return lv_rawset(v, -3);
 }
 
-static SQInteger container_rawget(VMHANDLE v) {
+static LVInteger container_rawget(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_rawget(v, -2)) ? 1 : LV_ERROR;
 }
 
-static SQInteger table_setdelegate(VMHANDLE v) {
+static LVInteger table_setdelegate(VMHANDLE v) {
 	if (LV_FAILED(lv_setdelegate(v, -2)))
 		return LV_ERROR;
 	lv_push(v, -1); // -1 because sq_setdelegate pops 1
 	return 1;
 }
 
-static SQInteger table_getdelegate(VMHANDLE v) {
+static LVInteger table_getdelegate(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_getdelegate(v, -1)) ? 1 : LV_ERROR;
 }
 
@@ -636,24 +636,24 @@ const SQRegFunction SQSharedState::_table_default_delegate_funcz[] = {
 
 //ARRAY DEFAULT DELEGATE///////////////////////////////////////
 
-static SQInteger array_append(VMHANDLE v) {
+static LVInteger array_append(VMHANDLE v) {
 	return lv_arrayappend(v, -2);
 }
 
-static SQInteger array_extend(VMHANDLE v) {
+static LVInteger array_extend(VMHANDLE v) {
 	_array(stack_get(v, 1))->Extend(_array(stack_get(v, 2)));
 	return 0;
 }
 
-static SQInteger array_reverse(VMHANDLE v) {
+static LVInteger array_reverse(VMHANDLE v) {
 	return lv_arrayreverse(v, -1);
 }
 
-static SQInteger array_pop(VMHANDLE v) {
+static LVInteger array_pop(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_arraypop(v, 1, LVTrue)) ? 1 : LV_ERROR;
 }
 
-static SQInteger array_top(VMHANDLE v) {
+static LVInteger array_top(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	if (_array(o)->Size() > 0) {
 		v->Push(_array(o)->Top());
@@ -661,7 +661,7 @@ static SQInteger array_top(VMHANDLE v) {
 	} else return lv_throwerror(v, _LC("top() on a empty array"));
 }
 
-static SQInteger array_insert(VMHANDLE v) {
+static LVInteger array_insert(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	SQObject& idx = stack_get(v, 2);
 	SQObject& val = stack_get(v, 3);
@@ -670,7 +670,7 @@ static SQInteger array_insert(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger array_remove(VMHANDLE v) {
+static LVInteger array_remove(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	SQObject& idx = stack_get(v, 2);
 	if (!lv_isnumeric(idx)) return lv_throwerror(v, _LC("wrong type"));
@@ -683,7 +683,7 @@ static SQInteger array_remove(VMHANDLE v) {
 	return lv_throwerror(v, _LC("idx out of range"));
 }
 
-static SQInteger array_resize(VMHANDLE v) {
+static LVInteger array_resize(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	SQObject& nsize = stack_get(v, 2);
 	SQObjectPtr fill;
@@ -696,10 +696,10 @@ static SQInteger array_resize(VMHANDLE v) {
 	return lv_throwerror(v, _LC("size must be a number"));
 }
 
-static SQInteger __map_array(SQArray *dest, SQArray *src, VMHANDLE v) {
+static LVInteger __map_array(SQArray *dest, SQArray *src, VMHANDLE v) {
 	SQObjectPtr temp;
-	SQInteger size = src->Size();
-	for (SQInteger n = 0; n < size; n++) {
+	LVInteger size = src->Size();
+	for (LVInteger n = 0; n < size; n++) {
 		src->Get(n, temp);
 		v->Push(src);
 		v->Push(temp);
@@ -712,9 +712,9 @@ static SQInteger __map_array(SQArray *dest, SQArray *src, VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger array_map(VMHANDLE v) {
+static LVInteger array_map(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
-	SQInteger size = _array(o)->Size();
+	LVInteger size = _array(o)->Size();
 	SQObjectPtr ret = SQArray::Create(_ss(v), size);
 	if (LV_FAILED(__map_array(_array(ret), _array(o), v)))
 		return LV_ERROR;
@@ -722,17 +722,17 @@ static SQInteger array_map(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger array_apply(VMHANDLE v) {
+static LVInteger array_apply(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	if (LV_FAILED(__map_array(_array(o), _array(o), v)))
 		return LV_ERROR;
 	return 0;
 }
 
-static SQInteger array_reduce(VMHANDLE v) {
+static LVInteger array_reduce(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	SQArray *a = _array(o);
-	SQInteger size = a->Size();
+	LVInteger size = a->Size();
 	if (size == 0) {
 		return 0;
 	}
@@ -740,7 +740,7 @@ static SQInteger array_reduce(VMHANDLE v) {
 	a->Get(0, res);
 	if (size > 1) {
 		SQObjectPtr other;
-		for (SQInteger n = 1; n < size; n++) {
+		for (LVInteger n = 1; n < size; n++) {
 			a->Get(n, other);
 			v->Push(o);
 			v->Push(res);
@@ -756,13 +756,13 @@ static SQInteger array_reduce(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger array_filter(VMHANDLE v) {
+static LVInteger array_filter(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	SQArray *a = _array(o);
 	SQObjectPtr ret = SQArray::Create(_ss(v), 0);
-	SQInteger size = a->Size();
+	LVInteger size = a->Size();
 	SQObjectPtr val;
-	for (SQInteger n = 0; n < size; n++) {
+	for (LVInteger n = 0; n < size; n++) {
 		a->Get(n, val);
 		v->Push(o);
 		v->Push(n);
@@ -779,13 +779,13 @@ static SQInteger array_filter(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger array_find(VMHANDLE v) {
+static LVInteger array_find(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	SQObjectPtr& val = stack_get(v, 2);
 	SQArray *a = _array(o);
-	SQInteger size = a->Size();
+	LVInteger size = a->Size();
 	SQObjectPtr temp;
-	for (SQInteger n = 0; n < size; n++) {
+	for (LVInteger n = 0; n < size; n++) {
 		bool res = false;
 		a->Get(n, temp);
 		if (SQVM::IsEqual(temp, val, res) && res) {
@@ -796,11 +796,11 @@ static SQInteger array_find(VMHANDLE v) {
 	return 0;
 }
 
-static bool _sort_compare(VMHANDLE v, SQObjectPtr& a, SQObjectPtr& b, SQInteger func, SQInteger& ret) {
+static bool _sort_compare(VMHANDLE v, SQObjectPtr& a, SQObjectPtr& b, LVInteger func, LVInteger& ret) {
 	if (func < 0) {
 		if (!v->ObjCmp(a, b, ret)) return false;
 	} else {
-		SQInteger top = lv_gettop(v);
+		LVInteger top = lv_gettop(v);
 		lv_push(v, func);
 		lv_pushroottable(v);
 		v->Push(a);
@@ -820,11 +820,11 @@ static bool _sort_compare(VMHANDLE v, SQObjectPtr& a, SQObjectPtr& b, SQInteger 
 	return true;
 }
 
-static bool _hsort_sift_down(VMHANDLE v, SQArray *arr, SQInteger root, SQInteger bottom, SQInteger func) {
-	SQInteger maxChild;
-	SQInteger done = 0;
-	SQInteger ret;
-	SQInteger root2;
+static bool _hsort_sift_down(VMHANDLE v, SQArray *arr, LVInteger root, LVInteger bottom, LVInteger func) {
+	LVInteger maxChild;
+	LVInteger done = 0;
+	LVInteger ret;
+	LVInteger root2;
 	while (((root2 = root * 2) <= bottom) && (!done)) {
 		if (root2 == bottom) {
 			maxChild = root2;
@@ -855,10 +855,10 @@ static bool _hsort_sift_down(VMHANDLE v, SQArray *arr, SQInteger root, SQInteger
 	return true;
 }
 
-static bool _hsort(VMHANDLE v, SQObjectPtr& arr, SQInteger LV_UNUSED_ARG(l), SQInteger LV_UNUSED_ARG(r), SQInteger func) {
+static bool _hsort(VMHANDLE v, SQObjectPtr& arr, LVInteger LV_UNUSED_ARG(l), LVInteger LV_UNUSED_ARG(r), LVInteger func) {
 	SQArray *a = _array(arr);
-	SQInteger i;
-	SQInteger array_size = a->Size();
+	LVInteger i;
+	LVInteger array_size = a->Size();
 	for (i = (array_size / 2); i >= 0; i--) {
 		if (!_hsort_sift_down(v, a, i, array_size - 1, func)) return false;
 	}
@@ -870,8 +870,8 @@ static bool _hsort(VMHANDLE v, SQObjectPtr& arr, SQInteger LV_UNUSED_ARG(l), SQI
 	return true;
 }
 
-static SQInteger array_sort(VMHANDLE v) {
-	SQInteger func = -1;
+static LVInteger array_sort(VMHANDLE v) {
+	LVInteger func = -1;
 	SQObjectPtr& o = stack_get(v, 1);
 	if (_array(o)->Size() > 1) {
 		if (lv_gettop(v) == 2)
@@ -883,12 +883,12 @@ static SQInteger array_sort(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger array_slice(VMHANDLE v) {
-	SQInteger sidx, eidx;
+static LVInteger array_slice(VMHANDLE v) {
+	LVInteger sidx, eidx;
 	SQObjectPtr o;
 	if (get_slice_params(v, sidx, eidx, o) == -1)
 		return -1;
-	SQInteger alen = _array(o)->Size();
+	LVInteger alen = _array(o)->Size();
 	if (sidx < 0)
 		sidx = alen + sidx;
 	if (eidx < 0)
@@ -899,8 +899,8 @@ static SQInteger array_slice(VMHANDLE v) {
 		return lv_throwerror(v, _LC("slice out of range"));
 	SQArray *arr = SQArray::Create(_ss(v), eidx - sidx);
 	SQObjectPtr t;
-	SQInteger count = 0;
-	for (SQInteger i = sidx; i < eidx; i++) {
+	LVInteger count = 0;
+	for (LVInteger i = sidx; i < eidx; i++) {
 		_array(o)->Get(i, t);
 		arr->Set(count++, t);
 	}
@@ -934,13 +934,13 @@ const SQRegFunction SQSharedState::_array_default_delegate_funcz[] = {
 };
 
 //STRING DEFAULT DELEGATE//////////////////////////
-static SQInteger string_slice(VMHANDLE v) {
-	SQInteger sidx, eidx;
+static LVInteger string_slice(VMHANDLE v) {
+	LVInteger sidx, eidx;
 	SQObjectPtr o;
 	if (LV_FAILED(get_slice_params(v, sidx, eidx, o)))
 		return -1;
 
-	SQInteger slen = _string(o)->_len;
+	LVInteger slen = _string(o)->_len;
 	if (sidx < 0)
 		sidx = slen + sidx;
 	if (eidx < 0)
@@ -954,16 +954,16 @@ static SQInteger string_slice(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger string_find(VMHANDLE v) {
-	SQInteger top, start_idx = 0;
-	const SQChar *str, *substr, *ret;
+static LVInteger string_find(VMHANDLE v) {
+	LVInteger top, start_idx = 0;
+	const LVChar *str, *substr, *ret;
 	if (((top = lv_gettop(v)) > 1) && LV_SUCCEEDED(lv_getstring(v, 1, &str)) && LV_SUCCEEDED(lv_getstring(v, 2, &substr))) {
 		if (top > 2)
 			lv_getinteger(v, 3, &start_idx);
 		if ((lv_getsize(v, 1) > start_idx) && (start_idx >= 0)) {
 			ret = scstrstr(&str[start_idx], substr);
 			if (ret) {
-				lv_pushinteger(v, (SQInteger)(ret - str));
+				lv_pushinteger(v, (LVInteger)(ret - str));
 				return 1;
 			}
 		}
@@ -972,13 +972,13 @@ static SQInteger string_find(VMHANDLE v) {
 	return lv_throwerror(v, _LC("invalid param"));
 }
 
-#define STRING_TOFUNCZ(func) static SQInteger string_##func(VMHANDLE v) \
+#define STRING_TOFUNCZ(func) static LVInteger string_##func(VMHANDLE v) \
 {\
-	SQInteger sidx,eidx; \
+	LVInteger sidx,eidx; \
 	SQObjectPtr str; \
 	if (LV_FAILED(get_slice_params(v,sidx,eidx,str))) \
 		return -1; \
-	SQInteger slen = _string(str)->_len; \
+	LVInteger slen = _string(str)->_len; \
 	if (sidx < 0) \
 		sidx = slen + sidx; \
 	if (eidx < 0) \
@@ -987,11 +987,11 @@ static SQInteger string_find(VMHANDLE v) {
 		return lv_throwerror(v,_LC("wrong indexes")); \
 	if (eidx > slen || sidx < 0) \
 		return lv_throwerror(v,_LC("slice out of range")); \
-	SQInteger len=_string(str)->_len; \
-	const SQChar *sthis = _stringval(str); \
-	SQChar *snew = (_ss(v)->GetScratchPad(sq_rsl(len))); \
-	memcpy(snew, sthis, sq_rsl(len));\
-	for (SQInteger i=sidx; i<eidx; i++) \
+	LVInteger len=_string(str)->_len; \
+	const LVChar *sthis = _stringval(str); \
+	LVChar *snew = (_ss(v)->GetScratchPad(lv_rsl(len))); \
+	memcpy(snew, sthis, lv_rsl(len));\
+	for (LVInteger i=sidx; i<eidx; i++) \
 		snew[i] = func(sthis[i]); \
 	v->Push(SQString::Create(_ss(v),snew,len)); \
 	return 1; \
@@ -1025,61 +1025,61 @@ const SQRegFunction SQSharedState::_number_default_delegate_funcz[] = {
 };
 
 //CLOSURE DEFAULT DELEGATE//////////////////////////
-static SQInteger closure_pcall(VMHANDLE v) {
+static LVInteger closure_pcall(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, LVTrue, LVFalse)) ? 1 : LV_ERROR;
 }
 
-static SQInteger closure_call(VMHANDLE v) {
+static LVInteger closure_call(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_call(v, lv_gettop(v) - 1, LVTrue, LVTrue)) ? 1 : LV_ERROR;
 }
 
-static SQInteger _closure_acall(VMHANDLE v, LVBool raiseerror) {
+static LVInteger _closure_acall(VMHANDLE v, LVBool raiseerror) {
 	SQArray *aparams = _array(stack_get(v, 2));
-	SQInteger nparams = aparams->Size();
+	LVInteger nparams = aparams->Size();
 	v->Push(stack_get(v, 1));
-	for (SQInteger i = 0; i < nparams; i++)v->Push(aparams->_values[i]);
+	for (LVInteger i = 0; i < nparams; i++)v->Push(aparams->_values[i]);
 	return LV_SUCCEEDED(lv_call(v, nparams, LVTrue, raiseerror)) ? 1 : LV_ERROR;
 }
 
-static SQInteger closure_acall(VMHANDLE v) {
+static LVInteger closure_acall(VMHANDLE v) {
 	return _closure_acall(v, LVTrue);
 }
 
-static SQInteger closure_pacall(VMHANDLE v) {
+static LVInteger closure_pacall(VMHANDLE v) {
 	return _closure_acall(v, LVFalse);
 }
 
-static SQInteger closure_bindenv(VMHANDLE v) {
+static LVInteger closure_bindenv(VMHANDLE v) {
 	if (LV_FAILED(lv_bindenv(v, 1)))
 		return LV_ERROR;
 	return 1;
 }
 
-static SQInteger closure_getroot(VMHANDLE v) {
+static LVInteger closure_getroot(VMHANDLE v) {
 	if (LV_FAILED(lv_getclosureroot(v, -1)))
 		return LV_ERROR;
 	return 1;
 }
 
-static SQInteger closure_setroot(VMHANDLE v) {
+static LVInteger closure_setroot(VMHANDLE v) {
 	if (LV_FAILED(lv_setclosureroot(v, -2)))
 		return LV_ERROR;
 	return 1;
 }
 
-static SQInteger closure_getinfos(VMHANDLE v) {
+static LVInteger closure_getinfos(VMHANDLE v) {
 	SQObject o = stack_get(v, 1);
 	SQTable *res = SQTable::Create(_ss(v), 4);
 	if (type(o) == OT_CLOSURE) {
 		FunctionPrototype *f = _closure(o)->_function;
-		SQInteger nparams = f->_nparameters + (f->_varparams ? 1 : 0);
+		LVInteger nparams = f->_nparameters + (f->_varparams ? 1 : 0);
 		SQObjectPtr params = SQArray::Create(_ss(v), nparams);
 		SQObjectPtr defparams = SQArray::Create(_ss(v), f->_ndefaultparams);
-		for (SQInteger n = 0; n < f->_nparameters; n++) {
-			_array(params)->Set((SQInteger)n, f->_parameters[n]);
+		for (LVInteger n = 0; n < f->_nparameters; n++) {
+			_array(params)->Set((LVInteger)n, f->_parameters[n]);
 		}
-		for (SQInteger j = 0; j < f->_ndefaultparams; j++) {
-			_array(defparams)->Set((SQInteger)j, _closure(o)->_defaultparams[j]);
+		for (LVInteger j = 0; j < f->_ndefaultparams; j++) {
+			_array(defparams)->Set((LVInteger)j, _closure(o)->_defaultparams[j]);
 		}
 		if (f->_varparams) {
 			_array(params)->Set(nparams - 1, SQString::Create(_ss(v), _LC("..."), -1));
@@ -1099,8 +1099,8 @@ static SQInteger closure_getinfos(VMHANDLE v) {
 		if (nc->_typecheck.size() > 0) {
 			typecheck =
 			    SQArray::Create(_ss(v), nc->_typecheck.size());
-			for (SQUnsignedInteger n = 0; n < nc->_typecheck.size(); n++) {
-				_array(typecheck)->Set((SQInteger)n, nc->_typecheck[n]);
+			for (LVUnsignedInteger n = 0; n < nc->_typecheck.size(); n++) {
+				_array(typecheck)->Set((LVInteger)n, nc->_typecheck[n]);
 			}
 		}
 		res->NewSlot(SQString::Create(_ss(v), _LC("typecheck"), -1), typecheck);
@@ -1124,7 +1124,7 @@ const SQRegFunction SQSharedState::_closure_default_delegate_funcz[] = {
 };
 
 //GENERATOR DEFAULT DELEGATE
-static SQInteger generator_getstatus(VMHANDLE v) {
+static LVInteger generator_getstatus(VMHANDLE v) {
 	SQObject& o = stack_get(v, 1);
 	switch (_generator(o)->_state) {
 		case SQGenerator::eSuspended:
@@ -1148,12 +1148,12 @@ const SQRegFunction SQSharedState::_generator_default_delegate_funcz[] = {
 };
 
 //THREAD DEFAULT DELEGATE
-static SQInteger thread_call(VMHANDLE v) {
+static LVInteger thread_call(VMHANDLE v) {
 	SQObjectPtr o = stack_get(v, 1);
 	if (type(o) == OT_THREAD) {
-		SQInteger nparams = lv_gettop(v);
+		LVInteger nparams = lv_gettop(v);
 		_thread(o)->Push(_thread(o)->_roottable);
-		for (SQInteger i = 2; i < (nparams + 1); i++)
+		for (LVInteger i = 2; i < (nparams + 1); i++)
 			lv_move(_thread(o), v, i);
 		if (LV_SUCCEEDED(lv_call(_thread(o), nparams, LVTrue, LVTrue))) {
 			lv_move(v, _thread(o), -1);
@@ -1166,11 +1166,11 @@ static SQInteger thread_call(VMHANDLE v) {
 	return lv_throwerror(v, _LC("wrong parameter"));
 }
 
-static SQInteger thread_wakeup(VMHANDLE v) {
+static LVInteger thread_wakeup(VMHANDLE v) {
 	SQObjectPtr o = stack_get(v, 1);
 	if (type(o) == OT_THREAD) {
 		SQVM *thread = _thread(o);
-		SQInteger state = lv_getvmstate(thread);
+		LVInteger state = lv_getvmstate(thread);
 		if (state != LV_VMSTATE_SUSPENDED) {
 			switch (state) {
 				case LV_VMSTATE_IDLE:
@@ -1182,7 +1182,7 @@ static SQInteger thread_wakeup(VMHANDLE v) {
 			}
 		}
 
-		SQInteger wakeupret = lv_gettop(v) > 1 ? LVTrue : LVFalse;
+		LVInteger wakeupret = lv_gettop(v) > 1 ? LVTrue : LVFalse;
 		if (wakeupret) {
 			lv_move(thread, v, 2);
 		}
@@ -1201,11 +1201,11 @@ static SQInteger thread_wakeup(VMHANDLE v) {
 	return lv_throwerror(v, _LC("wrong parameter"));
 }
 
-static SQInteger thread_wakeupthrow(VMHANDLE v) {
+static LVInteger thread_wakeupthrow(VMHANDLE v) {
 	SQObjectPtr o = stack_get(v, 1);
 	if (type(o) == OT_THREAD) {
 		SQVM *thread = _thread(o);
-		SQInteger state = lv_getvmstate(thread);
+		LVInteger state = lv_getvmstate(thread);
 		if (state != LV_VMSTATE_SUSPENDED) {
 			switch (state) {
 				case LV_VMSTATE_IDLE:
@@ -1241,7 +1241,7 @@ static SQInteger thread_wakeupthrow(VMHANDLE v) {
 	return lv_throwerror(v, _LC("wrong parameter"));
 }
 
-static SQInteger thread_getstatus(VMHANDLE v) {
+static LVInteger thread_getstatus(VMHANDLE v) {
 	SQObjectPtr& o = stack_get(v, 1);
 	switch (lv_getvmstate(_thread(o))) {
 		case LV_VMSTATE_IDLE:
@@ -1259,12 +1259,12 @@ static SQInteger thread_getstatus(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger thread_getstackinfos(VMHANDLE v) {
+static LVInteger thread_getstackinfos(VMHANDLE v) {
 	SQObjectPtr o = stack_get(v, 1);
 	if (type(o) == OT_THREAD) {
 		SQVM *thread = _thread(o);
-		SQInteger threadtop = lv_gettop(thread);
-		SQInteger level;
+		LVInteger threadtop = lv_gettop(thread);
+		LVInteger level;
 		lv_getinteger(v, -1, &level);
 		LVRESULT res = __getcallstackinfos(thread, level);
 		if (LV_FAILED(res)) {
@@ -1300,24 +1300,24 @@ const SQRegFunction SQSharedState::_thread_default_delegate_funcz[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-static SQInteger class_getattributes(VMHANDLE v) {
+static LVInteger class_getattributes(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_getattributes(v, -2)) ? 1 : LV_ERROR;
 }
 
-static SQInteger class_setattributes(VMHANDLE v) {
+static LVInteger class_setattributes(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_setattributes(v, -3)) ? 1 : LV_ERROR;
 }
 
-static SQInteger class_instance(VMHANDLE v) {
+static LVInteger class_instance(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_createinstance(v, -1)) ? 1 : LV_ERROR;
 }
 
-static SQInteger class_getbase(VMHANDLE v) {
+static LVInteger class_getbase(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_getbase(v, -1)) ? 1 : LV_ERROR;
 }
 
-static SQInteger class_newmember(VMHANDLE v) {
-	SQInteger top = lv_gettop(v);
+static LVInteger class_newmember(VMHANDLE v) {
+	LVInteger top = lv_gettop(v);
 	LVBool bstatic = LVFalse;
 	if (top == 5) {
 		lv_tobool(v, -1, &bstatic);
@@ -1330,8 +1330,8 @@ static SQInteger class_newmember(VMHANDLE v) {
 	return LV_SUCCEEDED(lv_newmember(v, -4, bstatic)) ? 1 : LV_ERROR;
 }
 
-static SQInteger class_rawnewmember(VMHANDLE v) {
-	SQInteger top = lv_gettop(v);
+static LVInteger class_rawnewmember(VMHANDLE v) {
+	LVInteger top = lv_gettop(v);
 	LVBool bstatic = LVFalse;
 	if (top == 5) {
 		lv_tobool(v, -1, &bstatic);
@@ -1359,7 +1359,7 @@ const SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-static SQInteger instance_getclass(VMHANDLE v) {
+static LVInteger instance_getclass(VMHANDLE v) {
 	if (LV_SUCCEEDED(lv_getclass(v, 1)))
 		return 1;
 	return LV_ERROR;
@@ -1375,7 +1375,7 @@ const SQRegFunction SQSharedState::_instance_default_delegate_funcz[] = {
 	{NULL, (SQFUNCTION)0, 0, NULL}
 };
 
-static SQInteger weakref_ref(VMHANDLE v) {
+static LVInteger weakref_ref(VMHANDLE v) {
 	if (LV_FAILED(lv_getweakrefval(v, 1)))
 		return LV_ERROR;
 	return 1;

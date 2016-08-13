@@ -2,7 +2,7 @@
 #define _LEXER_H_
 
 #ifdef LVUNICODE
-typedef SQChar LexChar;
+typedef LVChar LexChar;
 #else
 typedef unsigned char LexChar;
 #endif
@@ -11,43 +11,43 @@ struct LVLexer {
 	LVLexer();
 	~LVLexer();
 	void Init(SQSharedState *ss, SQLEXREADFUNC rg, LVUserPointer up, CompilerErrorFunc efunc, void *ed);
-	void Error(const SQChar *err);
-	SQInteger Lex();
-	const SQChar *Tok2Str(SQInteger tok);
+	void Error(const LVChar *err);
+	LVInteger Lex();
+	const LVChar *Tok2Str(LVInteger tok);
 
   private:
-	SQInteger GetIDType(const SQChar *s, SQInteger len);
-	SQInteger ReadString(SQInteger ndelim, bool verbatim);
-	SQInteger ReadNumber();
+	LVInteger GetIDType(const LVChar *s, LVInteger len);
+	LVInteger ReadString(LVInteger ndelim, bool verbatim);
+	LVInteger ReadNumber();
 	void LexBlockComment();
 	void LexLineComment();
-	SQInteger ReadID();
+	LVInteger ReadID();
 	void Next();
 #ifdef LVUNICODE
 #if WCHAR_SIZE == 2
-	SQInteger AddUTF16(SQUnsignedInteger ch);
+	LVInteger AddUTF16(LVUnsignedInteger ch);
 #endif
 #else
-	SQInteger AddUTF8(SQUnsignedInteger ch);
+	LVInteger AddUTF8(LVUnsignedInteger ch);
 #endif
-	SQInteger ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits);
-	SQInteger _curtoken;
+	LVInteger ProcessStringHexEscape(LVChar *dest, LVInteger maxdigits);
+	LVInteger _curtoken;
 	SQTable *_keywords;
 	LVBool _reached_eof;
 
   public:
-	SQInteger _prevtoken;
-	SQInteger _currentline;
-	SQInteger _lasttokenline;
-	SQInteger _currentcolumn;
-	const SQChar *_svalue;
-	SQInteger _nvalue;
-	SQFloat _fvalue;
+	LVInteger _prevtoken;
+	LVInteger _currentline;
+	LVInteger _lasttokenline;
+	LVInteger _currentcolumn;
+	const LVChar *_svalue;
+	LVInteger _nvalue;
+	LVFloat _fvalue;
 	SQLEXREADFUNC _readf;
 	LVUserPointer _up;
 	LexChar _currdata;
 	SQSharedState *_sharedstate;
-	sqvector<SQChar> _longstr;
+	sqvector<LVChar> _longstr;
 	CompilerErrorFunc _errfunc;
 	void *_errtarget;
 };

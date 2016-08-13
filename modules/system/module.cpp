@@ -18,8 +18,8 @@
 #define screname rename
 #endif
 
-static SQInteger _system_getenv(VMHANDLE v) {
-	const SQChar *s;
+static LVInteger _system_getenv(VMHANDLE v) {
+	const LVChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		lv_pushstring(v, scgetenv(s), -1);
 		return 1;
@@ -27,8 +27,8 @@ static SQInteger _system_getenv(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _system_system(VMHANDLE v) {
-	const SQChar *s;
+static LVInteger _system_system(VMHANDLE v) {
+	const LVChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		lv_pushinteger(v, scsystem(s));
 		return 1;
@@ -36,27 +36,27 @@ static SQInteger _system_system(VMHANDLE v) {
 	return lv_throwerror(v, _LC("wrong param"));
 }
 
-static SQInteger _system_clock(VMHANDLE v) {
-	lv_pushfloat(v, ((SQFloat)clock()) / (SQFloat)CLOCKS_PER_SEC);
+static LVInteger _system_clock(VMHANDLE v) {
+	lv_pushfloat(v, ((LVFloat)clock()) / (LVFloat)CLOCKS_PER_SEC);
 	return 1;
 }
 
-static SQInteger _system_time(VMHANDLE v) {
-	SQInteger t = (SQInteger)time(NULL);
+static LVInteger _system_time(VMHANDLE v) {
+	LVInteger t = (LVInteger)time(NULL);
 	lv_pushinteger(v, t);
 	return 1;
 }
 
-static SQInteger _system_remove(VMHANDLE v) {
-	const SQChar *s;
+static LVInteger _system_remove(VMHANDLE v) {
+	const LVChar *s;
 	lv_getstring(v, 2, &s);
 	if (scremove(s) == -1)
 		return lv_throwerror(v, _LC("remove() failed"));
 	return 0;
 }
 
-static SQInteger _system_rename(VMHANDLE v) {
-	const SQChar *oldn, *newn;
+static LVInteger _system_rename(VMHANDLE v) {
+	const LVChar *oldn, *newn;
 	lv_getstring(v, 2, &oldn);
 	lv_getstring(v, 3, &newn);
 	if (screname(oldn, newn) == -1)
@@ -64,21 +64,21 @@ static SQInteger _system_rename(VMHANDLE v) {
 	return 0;
 }
 
-static void _set_integer_slot(VMHANDLE v, const SQChar *name, SQInteger val) {
+static void _set_integer_slot(VMHANDLE v, const LVChar *name, LVInteger val) {
 	lv_pushstring(v, name, -1);
 	lv_pushinteger(v, val);
 	lv_rawset(v, -3);
 }
 
-static SQInteger _system_date(VMHANDLE v) {
+static LVInteger _system_date(VMHANDLE v) {
 	time_t t;
-	SQInteger it;
-	SQInteger format = 'l';
+	LVInteger it;
+	LVInteger format = 'l';
 	if (lv_gettop(v) > 1) {
 		lv_getinteger(v, 2, &it);
 		t = it;
 		if (lv_gettop(v) > 2) {
-			lv_getinteger(v, 3, (SQInteger *)&format);
+			lv_getinteger(v, 3, (LVInteger *)&format);
 		}
 	} else {
 		time(&t);
@@ -116,8 +116,8 @@ static const SQRegFunction systemlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQInteger mod_init_system(VMHANDLE v) {
-	SQInteger i = 0;
+LVInteger mod_init_system(VMHANDLE v) {
+	LVInteger i = 0;
 	while (systemlib_funcs[i].name != 0) {
 		lv_pushstring(v, systemlib_funcs[i].name, -1);
 		lv_newclosure(v, systemlib_funcs[i].f, 0);

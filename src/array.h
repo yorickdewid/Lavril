@@ -3,7 +3,7 @@
 
 struct SQArray : public CHAINABLE_OBJ {
   private:
-	SQArray(SQSharedState *ss, SQInteger nsize) {
+	SQArray(SQSharedState *ss, LVInteger nsize) {
 		_values.resize(nsize);
 		INIT_CHAIN();
 		ADD_TO_CHAIN(&_ss(this)->_gc_chain, this);
@@ -14,7 +14,7 @@ struct SQArray : public CHAINABLE_OBJ {
 	}
 
   public:
-	static SQArray *Create(SQSharedState *ss, SQInteger nInitialSize) {
+	static SQArray *Create(SQSharedState *ss, LVInteger nInitialSize) {
 		SQArray *newarray = (SQArray *)LV_MALLOC(sizeof(SQArray));
 		new (newarray) SQArray(ss, nInitialSize);
 		return newarray;
@@ -31,26 +31,26 @@ struct SQArray : public CHAINABLE_OBJ {
 		_values.resize(0);
 	}
 
-	bool Get(const SQInteger nidx, SQObjectPtr& val) {
-		if (nidx >= 0 && nidx < (SQInteger)_values.size()) {
+	bool Get(const LVInteger nidx, SQObjectPtr& val) {
+		if (nidx >= 0 && nidx < (LVInteger)_values.size()) {
 			SQObjectPtr& o = _values[nidx];
 			val = _realval(o);
 			return true;
 		} else return false;
 	}
 
-	bool Set(const SQInteger nidx, const SQObjectPtr& val) {
-		if (nidx >= 0 && nidx < (SQInteger)_values.size()) {
+	bool Set(const LVInteger nidx, const SQObjectPtr& val) {
+		if (nidx >= 0 && nidx < (LVInteger)_values.size()) {
 			_values[nidx] = val;
 			return true;
 		} else return false;
 	}
 
-	SQInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval) {
-		SQUnsignedInteger idx = TranslateIndex(refpos);
+	LVInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval) {
+		LVUnsignedInteger idx = TranslateIndex(refpos);
 		while (idx < _values.size()) {
 			//first found
-			outkey = (SQInteger)idx;
+			outkey = (LVInteger)idx;
 			SQObjectPtr& o = _values[idx];
 			outval = _realval(o);
 			//return idx for the next iteration
@@ -66,21 +66,21 @@ struct SQArray : public CHAINABLE_OBJ {
 		return anew;
 	}
 
-	SQInteger Size() const {
+	LVInteger Size() const {
 		return _values.size();
 	}
 
-	void Resize(SQInteger size) {
+	void Resize(LVInteger size) {
 		SQObjectPtr _null;
 		Resize(size, _null);
 	}
 
-	void Resize(SQInteger size, SQObjectPtr& fill) {
+	void Resize(LVInteger size, SQObjectPtr& fill) {
 		_values.resize(size, fill);
 		ShrinkIfNeeded();
 	}
 
-	void Reserve(SQInteger size) {
+	void Reserve(LVInteger size) {
 		_values.reserve(size);
 	}
 
@@ -99,8 +99,8 @@ struct SQArray : public CHAINABLE_OBJ {
 		ShrinkIfNeeded();
 	}
 
-	bool Insert(SQInteger idx, const SQObject& val) {
-		if (idx < 0 || idx > (SQInteger)_values.size())
+	bool Insert(LVInteger idx, const SQObject& val) {
+		if (idx < 0 || idx > (LVInteger)_values.size())
 			return false;
 		_values.insert(idx, val);
 		return true;
@@ -111,8 +111,8 @@ struct SQArray : public CHAINABLE_OBJ {
 			_values.shrinktofit();
 	}
 
-	bool Remove(SQInteger idx) {
-		if (idx < 0 || idx >= (SQInteger)_values.size())
+	bool Remove(LVInteger idx) {
+		if (idx < 0 || idx >= (LVInteger)_values.size())
 			return false;
 		_values.remove(idx);
 		ShrinkIfNeeded();

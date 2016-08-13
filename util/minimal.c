@@ -14,23 +14,23 @@
 #define scvprintf vfprintf
 #endif
 
-void print_func(VMHANDLE v, const SQChar *s, ...) {
+void print_func(VMHANDLE v, const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(VMHANDLE v, const SQChar *s, ...) {
+void error_func(VMHANDLE v, const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
 }
 
-void call_test(VMHANDLE v, int n, float f, const SQChar *s) {
+void call_test(VMHANDLE v, int n, float f, const LVChar *s) {
 	/* Save the stack size before the call */
-	SQInteger top = lv_gettop(v);
+	LVInteger top = lv_gettop(v);
 
 	/* Push the global table */
 	lv_pushroottable(v);

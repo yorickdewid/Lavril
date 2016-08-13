@@ -2,70 +2,70 @@
 #include "lvstring.h"
 #include <ctype.h>
 
-static void __strip_l(const SQChar *str, const SQChar **start) {
-	const SQChar *t = str;
+static void __strip_l(const LVChar *str, const LVChar **start) {
+	const LVChar *t = str;
 	while (((*t) != '\0') && scisspace(*t)) {
 		t++;
 	}
 	*start = t;
 }
 
-static void __strip_r(const SQChar *str, SQInteger len, const SQChar **end) {
+static void __strip_r(const LVChar *str, LVInteger len, const LVChar **end) {
 	if (len == 0) {
 		*end = str;
 		return;
 	}
-	const SQChar *t = &str[len - 1];
+	const LVChar *t = &str[len - 1];
 	while (t >= str && scisspace(*t)) {
 		t--;
 	}
 	*end = t + 1;
 }
 
-static SQInteger _string_strip(VMHANDLE v) {
-	const SQChar *str, *start, *end;
+static LVInteger _string_strip(VMHANDLE v) {
+	const LVChar *str, *start, *end;
 	lv_getstring(v, 2, &str);
-	SQInteger len = lv_getsize(v, 2);
+	LVInteger len = lv_getsize(v, 2);
 	__strip_l(str, &start);
 	__strip_r(str, len, &end);
 	lv_pushstring(v, start, end - start);
 	return 1;
 }
 
-static SQInteger _string_lstrip(VMHANDLE v) {
-	const SQChar *str, *start;
+static LVInteger _string_lstrip(VMHANDLE v) {
+	const LVChar *str, *start;
 	lv_getstring(v, 2, &str);
 	__strip_l(str, &start);
 	lv_pushstring(v, start, -1);
 	return 1;
 }
 
-static SQInteger _string_rstrip(VMHANDLE v) {
-	const SQChar *str, *end;
+static LVInteger _string_rstrip(VMHANDLE v) {
+	const LVChar *str, *end;
 	lv_getstring(v, 2, &str);
-	SQInteger len = lv_getsize(v, 2);
+	LVInteger len = lv_getsize(v, 2);
 	__strip_r(str, len, &end);
 	lv_pushstring(v, str, end - str);
 	return 1;
 }
 
-static SQInteger _string_split(VMHANDLE v) {
-	const SQChar *str, *seps;
-	SQChar *stemp;
+static LVInteger _string_split(VMHANDLE v) {
+	const LVChar *str, *seps;
+	LVChar *stemp;
 	lv_getstring(v, 2, &str);
 	lv_getstring(v, 3, &seps);
-	SQInteger sepsize = lv_getsize(v, 3);
+	LVInteger sepsize = lv_getsize(v, 3);
 	if (sepsize == 0)
 		return lv_throwerror(v, _LC("empty separators string"));
-	SQInteger memsize = (lv_getsize(v, 2) + 1) * sizeof(SQChar);
+	LVInteger memsize = (lv_getsize(v, 2) + 1) * sizeof(LVChar);
 	stemp = lv_getscratchpad(v, memsize);
 	memcpy(stemp, str, memsize);
-	SQChar *start = stemp;
-	SQChar *end = stemp;
+	LVChar *start = stemp;
+	LVChar *end = stemp;
 	lv_newarray(v, 0);
 	while (*end != '\0') {
-		SQChar cur = *end;
-		for (SQInteger i = 0; i < sepsize; i++) {
+		LVChar cur = *end;
+		for (LVInteger i = 0; i < sepsize; i++) {
 			if (cur == seps[i]) {
 				*end = 0;
 				lv_pushstring(v, start, -1);
@@ -83,10 +83,10 @@ static SQInteger _string_split(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _string_escape(VMHANDLE v) {
-	const SQChar *str;
-	SQChar *dest, *resstr;
-	SQInteger size;
+static LVInteger _string_escape(VMHANDLE v) {
+	const LVChar *str;
+	LVChar *dest, *resstr;
+	LVInteger size;
 	lv_getstring(v, 2, &str);
 	size = lv_getsize(v, 2);
 	if (size == 0) {
@@ -95,21 +95,21 @@ static SQInteger _string_escape(VMHANDLE v) {
 	}
 #ifdef LVUNICODE
 #if WCHAR_SIZE == 2
-	const SQChar *escpat = _LC("\\x%04x");
-	const SQInteger maxescsize = 6;
+	const LVChar *escpat = _LC("\\x%04x");
+	const LVInteger maxescsize = 6;
 #else //WCHAR_SIZE == 4
-	const SQChar *escpat = _LC("\\x%08x");
-	const SQInteger maxescsize = 10;
+	const LVChar *escpat = _LC("\\x%08x");
+	const LVInteger maxescsize = 10;
 #endif
 #else
-	const SQChar *escpat = _LC("\\x%02x");
-	const SQInteger maxescsize = 4;
+	const LVChar *escpat = _LC("\\x%02x");
+	const LVInteger maxescsize = 4;
 #endif
-	SQInteger destcharsize = (size * maxescsize); //assumes every char could be escaped
-	resstr = dest = (SQChar *)lv_getscratchpad(v, destcharsize * sizeof(SQChar));
-	SQChar c;
-	SQChar escch;
-	SQInteger escaped = 0;
+	LVInteger destcharsize = (size * maxescsize); //assumes every char could be escaped
+	resstr = dest = (LVChar *)lv_getscratchpad(v, destcharsize * sizeof(LVChar));
+	LVChar c;
+	LVChar escch;
+	LVInteger escaped = 0;
 	for (int n = 0; n < size; n++) {
 		c = *str++;
 		escch = 0;
@@ -171,29 +171,29 @@ static SQInteger _string_escape(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _string_startswith(VMHANDLE v) {
-	const SQChar *str, *cmp;
+static LVInteger _string_startswith(VMHANDLE v) {
+	const LVChar *str, *cmp;
 	lv_getstring(v, 2, &str);
 	lv_getstring(v, 3, &cmp);
-	SQInteger len = lv_getsize(v, 2);
-	SQInteger cmplen = lv_getsize(v, 3);
+	LVInteger len = lv_getsize(v, 2);
+	LVInteger cmplen = lv_getsize(v, 3);
 	LVBool ret = LVFalse;
 	if (cmplen <= len) {
-		ret = memcmp(str, cmp, sq_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
+		ret = memcmp(str, cmp, lv_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
 	}
 	lv_pushbool(v, ret);
 	return 1;
 }
 
-static SQInteger _string_endswith(VMHANDLE v) {
-	const SQChar *str, *cmp;
+static LVInteger _string_endswith(VMHANDLE v) {
+	const LVChar *str, *cmp;
 	lv_getstring(v, 2, &str);
 	lv_getstring(v, 3, &cmp);
-	SQInteger len = lv_getsize(v, 2);
-	SQInteger cmplen = lv_getsize(v, 3);
+	LVInteger len = lv_getsize(v, 2);
+	LVInteger cmplen = lv_getsize(v, 3);
 	LVBool ret = LVFalse;
 	if (cmplen <= len) {
-		ret = memcmp(&str[len - cmplen], cmp, sq_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
+		ret = memcmp(&str[len - cmplen], cmp, lv_rsl(cmplen)) == 0 ? LVTrue : LVFalse;
 	}
 	lv_pushbool(v, ret);
 	return 1;
@@ -204,15 +204,15 @@ static SQInteger _string_endswith(VMHANDLE v) {
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(LVUserPointer *)&self,0);
 
-static SQInteger _rexobj_releasehook(LVUserPointer p, SQInteger SQ_UNUSED_ARG(size)) {
+static LVInteger _rexobj_releasehook(LVUserPointer p, LVInteger SQ_UNUSED_ARG(size)) {
 	SQRex *self = ((SQRex *)p);
 	sqstd_rex_free(self);
 	return 1;
 }
 
-static SQInteger _regexp_match(VMHANDLE v) {
+static LVInteger _regexp_match(VMHANDLE v) {
 	SETUP_REX(v);
-	const SQChar *str;
+	const LVChar *str;
 	lv_getstring(v, 2, &str);
 	if (sqstd_rex_match(self, str) == LVTrue) {
 		lv_pushbool(v, LVTrue);
@@ -222,7 +222,7 @@ static SQInteger _regexp_match(VMHANDLE v) {
 	return 1;
 }
 
-static void _addrexmatch(VMHANDLE v, const SQChar *str, const SQChar *begin, const SQChar *end) {
+static void _addrexmatch(VMHANDLE v, const LVChar *str, const LVChar *begin, const LVChar *end) {
 	sq_newtable(v);
 	lv_pushstring(v, _LC("begin"), -1);
 	lv_pushinteger(v, begin - str);
@@ -232,10 +232,10 @@ static void _addrexmatch(VMHANDLE v, const SQChar *str, const SQChar *begin, con
 	sq_rawset(v, -3);
 }
 
-static SQInteger _regexp_search(VMHANDLE v) {
+static LVInteger _regexp_search(VMHANDLE v) {
 	SETUP_REX(v);
-	const SQChar *str, *begin, *end;
-	SQInteger start = 0;
+	const LVChar *str, *begin, *end;
+	LVInteger start = 0;
 	lv_getstring(v, 2, &str);
 	if (lv_gettop(v) > 2)
 		lv_getinteger(v, 3, &start);
@@ -246,18 +246,18 @@ static SQInteger _regexp_search(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _regexp_capture(VMHANDLE v) {
+static LVInteger _regexp_capture(VMHANDLE v) {
 	SETUP_REX(v);
-	const SQChar *str, *begin, *end;
-	SQInteger start = 0;
+	const LVChar *str, *begin, *end;
+	LVInteger start = 0;
 	lv_getstring(v, 2, &str);
 	if (lv_gettop(v) > 2)
 		lv_getinteger(v, 3, &start);
 	if (sqstd_rex_search(self, str + start, &begin, &end) == LVTrue) {
-		SQInteger n = sqstd_rex_getsubexpcount(self);
+		LVInteger n = sqstd_rex_getsubexpcount(self);
 		SQRexMatch match;
 		sq_newarray(v, 0);
-		for (SQInteger i = 0; i < n; i++) {
+		for (LVInteger i = 0; i < n; i++) {
 			sqstd_rex_getsubexp(self, i, &match);
 			if (match.len > 0)
 				_addrexmatch(v, str, match.begin, match.begin + match.len);
@@ -270,14 +270,14 @@ static SQInteger _regexp_capture(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _regexp_subexpcount(VMHANDLE v) {
+static LVInteger _regexp_subexpcount(VMHANDLE v) {
 	SETUP_REX(v);
 	lv_pushinteger(v, sqstd_rex_getsubexpcount(self));
 	return 1;
 }
 
-static SQInteger _regexp_constructor(VMHANDLE v) {
-	const SQChar *error, *pattern;
+static LVInteger _regexp_constructor(VMHANDLE v) {
+	const LVChar *error, *pattern;
 	lv_getstring(v, 2, &pattern);
 	SQRex *rex = sqstd_rex_compile(pattern, &error);
 	if (!rex)
@@ -287,7 +287,7 @@ static SQInteger _regexp_constructor(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _regexp__typeof(VMHANDLE v) {
+static LVInteger _regexp__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("regexp"), -1);
 	return 1;
 }
@@ -318,8 +318,8 @@ static const SQRegFunction stringlib_funcs[] = {
 };
 #undef _DECL_FUNC
 
-SQInteger mod_init_string(VMHANDLE v) {
-	SQInteger i = 0;
+LVInteger mod_init_string(VMHANDLE v) {
+	LVInteger i = 0;
 
 	/*#ifdef REGEX
 		lv_pushstring(v, _LC("regexp"), -1);

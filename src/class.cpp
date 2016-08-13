@@ -53,7 +53,7 @@ bool SQClass::NewSlot(SQSharedState *ss, const SQObjectPtr& key, const SQObjectP
 		return true;
 	}
 	if (belongs_to_static_table) {
-		SQInteger mmidx;
+		LVInteger mmidx;
 		if ((type(val) == OT_CLOSURE || type(val) == OT_NATIVECLOSURE) &&
 		        (mmidx = ss->GetMetaMethodIdxByName(key)) != -1) {
 			_metamethods[mmidx] = val;
@@ -68,7 +68,7 @@ bool SQClass::NewSlot(SQSharedState *ss, const SQObjectPtr& key, const SQObjectP
 				bool isconstructor;
 				SQVM::IsEqual(ss->_constructoridx, key, isconstructor);
 				if (isconstructor) {
-					_constructoridx = (SQInteger)_methods.size();
+					_constructoridx = (LVInteger)_methods.size();
 				}
 				SQClassMember m;
 				m.val = theval;
@@ -92,9 +92,9 @@ SQInstance *SQClass::CreateInstance() {
 	return SQInstance::Create(_opt_ss(this), this);
 }
 
-SQInteger SQClass::Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval) {
+LVInteger SQClass::Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval) {
 	SQObjectPtr oval;
-	SQInteger idx = _members->Next(false, refpos, outkey, oval);
+	LVInteger idx = _members->Next(false, refpos, outkey, oval);
 	if (idx != -1) {
 		if (_ismethod(oval)) {
 			outval = _methods[_member_idx(oval)].val;
@@ -137,28 +137,28 @@ void SQInstance::Init(SQSharedState *ss) {
 	ADD_TO_CHAIN(&_sharedstate->_gc_chain, this);
 }
 
-SQInstance::SQInstance(SQSharedState *ss, SQClass *c, SQInteger memsize) {
+SQInstance::SQInstance(SQSharedState *ss, SQClass *c, LVInteger memsize) {
 	_memsize = memsize;
 	_class = c;
-	SQUnsignedInteger nvalues = _class->_defaultvalues.size();
-	for (SQUnsignedInteger n = 0; n < nvalues; n++) {
+	LVUnsignedInteger nvalues = _class->_defaultvalues.size();
+	for (LVUnsignedInteger n = 0; n < nvalues; n++) {
 		new (&_values[n]) SQObjectPtr(_class->_defaultvalues[n].val);
 	}
 	Init(ss);
 }
 
-SQInstance::SQInstance(SQSharedState *ss, SQInstance *i, SQInteger memsize) {
+SQInstance::SQInstance(SQSharedState *ss, SQInstance *i, LVInteger memsize) {
 	_memsize = memsize;
 	_class = i->_class;
-	SQUnsignedInteger nvalues = _class->_defaultvalues.size();
-	for (SQUnsignedInteger n = 0; n < nvalues; n++) {
+	LVUnsignedInteger nvalues = _class->_defaultvalues.size();
+	for (LVUnsignedInteger n = 0; n < nvalues; n++) {
 		new (&_values[n]) SQObjectPtr(i->_values[n]);
 	}
 	Init(ss);
 }
 
 void SQInstance::Finalize() {
-	SQUnsignedInteger nvalues = _class->_defaultvalues.size();
+	LVUnsignedInteger nvalues = _class->_defaultvalues.size();
 	__ObjRelease(_class);
 	_NULL_SQOBJECT_VECTOR(_values, nvalues);
 }

@@ -121,23 +121,23 @@ void color_fprintf(FILE *stream, enum Color color, const char *fmt, ...) {
 }
 
 void print_version_info();
-static SQInteger retval = 0;
+static LVInteger retval = 0;
 
-SQInteger quit(VMHANDLE v) {
+LVInteger quit(VMHANDLE v) {
 	int *done;
 	lv_getuserpointer(v, -1, (LVUserPointer *)&done);
 	*done = 1;
 	return 0;
 }
 
-void print_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void print_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void error_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 	va_list vl;
 	fprintf(stderr, "\033[31;1m");
 	va_start(vl, s);
@@ -147,7 +147,7 @@ void error_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
 }
 
 void print_version_info() {
-	scfprintf(stdout, _LC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
+	scfprintf(stdout, _LC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(LVInteger) * 8)));
 }
 
 void print_interactive_console_info() {
@@ -266,10 +266,10 @@ void print_prompt() {
 }
 
 void interactive(VMHANDLE v) {
-	SQChar buffer[CLI_MAXINPUT];
-	SQInteger blocks = 0;
-	SQInteger string = 0;
-	SQInteger done = 0;
+	LVChar buffer[CLI_MAXINPUT];
+	LVInteger blocks = 0;
+	LVInteger string = 0;
+	LVInteger done = 0;
 
 	print_version_info();
 	print_interactive_console_info();
@@ -283,7 +283,7 @@ void interactive(VMHANDLE v) {
 	lv_pop(v, 1);
 
 	while (!done) {
-		SQInteger i = 0;
+		LVInteger i = 0;
 		print_prompt();
 		while (!done) {
 			int c = getchar();
@@ -301,18 +301,18 @@ void interactive(VMHANDLE v) {
 				buffer[i++] = _LC('\n');
 			} else if (c == _LC('}')) {
 				blocks--;
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			} else if (c == _LC('{') && !string) {
 				blocks++;
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			} else if (c == _LC('"') || c == _LC('\'')) {
 				string = !string;
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			} else if (i >= CLI_MAXINPUT - 1) {
 				scfprintf(stderr, _LC("lv : input line too long\n"));
 				break;
 			} else {
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			}
 		}
 
@@ -344,13 +344,13 @@ void interactive(VMHANDLE v) {
 
 		if (buffer[0] == _LC('=')) {
 			scsprintf(lv_getscratchpad(v, CLI_MAXINPUT), (size_t)CLI_MAXINPUT, _LC("return (%s)"), &buffer[1]);
-			memcpy(buffer, lv_getscratchpad(v, -1), (scstrlen(lv_getscratchpad(v, -1)) + 1)*sizeof(SQChar));
+			memcpy(buffer, lv_getscratchpad(v, -1), (scstrlen(lv_getscratchpad(v, -1)) + 1)*sizeof(LVChar));
 			retval = 1;
 		}
 
 		i = scstrlen(buffer);
 		if (i > 0) {
-			SQInteger oldtop = lv_gettop(v);
+			LVInteger oldtop = lv_gettop(v);
 			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), LVTrue))) {
 				lv_pushroottable(v);
 				if (LV_SUCCEEDED(lv_call(v, 1, retval, LVTrue)) && retval) {
@@ -370,7 +370,7 @@ void interactive(VMHANDLE v) {
 }
 
 int main(int argc, char *argv[]) {
-	SQInteger retval = 0;
+	LVInteger retval = 0;
 
 	VMHANDLE v = lv_open(1024);
 	lv_setprintfunc(v, print_func, error_func);

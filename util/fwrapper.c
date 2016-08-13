@@ -60,22 +60,22 @@ void print_error(int code, const char *status, const char *message) {
 	scprintf(error_body, code, status, code, status, message ? message : "");
 }
 
-void print_func(VMHANDLE v, const SQChar *s, ...) {
+void print_func(VMHANDLE v, const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(VMHANDLE v, const SQChar *s, ...) {
+void error_func(VMHANDLE v, const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
 }
 
-static SQInteger apprun(VMHANDLE v) {
-	const SQChar *s;
+static LVInteger apprun(VMHANDLE v) {
+	const LVChar *s;
 	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
 		scprintf(_LC("%s\r\n"), s);
 	}
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
 		scprintf("Content-type: text/html\r\n\r\n");
 		if (LV_FAILED(lv_execfile(v, script, LVFalse, LVTrue)))  {
-			const SQChar *err;
+			const LVChar *err;
 			lv_getlasterror(v);
 			if (LV_SUCCEEDED(lv_getstring(v, -1, &err))) {
 				scprintf(_LC("<br /><b>An error occurred:</b> <pre>[%s]</pre>\r\n"), err);

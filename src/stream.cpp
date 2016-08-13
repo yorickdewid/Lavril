@@ -8,10 +8,10 @@
 	if(!self || !self->IsValid())  \
 		return lv_throwerror(v,_LC("the stream is invalid"));
 
-SQInteger _stream_readblob(VMHANDLE v) {
+LVInteger _stream_readblob(VMHANDLE v) {
 	SETUP_STREAM(v);
 	LVUserPointer data, blobp;
-	SQInteger size, res;
+	LVInteger size, res;
 	lv_getinteger(v, 2, &size);
 	if (size > self->Len()) {
 		size = self->Len();
@@ -30,19 +30,19 @@ SQInteger _stream_readblob(VMHANDLE v) {
 		return lv_throwerror(v,_LC("io error")); \
 	}
 
-SQInteger _stream_readn(VMHANDLE v) {
+LVInteger _stream_readn(VMHANDLE v) {
 	SETUP_STREAM(v);
-	SQInteger format;
+	LVInteger format;
 	lv_getinteger(v, 2, &format);
 	switch (format) {
 		case 'l': {
-			SQInteger i;
+			LVInteger i;
 			SAFE_READN(&i, sizeof(i));
 			lv_pushinteger(v, i);
 		}
 		break;
 		case 'i': {
-			SQInt32 i;
+			LVInt32 i;
 			SAFE_READN(&i, sizeof(i));
 			lv_pushinteger(v, i);
 		}
@@ -80,7 +80,7 @@ SQInteger _stream_readn(VMHANDLE v) {
 		case 'd': {
 			double d;
 			SAFE_READN(&d, sizeof(double));
-			lv_pushfloat(v, (SQFloat)d);
+			lv_pushfloat(v, (LVFloat)d);
 		}
 		break;
 		default:
@@ -89,9 +89,9 @@ SQInteger _stream_readn(VMHANDLE v) {
 	return 1;
 }
 
-SQInteger _stream_writeblob(VMHANDLE v) {
+LVInteger _stream_writeblob(VMHANDLE v) {
 	LVUserPointer data;
-	SQInteger size;
+	LVInteger size;
 	SETUP_STREAM(v);
 	if (LV_FAILED(lv_getblob(v, 2, &data)))
 		return lv_throwerror(v, _LC("invalid parameter"));
@@ -102,24 +102,24 @@ SQInteger _stream_writeblob(VMHANDLE v) {
 	return 1;
 }
 
-SQInteger _stream_writen(VMHANDLE v) {
+LVInteger _stream_writen(VMHANDLE v) {
 	SETUP_STREAM(v);
-	SQInteger format, ti;
-	SQFloat tf;
+	LVInteger format, ti;
+	LVFloat tf;
 	lv_getinteger(v, 3, &format);
 	switch (format) {
 		case 'l': {
-			SQInteger i;
+			LVInteger i;
 			lv_getinteger(v, 2, &ti);
 			i = ti;
-			self->Write(&i, sizeof(SQInteger));
+			self->Write(&i, sizeof(LVInteger));
 		}
 		break;
 		case 'i': {
-			SQInt32 i;
+			LVInt32 i;
 			lv_getinteger(v, 2, &ti);
-			i = (SQInt32)ti;
-			self->Write(&i, sizeof(SQInt32));
+			i = (LVInt32)ti;
+			self->Write(&i, sizeof(LVInt32));
 		}
 		break;
 		case 's': {
@@ -170,12 +170,12 @@ SQInteger _stream_writen(VMHANDLE v) {
 	return 0;
 }
 
-SQInteger _stream_seek(VMHANDLE v) {
+LVInteger _stream_seek(VMHANDLE v) {
 	SETUP_STREAM(v);
-	SQInteger offset, origin = LV_SEEK_SET;
+	LVInteger offset, origin = LV_SEEK_SET;
 	lv_getinteger(v, 2, &offset);
 	if (lv_gettop(v) > 2) {
-		SQInteger t;
+		LVInteger t;
 		lv_getinteger(v, 3, &t);
 		switch (t) {
 			case 'b':
@@ -195,19 +195,19 @@ SQInteger _stream_seek(VMHANDLE v) {
 	return 1;
 }
 
-SQInteger _stream_tell(VMHANDLE v) {
+LVInteger _stream_tell(VMHANDLE v) {
 	SETUP_STREAM(v);
 	lv_pushinteger(v, self->Tell());
 	return 1;
 }
 
-SQInteger _stream_len(VMHANDLE v) {
+LVInteger _stream_len(VMHANDLE v) {
 	SETUP_STREAM(v);
 	lv_pushinteger(v, self->Len());
 	return 1;
 }
 
-SQInteger _stream_flush(VMHANDLE v) {
+LVInteger _stream_flush(VMHANDLE v) {
 	SETUP_STREAM(v);
 	if (!self->Flush())
 		lv_pushinteger(v, 1);
@@ -216,7 +216,7 @@ SQInteger _stream_flush(VMHANDLE v) {
 	return 1;
 }
 
-SQInteger _stream_eos(VMHANDLE v) {
+LVInteger _stream_eos(VMHANDLE v) {
 	SETUP_STREAM(v);
 	if (self->EOS())
 		lv_pushinteger(v, 1);
@@ -225,7 +225,7 @@ SQInteger _stream_eos(VMHANDLE v) {
 	return 1;
 }
 
-SQInteger _stream__cloned(VMHANDLE v) {
+LVInteger _stream__cloned(VMHANDLE v) {
 	return lv_throwerror(v, _LC("this object cannot be cloned"));
 }
 
@@ -250,7 +250,7 @@ void init_streamclass(VMHANDLE v) {
 		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_newclass(v, LVFalse);
 		lv_settypetag(v, -1, (LVUserPointer)SQ_STREAM_TYPE_TAG);
-		SQInteger i = 0;
+		LVInteger i = 0;
 		while (_stream_methods[i].name != 0) {
 			const SQRegFunction& f = _stream_methods[i];
 			lv_pushstring(v, f.name, -1);
@@ -272,10 +272,10 @@ void init_streamclass(VMHANDLE v) {
 	lv_pop(v, 1);
 }
 
-LVRESULT declare_stream(VMHANDLE v, const SQChar *name, LVUserPointer typetag, const SQChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals) {
+LVRESULT declare_stream(VMHANDLE v, const LVChar *name, LVUserPointer typetag, const LVChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals) {
 	if (lv_gettype(v, -1) != OT_TABLE)
 		return lv_throwerror(v, _LC("table expected"));
-	SQInteger top = lv_gettop(v);
+	LVInteger top = lv_gettop(v);
 	//create delegate
 	init_streamclass(v);
 	lv_pushregistrytable(v);
@@ -284,7 +284,7 @@ LVRESULT declare_stream(VMHANDLE v, const SQChar *name, LVUserPointer typetag, c
 	if (LV_SUCCEEDED(lv_get(v, -3))) {
 		lv_newclass(v, LVTrue);
 		lv_settypetag(v, -1, typetag);
-		SQInteger i = 0;
+		LVInteger i = 0;
 		while (methods[i].name != 0) {
 			const SQRegFunction& f = methods[i];
 			lv_pushstring(v, f.name, -1);

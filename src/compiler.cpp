@@ -19,16 +19,16 @@
 #define OUTER  5
 
 struct SQExpState {
-	SQInteger  etype;       /* expr. type; one of EXPR, OBJECT, BASE, OUTER or LOCAL */
-	SQInteger  epos;        /* expr. location on stack; -1 for OBJECT and BASE */
+	LVInteger  etype;       /* expr. type; one of EXPR, OBJECT, BASE, OUTER or LOCAL */
+	LVInteger  epos;        /* expr. location on stack; -1 for OBJECT and BASE */
 	bool       donot_get;   /* signal not to deref the next value */
 };
 
 #define MAX_COMPILER_ERROR_LEN 256
 
 struct SQScope {
-	SQInteger outers;
-	SQInteger stacksize;
+	LVInteger outers;
+	LVInteger stacksize;
 };
 
 #define BEGIN_SCOPE() SQScope __oldscope__ = _scope; \
@@ -47,7 +47,7 @@ struct SQScope {
 						_scope = __oldscope__; \
 					}
 
-#define END_SCOPE() {   SQInteger oldouters = _fs->_outers;\
+#define END_SCOPE() {   LVInteger oldouters = _fs->_outers;\
 						if(_fs->GetStackSize() != _scope.stacksize) { \
 							_fs->SetStackSize(_scope.stacksize); \
 							if(oldouters != _fs->_outers) { \
@@ -57,8 +57,8 @@ struct SQScope {
 						_scope = __oldscope__; \
 					}
 
-#define BEGIN_BREAKBLE_BLOCK()  SQInteger __nbreaks__=_fs->_unresolvedbreaks.size(); \
-							SQInteger __ncontinues__=_fs->_unresolvedcontinues.size(); \
+#define BEGIN_BREAKBLE_BLOCK()  LVInteger __nbreaks__=_fs->_unresolvedbreaks.size(); \
+							LVInteger __ncontinues__=_fs->_unresolvedcontinues.size(); \
 							_fs->_breaktargets.push_back(0);_fs->_continuetargets.push_back(0);
 
 #define END_BREAKBLE_BLOCK(continue_target) {__nbreaks__=_fs->_unresolvedbreaks.size()-__nbreaks__; \
@@ -69,7 +69,7 @@ struct SQScope {
 
 class LVCompiler {
   public:
-	LVCompiler(SQVM *v, SQLEXREADFUNC rg, LVUserPointer up, const SQChar *sourcename, bool raiseerror, bool lineinfo) {
+	LVCompiler(SQVM *v, SQLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, bool raiseerror, bool lineinfo) {
 		_vm = v;
 		_lex.Init(_ss(v), rg, up, ThrowError, this);
 		_sourcename = SQString::Create(_ss(v), sourcename);
@@ -80,12 +80,12 @@ class LVCompiler {
 		_compilererror[0] = _LC('\0');
 	}
 
-	static void ThrowError(void *ud, const SQChar *s) {
+	static void ThrowError(void *ud, const LVChar *s) {
 		LVCompiler *c = (LVCompiler *)ud;
 		c->Error(s);
 	}
 
-	void Error(const SQChar *s, ...) {
+	void Error(const LVChar *s, ...) {
 		va_list vl;
 		va_start(vl, s);
 		scvsprintf(_compilererror, MAX_COMPILER_ERROR_LEN, s, vl);
@@ -97,12 +97,12 @@ class LVCompiler {
 		_token = _lex.Lex();
 	}
 
-	SQObject Expect(SQInteger tok) {
+	SQObject Expect(LVInteger tok) {
 		if (_token != tok) {
 			if (_token == TK_CONSTRUCTOR && tok == TK_IDENTIFIER) {
 				//do nothing
 			} else {
-				const SQChar *etypename = NULL;
+				const LVChar *etypename = NULL;
 				if (tok > 255) {
 					switch (tok) {
 						case TK_IDENTIFIER:
@@ -161,7 +161,7 @@ class LVCompiler {
 		}
 	}
 	void MoveIfCurrentTargetIsLocal() {
-		SQInteger trg = _fs->TopTarget();
+		LVInteger trg = _fs->TopTarget();
 		if (_fs->IsLocal(trg)) {
 			trg = _fs->PopTarget(); //pops the target and moves it
 			_fs->AddInstruction(_OP_MOVE, _fs->PushTarget(), trg);
@@ -180,7 +180,7 @@ class LVCompiler {
 		_fs->_varparams = true;
 		_fs->_sourcename = _sourcename;
 
-		SQInteger stacksize = _fs->GetStackSize();
+		LVInteger stacksize = _fs->GetStackSize();
 		if (setjmp(_errorjmp) == 0) {
 			Lex();
 
@@ -263,7 +263,7 @@ class LVCompiler {
 				}
 				Lex();
 				if (!IsEndOfStatement()) {
-					SQInteger retexp = _fs->GetCurrentPos() + 1;
+					LVInteger retexp = _fs->GetCurrentPos() + 1;
 					CommaExpr();
 					if (op == _OP_RETURN && _fs->_traps > 0)
 						_fs->AddInstruction(_OP_POPTRAP, _fs->_traps, 0);
@@ -350,24 +350,24 @@ class LVCompiler {
 	}
 
 	void EmitDerefOp(SQOpcode op) {
-		SQInteger val = _fs->PopTarget();
-		SQInteger key = _fs->PopTarget();
-		SQInteger src = _fs->PopTarget();
+		LVInteger val = _fs->PopTarget();
+		LVInteger key = _fs->PopTarget();
+		LVInteger src = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), src, key, val);
 	}
 
-	void Emit2ArgsOP(SQOpcode op, SQInteger p3 = 0) {
-		SQInteger p2 = _fs->PopTarget(); //src in OP_GET
-		SQInteger p1 = _fs->PopTarget(); //key in OP_GET
+	void Emit2ArgsOP(SQOpcode op, LVInteger p3 = 0) {
+		LVInteger p2 = _fs->PopTarget(); //src in OP_GET
+		LVInteger p1 = _fs->PopTarget(); //key in OP_GET
 		_fs->AddInstruction(op, _fs->PushTarget(), p1, p2, p3);
 	}
 
-	void EmitCompoundArith(SQInteger tok, SQInteger etype, SQInteger pos) {
+	void EmitCompoundArith(LVInteger tok, LVInteger etype, LVInteger pos) {
 		/* Generate code depending on the expression type */
 		switch (etype) {
 			case LOCAL: {
-				SQInteger p2 = _fs->PopTarget(); //src in OP_GET
-				SQInteger p1 = _fs->PopTarget(); //key in OP_GET
+				LVInteger p2 = _fs->PopTarget(); //src in OP_GET
+				LVInteger p1 = _fs->PopTarget(); //key in OP_GET
 				_fs->PushTarget(p1);
 				//EmitCompArithLocal(tok, p1, p1, p2);
 				_fs->AddInstruction(ChooseArithOpByToken(tok), p1, p2, p1, 0);
@@ -376,16 +376,16 @@ class LVCompiler {
 			break;
 			case OBJECT:
 			case BASE: {
-				SQInteger val = _fs->PopTarget();
-				SQInteger key = _fs->PopTarget();
-				SQInteger src = _fs->PopTarget();
+				LVInteger val = _fs->PopTarget();
+				LVInteger key = _fs->PopTarget();
+				LVInteger src = _fs->PopTarget();
 				/* _OP_COMPARITH mixes dest obj and source val in the arg1 */
 				_fs->AddInstruction(_OP_COMPARITH, _fs->PushTarget(), (src << 16) | val, key, ChooseCompArithCharByToken(tok));
 			}
 			break;
 			case OUTER: {
-				SQInteger val = _fs->TopTarget();
-				SQInteger tmp = _fs->PushTarget();
+				LVInteger val = _fs->TopTarget();
+				LVInteger tmp = _fs->PushTarget();
 				_fs->AddInstruction(_OP_GETOUTER,   tmp, pos);
 				_fs->AddInstruction(ChooseArithOpByToken(tok), tmp, val, tmp, 0);
 				_fs->PopTarget();
@@ -415,9 +415,9 @@ class LVCompiler {
 			case TK_MULEQ:
 			case TK_DIVEQ:
 			case TK_MODEQ: {
-				SQInteger op = _token;
-				SQInteger ds = _es.etype;
-				SQInteger pos = _es.epos;
+				LVInteger op = _token;
+				LVInteger ds = _es.etype;
+				LVInteger pos = _es.epos;
 
 				if (ds == EXPR)
 					Error(_LC("can't assign expression"));
@@ -437,8 +437,8 @@ class LVCompiler {
 					case _LC('='): //ASSIGN
 						switch (ds) {
 							case LOCAL: {
-								SQInteger src = _fs->PopTarget();
-								SQInteger dst = _fs->TopTarget();
+								LVInteger src = _fs->PopTarget();
+								LVInteger dst = _fs->TopTarget();
 								_fs->AddInstruction(_OP_MOVE, dst, src);
 							}
 							break;
@@ -447,8 +447,8 @@ class LVCompiler {
 								EmitDerefOp(_OP_SET);
 								break;
 							case OUTER: {
-								SQInteger src = _fs->PopTarget();
-								SQInteger dst = _fs->PushTarget();
+								LVInteger src = _fs->PopTarget();
+								LVInteger dst = _fs->PushTarget();
 								_fs->AddInstruction(_OP_SETOUTER, dst, pos, src);
 							}
 						}
@@ -466,17 +466,17 @@ class LVCompiler {
 			case _LC('?'): {
 				Lex();
 				_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
-				SQInteger jzpos = _fs->GetCurrentPos();
-				SQInteger trg = _fs->PushTarget();
+				LVInteger jzpos = _fs->GetCurrentPos();
+				LVInteger trg = _fs->PushTarget();
 				Expression();
-				SQInteger first_exp = _fs->PopTarget();
+				LVInteger first_exp = _fs->PopTarget();
 				if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-				SQInteger endfirstexp = _fs->GetCurrentPos();
+				LVInteger endfirstexp = _fs->GetCurrentPos();
 				_fs->AddInstruction(_OP_JMP, 0, 0);
 				Expect(_LC(':'));
-				SQInteger jmppos = _fs->GetCurrentPos();
+				LVInteger jmppos = _fs->GetCurrentPos();
 				Expression();
-				SQInteger second_exp = _fs->PopTarget();
+				LVInteger second_exp = _fs->PopTarget();
 				if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
 				_fs->SetIntructionParam(jmppos, 1, _fs->GetCurrentPos() - jmppos);
 				_fs->SetIntructionParam(jzpos, 1, endfirstexp - jzpos + 1);
@@ -498,11 +498,11 @@ class LVCompiler {
 	}
 
 	template<typename T>
-	void BIN_EXP(SQOpcode op, T f, SQInteger op3 = 0) {
+	void BIN_EXP(SQOpcode op, T f, LVInteger op3 = 0) {
 		Lex();
 		INVOKE_EXP(f);
-		SQInteger op1 = _fs->PopTarget();
-		SQInteger op2 = _fs->PopTarget();
+		LVInteger op1 = _fs->PopTarget();
+		LVInteger op2 = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), op1, op2, op3);
 	}
 
@@ -510,15 +510,15 @@ class LVCompiler {
 		LogicalAndExp();
 		for (;;)
 			if (_token == TK_OR) {
-				SQInteger first_exp = _fs->PopTarget();
-				SQInteger trg = _fs->PushTarget();
+				LVInteger first_exp = _fs->PopTarget();
+				LVInteger trg = _fs->PushTarget();
 				_fs->AddInstruction(_OP_OR, trg, 0, first_exp, 0);
-				SQInteger jpos = _fs->GetCurrentPos();
+				LVInteger jpos = _fs->GetCurrentPos();
 				if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
 				Lex();
 				INVOKE_EXP(&LVCompiler::LogicalOrExp);
 				_fs->SnoozeOpt();
-				SQInteger second_exp = _fs->PopTarget();
+				LVInteger second_exp = _fs->PopTarget();
 				if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
 				_fs->SnoozeOpt();
 				_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
@@ -533,15 +533,15 @@ class LVCompiler {
 		for (;;)
 			switch (_token) {
 				case TK_AND: {
-					SQInteger first_exp = _fs->PopTarget();
-					SQInteger trg = _fs->PushTarget();
+					LVInteger first_exp = _fs->PopTarget();
+					LVInteger trg = _fs->PushTarget();
 					_fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
-					SQInteger jpos = _fs->GetCurrentPos();
+					LVInteger jpos = _fs->GetCurrentPos();
 					if (trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
 					Lex();
 					INVOKE_EXP(&LVCompiler::LogicalAndExp);
 					_fs->SnoozeOpt();
-					SQInteger second_exp = _fs->PopTarget();
+					LVInteger second_exp = _fs->PopTarget();
 					if (trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
 					_fs->SnoozeOpt();
 					_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
@@ -645,7 +645,7 @@ class LVCompiler {
 			}
 	}
 
-	SQOpcode ChooseArithOpByToken(SQInteger tok) {
+	SQOpcode ChooseArithOpByToken(LVInteger tok) {
 		switch (tok) {
 			case TK_PLUSEQ:
 			case '+':
@@ -668,8 +668,8 @@ class LVCompiler {
 		return _OP_ADD;
 	}
 
-	SQInteger ChooseCompArithCharByToken(SQInteger tok) {
-		SQInteger oper;
+	LVInteger ChooseCompArithCharByToken(LVInteger tok) {
+		LVInteger oper;
 		switch (tok) {
 			case TK_MINUSEQ:
 				oper = '-';
@@ -723,7 +723,7 @@ class LVCompiler {
 
 	//if 'pos' != -1 the previous variable is a local variable
 	void PrefixedExpr() {
-		SQInteger pos = Factor();
+		LVInteger pos = Factor();
 		for (;;) {
 			switch (_token) {
 				case _LC('.'):
@@ -782,7 +782,7 @@ class LVCompiler {
 				case TK_PLUSPLUS: {
 					if (IsEndOfStatement())
 						return;
-					SQInteger diff = (_token == TK_MINUSMINUS) ? -1 : 1;
+					LVInteger diff = (_token == TK_MINUSMINUS) ? -1 : 1;
 					Lex();
 					switch (_es.etype) {
 						case EXPR:
@@ -797,13 +797,13 @@ class LVCompiler {
 							Emit2ArgsOP(_OP_PINC, diff);
 							break;
 						case LOCAL: {
-							SQInteger src = _fs->PopTarget();
+							LVInteger src = _fs->PopTarget();
 							_fs->AddInstruction(_OP_PINCL, _fs->PushTarget(), src, 0, diff);
 						}
 						break;
 						case OUTER: {
-							SQInteger tmp1 = _fs->PushTarget();
-							SQInteger tmp2 = _fs->PushTarget();
+							LVInteger tmp1 = _fs->PushTarget();
+							LVInteger tmp2 = _fs->PushTarget();
 							_fs->AddInstruction(_OP_GETOUTER, tmp2, _es.epos);
 							_fs->AddInstruction(_OP_PINCL,    tmp1, tmp2, 0, diff);
 							_fs->AddInstruction(_OP_SETOUTER, tmp2, _es.epos, tmp2);
@@ -816,10 +816,10 @@ class LVCompiler {
 				case _LC('('):
 					switch (_es.etype) {
 						case OBJECT: {
-							SQInteger key     = _fs->PopTarget();  /* location of the key */
-							SQInteger table   = _fs->PopTarget();  /* location of the object */
-							SQInteger closure = _fs->PushTarget(); /* location for the closure */
-							SQInteger ttarget = _fs->PushTarget(); /* location for 'this' pointer */
+							LVInteger key     = _fs->PopTarget();  /* location of the key */
+							LVInteger table   = _fs->PopTarget();  /* location of the object */
+							LVInteger closure = _fs->PushTarget(); /* location for the closure */
+							LVInteger ttarget = _fs->PushTarget(); /* location for 'this' pointer */
 							_fs->AddInstruction(_OP_PREPCALL, closure, key, table, ttarget);
 						}
 						break;
@@ -844,7 +844,7 @@ class LVCompiler {
 		}
 	}
 
-	SQInteger Factor() {
+	LVInteger Factor() {
 		//_es.etype = EXPR;
 		switch (_token) {
 			case TK_STRING_LITERAL:
@@ -876,7 +876,7 @@ class LVCompiler {
 						break;
 				}
 
-				SQInteger pos = -1;
+				LVInteger pos = -1;
 				Lex();
 				if ((pos = _fs->GetLocalVariable(id)) != -1) {
 					/* Handle a local variable (includes 'this') */
@@ -969,14 +969,14 @@ class LVCompiler {
 				break;
 			case _LC('['): {
 				_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, 0, NOT_ARRAY);
-				SQInteger apos = _fs->GetCurrentPos(), key = 0;
+				LVInteger apos = _fs->GetCurrentPos(), key = 0;
 				Lex();
 				while (_token != _LC(']')) {
 					Expression();
 					if (_token == _LC(','))
 						Lex();
-					SQInteger val = _fs->PopTarget();
-					SQInteger array = _fs->TopTarget();
+					LVInteger val = _fs->PopTarget();
+					LVInteger array = _fs->TopTarget();
 					_fs->AddInstruction(_OP_APPENDARRAY, array, val, AAT_STACK);
 					key++;
 				}
@@ -1066,7 +1066,7 @@ class LVCompiler {
 		return -1;
 	}
 
-	void EmitLoadConstInt(SQInteger value, SQInteger target) {
+	void EmitLoadConstInt(LVInteger value, LVInteger target) {
 		if (target < 0) {
 			target = _fs->PushTarget();
 		}
@@ -1077,12 +1077,12 @@ class LVCompiler {
 		}
 	}
 
-	void EmitLoadConstFloat(SQFloat value, SQInteger target) {
+	void EmitLoadConstFloat(LVFloat value, LVInteger target) {
 		if (target < 0) {
 			target = _fs->PushTarget();
 		}
-		if (sizeof(SQFloat) == sizeof(SQInt32)) {
-			_fs->AddInstruction(_OP_LOADFLOAT, target, *((SQInt32 *)&value));
+		if (sizeof(LVFloat) == sizeof(LVInt32)) {
+			_fs->AddInstruction(_OP_LOADFLOAT, target, *((LVInt32 *)&value));
 		} else {
 			_fs->AddInstruction(_OP_LOAD, target, _fs->GetNumericConstant(value));
 		}
@@ -1090,7 +1090,7 @@ class LVCompiler {
 
 	void UnaryOP(SQOpcode op) {
 		PrefixedExpr();
-		SQInteger src = _fs->PopTarget();
+		LVInteger src = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), src);
 	}
 
@@ -1116,7 +1116,7 @@ class LVCompiler {
 	}
 
 	void FunctionCallArgs() {
-		SQInteger nargs = 1;//this
+		LVInteger nargs = 1;//this
 		while (_token != _LC(')')) {
 			Expression();
 			MoveIfCurrentTargetIsLocal();
@@ -1128,15 +1128,15 @@ class LVCompiler {
 			}
 		}
 		Lex();
-		for (SQInteger i = 0; i < (nargs - 1); i++)
+		for (LVInteger i = 0; i < (nargs - 1); i++)
 			_fs->PopTarget();
-		SQInteger stackbase = _fs->PopTarget();
-		SQInteger closure = _fs->PopTarget();
+		LVInteger stackbase = _fs->PopTarget();
+		LVInteger closure = _fs->PopTarget();
 		_fs->AddInstruction(_OP_CALL, _fs->PushTarget(), closure, stackbase, nargs);
 	}
 
-	void ParseTableOrClass(SQInteger separator, SQInteger terminator) {
-		SQInteger tpos = _fs->GetCurrentPos(), nkeys = 0;
+	void ParseTableOrClass(LVInteger separator, LVInteger terminator) {
+		LVInteger tpos = _fs->GetCurrentPos(), nkeys = 0;
 		while (_token != terminator) {
 			// bool hasattrs = false;
 			bool isstatic = false;
@@ -1156,7 +1156,7 @@ class LVCompiler {
 			switch (_token) {
 				case TK_FUNCTION:
 				case TK_CONSTRUCTOR: {
-					SQInteger tk = _token;
+					LVInteger tk = _token;
 					Lex();
 					SQObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) : _fs->CreateString(_LC("constructor"));
 					Expect(_LC('('));
@@ -1187,14 +1187,14 @@ class LVCompiler {
 			if (_token == separator)
 				Lex(); //optional comma/semicolon
 			nkeys++;
-			SQInteger val = _fs->PopTarget();
-			SQInteger key = _fs->PopTarget();
-			// SQInteger attrs = hasattrs ? _fs->PopTarget() : -1;
+			LVInteger val = _fs->PopTarget();
+			LVInteger key = _fs->PopTarget();
+			// LVInteger attrs = hasattrs ? _fs->PopTarget() : -1;
 			// ((void)attrs);
 			// assert((hasattrs && (attrs == key - 1)) || !hasattrs);
 			// unsigned char flags = (hasattrs ? NEW_SLOT_ATTRIBUTES_FLAG : 0) | (isstatic ? NEW_SLOT_STATIC_FLAG : 0);
 			unsigned char flags = isstatic ? NEW_SLOT_STATIC_FLAG : 0;
-			SQInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
+			LVInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
 			if (separator == _LC(',')) { //hack recognizes a table from the separator
 				_fs->AddInstruction(_OP_NEWSLOT, 0xFF, table, key, val);
 			} else {
@@ -1231,8 +1231,8 @@ class LVCompiler {
 			if (_token == _LC('=')) {
 				Lex();
 				Expression();
-				SQInteger src = _fs->PopTarget();
-				SQInteger dest = _fs->PushTarget();
+				LVInteger src = _fs->PopTarget();
+				LVInteger dest = _fs->PushTarget();
 				if (dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
 			} else {
 				_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
@@ -1285,18 +1285,18 @@ class LVCompiler {
 	}
 
 	void IfStatement() {
-		SQInteger jmppos;
+		LVInteger jmppos;
 		bool haselse = false;
 		Lex();
 		Expect(_LC('('));
 		CommaExpr();
 		Expect(_LC(')'));
 		_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
-		SQInteger jnepos = _fs->GetCurrentPos();
+		LVInteger jnepos = _fs->GetCurrentPos();
 
 		IfBlock();
 
-		SQInteger endifblock = _fs->GetCurrentPos();
+		LVInteger endifblock = _fs->GetCurrentPos();
 		if (_token == TK_ELSE) {
 			haselse = true;
 			//BEGIN_SCOPE();
@@ -1312,7 +1312,7 @@ class LVCompiler {
 	}
 
 	void WhileStatement() {
-		SQInteger jzpos, jmppos;
+		LVInteger jzpos, jmppos;
 		jmppos = _fs->GetCurrentPos();
 		Lex();
 		Expect(_LC('('));
@@ -1335,13 +1335,13 @@ class LVCompiler {
 
 	void DoWhileStatement() {
 		Lex();
-		SQInteger jmptrg = _fs->GetCurrentPos();
+		LVInteger jmptrg = _fs->GetCurrentPos();
 		BEGIN_BREAKBLE_BLOCK()
 		BEGIN_SCOPE();
 		Statement();
 		END_SCOPE();
 		Expect(TK_WHILE);
-		SQInteger continuetrg = _fs->GetCurrentPos();
+		LVInteger continuetrg = _fs->GetCurrentPos();
 		Expect(_LC('('));
 		CommaExpr();
 		Expect(_LC(')'));
@@ -1361,8 +1361,8 @@ class LVCompiler {
 		}
 		Expect(_LC(';'));
 		_fs->SnoozeOpt();
-		SQInteger jmppos = _fs->GetCurrentPos();
-		SQInteger jzpos = -1;
+		LVInteger jmppos = _fs->GetCurrentPos();
+		LVInteger jzpos = -1;
 		if (_token != _LC(';')) {
 			CommaExpr();
 			_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
@@ -1370,26 +1370,26 @@ class LVCompiler {
 		}
 		Expect(_LC(';'));
 		_fs->SnoozeOpt();
-		SQInteger expstart = _fs->GetCurrentPos() + 1;
+		LVInteger expstart = _fs->GetCurrentPos() + 1;
 		if (_token != _LC(')')) {
 			CommaExpr();
 			_fs->PopTarget();
 		}
 		Expect(_LC(')'));
 		_fs->SnoozeOpt();
-		SQInteger expend = _fs->GetCurrentPos();
-		SQInteger expsize = (expend - expstart) + 1;
+		LVInteger expend = _fs->GetCurrentPos();
+		LVInteger expsize = (expend - expstart) + 1;
 		SQInstructionVec exp;
 		if (expsize > 0) {
-			for (SQInteger i = 0; i < expsize; i++)
+			for (LVInteger i = 0; i < expsize; i++)
 				exp.push_back(_fs->GetInstruction(expstart + i));
 			_fs->PopInstructions(expsize);
 		}
 		BEGIN_BREAKBLE_BLOCK()
 		Statement();
-		SQInteger continuetrg = _fs->GetCurrentPos();
+		LVInteger continuetrg = _fs->GetCurrentPos();
 		if (expsize > 0) {
-			for (SQInteger i = 0; i < expsize; i++)
+			for (LVInteger i = 0; i < expsize; i++)
 				_fs->AddInstruction(exp[i]);
 		}
 		_fs->AddInstruction(_OP_JMP, 0, jmppos - _fs->GetCurrentPos() - 1, 0);
@@ -1418,19 +1418,19 @@ class LVCompiler {
 		//put the table in the stack(evaluate the table expression)
 		Expression();
 		Expect(_LC(')'));
-		SQInteger container = _fs->TopTarget();
+		LVInteger container = _fs->TopTarget();
 		//push the index local var
-		SQInteger indexpos = _fs->PushLocalVariable(idxname);
+		LVInteger indexpos = _fs->PushLocalVariable(idxname);
 		_fs->AddInstruction(_OP_LOADNULLS, indexpos, 1);
 		//push the value local var
-		SQInteger valuepos = _fs->PushLocalVariable(valname);
+		LVInteger valuepos = _fs->PushLocalVariable(valname);
 		_fs->AddInstruction(_OP_LOADNULLS, valuepos, 1);
 		//push reference index
-		SQInteger itrpos = _fs->PushLocalVariable(_fs->CreateString(_LC("@ITERATOR@"))); //use invalid id to make it inaccessible
+		LVInteger itrpos = _fs->PushLocalVariable(_fs->CreateString(_LC("@ITERATOR@"))); //use invalid id to make it inaccessible
 		_fs->AddInstruction(_OP_LOADNULLS, itrpos, 1);
-		SQInteger jmppos = _fs->GetCurrentPos();
+		LVInteger jmppos = _fs->GetCurrentPos();
 		_fs->AddInstruction(_OP_FOREACH, container, 0, indexpos);
-		SQInteger foreachpos = _fs->GetCurrentPos();
+		LVInteger foreachpos = _fs->GetCurrentPos();
 		_fs->AddInstruction(_OP_POSTFOREACH, container, 0, indexpos);
 		//generate the statement code
 		BEGIN_BREAKBLE_BLOCK()
@@ -1450,11 +1450,11 @@ class LVCompiler {
 		CommaExpr();
 		Expect(_LC(')'));
 		Expect(_LC('{'));
-		SQInteger expr = _fs->TopTarget();
+		LVInteger expr = _fs->TopTarget();
 		bool bfirst = true;
-		SQInteger tonextcondjmp = -1;
-		SQInteger skipcondjmp = -1;
-		SQInteger __nbreaks__ = _fs->_unresolvedbreaks.size();
+		LVInteger tonextcondjmp = -1;
+		LVInteger skipcondjmp = -1;
+		LVInteger __nbreaks__ = _fs->_unresolvedbreaks.size();
 		_fs->_breaktargets.push_back(0);
 		while (_token == TK_CASE) {
 			if (!bfirst) {
@@ -1466,8 +1466,8 @@ class LVCompiler {
 			Lex();
 			Expression();
 			Expect(_LC(':'));
-			SQInteger trg = _fs->PopTarget();
-			SQInteger eqtarget = trg;
+			LVInteger trg = _fs->PopTarget();
+			LVInteger eqtarget = trg;
 			bool local = _fs->IsLocal(trg);
 			if (local) {
 				eqtarget = _fs->PushTarget(); //we need to allocate a extra reg
@@ -1594,7 +1594,7 @@ class LVCompiler {
 		Expect(_LC('{'));
 
 		SQObject table = _fs->CreateTable();
-		SQInteger nval = 0;
+		LVInteger nval = 0;
 		while (_token != _LC('}')) {
 			SQObject key = Expect(TK_IDENTIFIER);
 			SQObject val;
@@ -1622,7 +1622,7 @@ class LVCompiler {
 		_fs->_traps++;
 		if (_fs->_breaktargets.size()) _fs->_breaktargets.top()++;
 		if (_fs->_continuetargets.size()) _fs->_continuetargets.top()++;
-		SQInteger trappos = _fs->GetCurrentPos();
+		LVInteger trappos = _fs->GetCurrentPos();
 		{
 			BEGIN_SCOPE();
 			Statement();
@@ -1633,7 +1633,7 @@ class LVCompiler {
 		if (_fs->_breaktargets.size()) _fs->_breaktargets.top()--;
 		if (_fs->_continuetargets.size()) _fs->_continuetargets.top()--;
 		_fs->AddInstruction(_OP_JMP, 0, 0);
-		SQInteger jmppos = _fs->GetCurrentPos();
+		LVInteger jmppos = _fs->GetCurrentPos();
 		_fs->SetIntructionParam(trappos, 1, (_fs->GetCurrentPos() - trappos));
 		Expect(TK_CATCH);
 		Expect(_LC('('));
@@ -1641,7 +1641,7 @@ class LVCompiler {
 		Expect(_LC(')'));
 		{
 			BEGIN_SCOPE();
-			SQInteger ex_target = _fs->PushLocalVariable(exid);
+			LVInteger ex_target = _fs->PushLocalVariable(exid);
 			_fs->SetIntructionParam(trappos, 0, ex_target);
 			Statement();
 			_fs->SetIntructionParams(jmppos, 0, (_fs->GetCurrentPos() - jmppos), 0);
@@ -1649,7 +1649,7 @@ class LVCompiler {
 		}
 	}
 
-	void FunctionExp(SQInteger ftype, bool lambda = false) {
+	void FunctionExp(LVInteger ftype, bool lambda = false) {
 		Lex();
 		Expect(_LC('('));
 		SQObjectPtr dummy;
@@ -1658,8 +1658,8 @@ class LVCompiler {
 	}
 
 	void ClassExp() {
-		SQInteger base = -1;
-		// SQInteger attrs = -1;
+		LVInteger base = -1;
+		// LVInteger attrs = -1;
 		if (_token == TK_EXTENDS) {
 			Lex();
 			Expression();
@@ -1696,9 +1696,9 @@ class LVCompiler {
 		_es = es;
 	}
 
-	void PrefixIncDec(SQInteger token) {
+	void PrefixIncDec(LVInteger token) {
 		SQExpState  es;
-		SQInteger diff = (token == TK_MINUSMINUS) ? -1 : 1;
+		LVInteger diff = (token == TK_MINUSMINUS) ? -1 : 1;
 		Lex();
 		es = _es;
 		_es.donot_get = true;
@@ -1708,11 +1708,11 @@ class LVCompiler {
 		} else if (_es.etype == OBJECT || _es.etype == BASE) {
 			Emit2ArgsOP(_OP_INC, diff);
 		} else if (_es.etype == LOCAL) {
-			SQInteger src = _fs->TopTarget();
+			LVInteger src = _fs->TopTarget();
 			_fs->AddInstruction(_OP_INCL, src, src, 0, diff);
 
 		} else if (_es.etype == OUTER) {
-			SQInteger tmp = _fs->PushTarget();
+			LVInteger tmp = _fs->PushTarget();
 			_fs->AddInstruction(_OP_GETOUTER, tmp, _es.epos);
 			_fs->AddInstruction(_OP_INCL,     tmp, tmp, 0, diff);
 			_fs->AddInstruction(_OP_SETOUTER, tmp, _es.epos, tmp);
@@ -1726,7 +1726,7 @@ class LVCompiler {
 		SQObject paramname;
 		funcstate->AddParameter(_fs->CreateString(_LC("this")));
 		funcstate->_sourcename = _sourcename;
-		SQInteger defparams = 0;
+		LVInteger defparams = 0;
 		while (_token != _LC(')')) {
 			if (_token == TK_VARPARAMS) {
 				if (defparams > 0) Error(_LC("function with default parameters cannot have variable number of parameters"));
@@ -1751,7 +1751,7 @@ class LVCompiler {
 			}
 		}
 		Expect(_LC(')'));
-		for (SQInteger n = 0; n < defparams; n++) {
+		for (LVInteger n = 0; n < defparams; n++) {
 			_fs->PopTarget();
 		}
 
@@ -1776,9 +1776,9 @@ class LVCompiler {
 		_fs->PopChildState();
 	}
 
-	void ResolveBreaks(FunctionState *funcstate, SQInteger ntoresolve) {
+	void ResolveBreaks(FunctionState *funcstate, LVInteger ntoresolve) {
 		while (ntoresolve > 0) {
-			SQInteger pos = funcstate->_unresolvedbreaks.back();
+			LVInteger pos = funcstate->_unresolvedbreaks.back();
 			funcstate->_unresolvedbreaks.pop_back();
 			//set the jmp instruction
 			funcstate->SetIntructionParams(pos, 0, funcstate->GetCurrentPos() - pos, 0);
@@ -1786,9 +1786,9 @@ class LVCompiler {
 		}
 	}
 
-	void ResolveContinues(FunctionState *funcstate, SQInteger ntoresolve, SQInteger targetpos) {
+	void ResolveContinues(FunctionState *funcstate, LVInteger ntoresolve, LVInteger targetpos) {
 		while (ntoresolve > 0) {
-			SQInteger pos = funcstate->_unresolvedcontinues.back();
+			LVInteger pos = funcstate->_unresolvedcontinues.back();
 			funcstate->_unresolvedcontinues.pop_back();
 			//set the jmp instruction
 			funcstate->SetIntructionParams(pos, 0, targetpos - pos, 0);
@@ -1797,22 +1797,22 @@ class LVCompiler {
 	}
 
   private:
-	SQInteger _token;
+	LVInteger _token;
 	FunctionState *_fs;
 	SQObjectPtr _sourcename;
 	LVLexer _lex;
 	bool _lineinfo;
 	bool _raiseerror;
-	SQInteger _debugline;
-	SQInteger _debugop;
+	LVInteger _debugline;
+	LVInteger _debugop;
 	SQExpState _es;
 	SQScope _scope;
-	SQChar _compilererror[MAX_COMPILER_ERROR_LEN];
+	LVChar _compilererror[MAX_COMPILER_ERROR_LEN];
 	jmp_buf _errorjmp;
 	SQVM *_vm;
 };
 
-bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, LVUserPointer up, const SQChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo) {
+bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo) {
 	LVCompiler compiler(vm, rg, up, sourcename, raiseerror, lineinfo);
 	return compiler.StartCompiler(out);
 }

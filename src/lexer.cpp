@@ -13,7 +13,7 @@
 #define INIT_TEMP_STRING() { _longstr.resize(0);}
 #define APPEND_CHAR(c) { _longstr.push_back(c);}
 #define TERMINATE_BUFFER() {_longstr.push_back(_LC('\0'));}
-#define ADD_KEYWORD(key,id) _keywords->NewSlot(SQString::Create(ss, _LC(#key)), SQInteger(id))
+#define ADD_KEYWORD(key,id) _keywords->NewSlot(SQString::Create(ss, _LC(#key)), LVInteger(id))
 
 LVLexer::LVLexer() {}
 
@@ -75,12 +75,12 @@ void LVLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, LVUserPointer up, Compil
 	Next();
 }
 
-void LVLexer::Error(const SQChar *err) {
+void LVLexer::Error(const LVChar *err) {
 	_errfunc(_errtarget, err);
 }
 
 void LVLexer::Next() {
-	SQInteger t = _readf(_up);
+	LVInteger t = _readf(_up);
 	if (t > MAX_CHAR)
 		Error(_LC("Invalid character"));
 
@@ -92,12 +92,12 @@ void LVLexer::Next() {
 	_reached_eof = LVTrue;
 }
 
-const SQChar *LVLexer::Tok2Str(SQInteger tok) {
+const LVChar *LVLexer::Tok2Str(LVInteger tok) {
 	SQObjectPtr itr, key, val;
-	SQInteger nitr;
+	LVInteger nitr;
 	while ((nitr = _keywords->Next(false, itr, key, val)) != -1) {
-		itr = (SQInteger)nitr;
-		if (((SQInteger)_integer(val)) == tok)
+		itr = (LVInteger)nitr;
+		if (((LVInteger)_integer(val)) == tok)
 			return _stringval(key);
 	}
 	return NULL;
@@ -132,7 +132,7 @@ void LVLexer::LexLineComment() {
 	} while (CUR_CHAR != _LC('\n') && (!IS_EOB()));
 }
 
-SQInteger LVLexer::Lex() {
+LVInteger LVLexer::Lex() {
 	_lasttokenline = _currentline;
 	while (CUR_CHAR != LAVRIL_EOB) {
 		switch (CUR_CHAR) {
@@ -229,7 +229,7 @@ SQInteger LVLexer::Lex() {
 					RETURN_TOKEN(TK_NE);
 				}
 			case _LC('@'): {
-				SQInteger stype;
+				LVInteger stype;
 				NEXT();
 				if (CUR_CHAR != _LC('"')) {
 					RETURN_TOKEN('@');
@@ -241,7 +241,7 @@ SQInteger LVLexer::Lex() {
 			}
 			case _LC('"'):
 			case _LC('\''): {
-				SQInteger stype;
+				LVInteger stype;
 				if ((stype = ReadString(CUR_CHAR, false)) != -1) {
 					RETURN_TOKEN(stype);
 				}
@@ -258,7 +258,7 @@ SQInteger LVLexer::Lex() {
 			case _LC('?'):
 			case _LC('^'):
 			case _LC('~'): {
-				SQInteger ret = CUR_CHAR;
+				LVInteger ret = CUR_CHAR;
 				NEXT();
 				RETURN_TOKEN(ret);
 			}
@@ -331,13 +331,13 @@ SQInteger LVLexer::Lex() {
 				return 0;
 			default: {
 				if (scisdigit(CUR_CHAR)) {
-					SQInteger ret = ReadNumber();
+					LVInteger ret = ReadNumber();
 					RETURN_TOKEN(ret);
 				} else if (scisalpha(CUR_CHAR) || CUR_CHAR == _LC('_')) {
-					SQInteger t = ReadID();
+					LVInteger t = ReadID();
 					RETURN_TOKEN(t);
 				} else {
-					SQInteger c = CUR_CHAR;
+					LVInteger c = CUR_CHAR;
 					if (sciscntrl((int)c))
 						Error(_LC("unexpected character(control)"));
 					NEXT();
@@ -350,10 +350,10 @@ SQInteger LVLexer::Lex() {
 	return 0;
 }
 
-SQInteger LVLexer::GetIDType(const SQChar *s, SQInteger len) {
+LVInteger LVLexer::GetIDType(const LVChar *s, LVInteger len) {
 	SQObjectPtr t;
 	if (_keywords->GetStr(s, len, t)) {
-		return SQInteger(_integer(t));
+		return LVInteger(_integer(t));
 	}
 
 	return TK_IDENTIFIER;
@@ -361,50 +361,50 @@ SQInteger LVLexer::GetIDType(const SQChar *s, SQInteger len) {
 
 #ifdef LVUNICODE
 #if WCHAR_SIZE == 2
-SQInteger LVLexer::AddUTF16(SQUnsignedInteger ch) {
+LVInteger LVLexer::AddUTF16(LVUnsignedInteger ch) {
 	if (ch >= 0x10000) {
-		SQUnsignedInteger code = (ch - 0x10000);
-		APPEND_CHAR((SQChar)(0xD800 | (code >> 10)));
-		APPEND_CHAR((SQChar)(0xDC00 | (code & 0x3FF)));
+		LVUnsignedInteger code = (ch - 0x10000);
+		APPEND_CHAR((LVChar)(0xD800 | (code >> 10)));
+		APPEND_CHAR((LVChar)(0xDC00 | (code & 0x3FF)));
 		return 2;
 	} else {
-		APPEND_CHAR((SQChar)ch);
+		APPEND_CHAR((LVChar)ch);
 		return 1;
 	}
 }
 #endif
 #else
-SQInteger LVLexer::AddUTF8(SQUnsignedInteger ch) {
+LVInteger LVLexer::AddUTF8(LVUnsignedInteger ch) {
 	if (ch < 0x80) {
 		APPEND_CHAR((char)ch);
 		return 1;
 	}
 	if (ch < 0x800) {
-		APPEND_CHAR((SQChar)((ch >> 6) | 0xC0));
-		APPEND_CHAR((SQChar)((ch & 0x3F) | 0x80));
+		APPEND_CHAR((LVChar)((ch >> 6) | 0xC0));
+		APPEND_CHAR((LVChar)((ch & 0x3F) | 0x80));
 		return 2;
 	}
 	if (ch < 0x10000) {
-		APPEND_CHAR((SQChar)((ch >> 12) | 0xE0));
-		APPEND_CHAR((SQChar)(((ch >> 6) & 0x3F) | 0x80));
-		APPEND_CHAR((SQChar)((ch & 0x3F) | 0x80));
+		APPEND_CHAR((LVChar)((ch >> 12) | 0xE0));
+		APPEND_CHAR((LVChar)(((ch >> 6) & 0x3F) | 0x80));
+		APPEND_CHAR((LVChar)((ch & 0x3F) | 0x80));
 		return 3;
 	}
 	if (ch < 0x110000) {
-		APPEND_CHAR((SQChar)((ch >> 18) | 0xF0));
-		APPEND_CHAR((SQChar)(((ch >> 12) & 0x3F) | 0x80));
-		APPEND_CHAR((SQChar)(((ch >> 6) & 0x3F) | 0x80));
-		APPEND_CHAR((SQChar)((ch & 0x3F) | 0x80));
+		APPEND_CHAR((LVChar)((ch >> 18) | 0xF0));
+		APPEND_CHAR((LVChar)(((ch >> 12) & 0x3F) | 0x80));
+		APPEND_CHAR((LVChar)(((ch >> 6) & 0x3F) | 0x80));
+		APPEND_CHAR((LVChar)((ch & 0x3F) | 0x80));
 		return 4;
 	}
 	return 0;
 }
 #endif
 
-SQInteger LVLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits) {
+LVInteger LVLexer::ProcessStringHexEscape(LVChar *dest, LVInteger maxdigits) {
 	NEXT();
 	if (!isxdigit(CUR_CHAR)) Error(_LC("hexadecimal number expected"));
-	SQInteger n = 0;
+	LVInteger n = 0;
 	while (isxdigit(CUR_CHAR) && n < maxdigits) {
 		dest[n] = CUR_CHAR;
 		n++;
@@ -414,13 +414,13 @@ SQInteger LVLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits) {
 	return n;
 }
 
-SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim) {
+LVInteger LVLexer::ReadString(LVInteger ndelim, bool verbatim) {
 	INIT_TEMP_STRING();
 	NEXT();
 	if (IS_EOB()) return -1;
 	for (;;) {
 		while (CUR_CHAR != ndelim) {
-			SQInteger x = CUR_CHAR;
+			LVInteger x = CUR_CHAR;
 			switch (x) {
 				case LAVRIL_EOB:
 					Error(_LC("unfinished string"));
@@ -439,24 +439,24 @@ SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim) {
 						NEXT();
 						switch (CUR_CHAR) {
 							case _LC('x'):  {
-								const SQInteger maxdigits = sizeof(SQChar) * 2;
-								SQChar temp[maxdigits + 1];
+								const LVInteger maxdigits = sizeof(LVChar) * 2;
+								LVChar temp[maxdigits + 1];
 								ProcessStringHexEscape(temp, maxdigits);
-								SQChar *stemp;
-								APPEND_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
+								LVChar *stemp;
+								APPEND_CHAR((LVChar)scstrtoul(temp, &stemp, 16));
 							}
 							break;
 							case _LC('U'):
 							case _LC('u'):  {
-								const SQInteger maxdigits = x == 'u' ? 4 : 8;
-								SQChar temp[8 + 1];
+								const LVInteger maxdigits = x == 'u' ? 4 : 8;
+								LVChar temp[8 + 1];
 								ProcessStringHexEscape(temp, maxdigits);
-								SQChar *stemp;
+								LVChar *stemp;
 #ifdef LVUNICODE
 #if WCHAR_SIZE == 2
 								AddUTF16(scstrtoul(temp, &stemp, 16));
 #else
-								ADD_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
+								ADD_CHAR((LVChar)scstrtoul(temp, &stemp, 16));
 #endif
 #else
 								AddUTF8(scstrtoul(temp, &stemp, 16));
@@ -527,7 +527,7 @@ SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim) {
 		}
 	}
 	TERMINATE_BUFFER();
-	SQInteger len = _longstr.size() - 1;
+	LVInteger len = _longstr.size() - 1;
 	if (ndelim == _LC('\'')) {
 		if (len == 0) Error(_LC("empty constant"));
 		if (len > 1) Error(_LC("constant too long"));
@@ -538,7 +538,7 @@ SQInteger LVLexer::ReadString(SQInteger ndelim, bool verbatim) {
 	return TK_STRING_LITERAL;
 }
 
-void LexHexadecimal(const SQChar *s, SQUnsignedInteger *res) {
+void LexHexadecimal(const LVChar *s, LVUnsignedInteger *res) {
 	*res = 0;
 	while (*s != 0) {
 		if (scisdigit(*s)) *res = (*res) * 16 + ((*s++) - '0');
@@ -549,18 +549,18 @@ void LexHexadecimal(const SQChar *s, SQUnsignedInteger *res) {
 	}
 }
 
-void LexInteger(const SQChar *s, SQUnsignedInteger *res) {
+void LexInteger(const LVChar *s, LVUnsignedInteger *res) {
 	*res = 0;
 	while (*s != 0) {
 		*res = (*res) * 10 + ((*s++) - '0');
 	}
 }
 
-SQInteger scisodigit(SQInteger c) {
+LVInteger scisodigit(LVInteger c) {
 	return c >= _LC('0') && c <= _LC('7');
 }
 
-void LexOctal(const SQChar *s, SQUnsignedInteger *res) {
+void LexOctal(const LVChar *s, LVUnsignedInteger *res) {
 	*res = 0;
 	while (*s != 0) {
 		if (scisodigit(*s)) *res = (*res) * 8 + ((*s++) - '0');
@@ -570,19 +570,19 @@ void LexOctal(const SQChar *s, SQUnsignedInteger *res) {
 	}
 }
 
-SQInteger isexponent(SQInteger c) {
+LVInteger isexponent(LVInteger c) {
 	return c == 'e' || c == 'E';
 }
 
-#define MAX_HEX_DIGITS (sizeof(SQInteger)*2)
-SQInteger LVLexer::ReadNumber() {
+#define MAX_HEX_DIGITS (sizeof(LVInteger)*2)
+LVInteger LVLexer::ReadNumber() {
 #define TINT 1
 #define TFLOAT 2
 #define THEX 3
 #define TSCIENTIFIC 4
 #define TOCTAL 5
-	SQInteger type = TINT, firstchar = CUR_CHAR;
-	SQChar *sTemp;
+	LVInteger type = TINT, firstchar = CUR_CHAR;
+	LVChar *sTemp;
 	INIT_TEMP_STRING();
 	NEXT();
 	if (firstchar == _LC('0') && (toupper(CUR_CHAR) == _LC('X') || scisodigit(CUR_CHAR)) ) {
@@ -628,23 +628,23 @@ SQInteger LVLexer::ReadNumber() {
 	switch (type) {
 		case TSCIENTIFIC:
 		case TFLOAT:
-			_fvalue = (SQFloat)scstrtod(&_longstr[0], &sTemp);
+			_fvalue = (LVFloat)scstrtod(&_longstr[0], &sTemp);
 			return TK_FLOAT;
 		case TINT:
-			LexInteger(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
+			LexInteger(&_longstr[0], (LVUnsignedInteger *)&_nvalue);
 			return TK_INTEGER;
 		case THEX:
-			LexHexadecimal(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
+			LexHexadecimal(&_longstr[0], (LVUnsignedInteger *)&_nvalue);
 			return TK_INTEGER;
 		case TOCTAL:
-			LexOctal(&_longstr[0], (SQUnsignedInteger *)&_nvalue);
+			LexOctal(&_longstr[0], (LVUnsignedInteger *)&_nvalue);
 			return TK_INTEGER;
 	}
 	return 0;
 }
 
-SQInteger LVLexer::ReadID() {
-	SQInteger res;
+LVInteger LVLexer::ReadID() {
+	LVInteger res;
 
 	INIT_TEMP_STRING();
 

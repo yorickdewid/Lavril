@@ -2,7 +2,7 @@
 #define _OPCODES_H_
 
 #define MAX_FUNC_STACKSIZE 0xFF
-#define MAX_LITERALS ((SQInteger)0x7FFFFFFF)
+#define MAX_LITERALS ((LVInteger)0x7FFFFFFF)
 
 enum BitWiseOP {
 	BW_AND = 0,
@@ -101,20 +101,20 @@ enum SQOpcode {
 };
 
 struct SQInstructionDesc {
-	const SQChar *name;
+	const LVChar *name;
 };
 
 struct SQInstruction {
 	SQInstruction() {};
-	SQInstruction(SQOpcode _op, SQInteger a0 = 0, SQInteger a1 = 0, SQInteger a2 = 0, SQInteger a3 = 0) {
+	SQInstruction(SQOpcode _op, LVInteger a0 = 0, LVInteger a1 = 0, LVInteger a2 = 0, LVInteger a3 = 0) {
 		op = (unsigned char)_op;
 		_arg0 = (unsigned char)a0;
-		_arg1 = (SQInt32)a1;
+		_arg1 = (LVInt32)a1;
 		_arg2 = (unsigned char)a2;
 		_arg3 = (unsigned char)a3;
 	}
 
-	SQInt32 _arg1;
+	LVInt32 _arg1;
 	unsigned char op;
 	unsigned char _arg0;
 	unsigned char _arg2;

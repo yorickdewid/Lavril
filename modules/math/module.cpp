@@ -2,42 +2,42 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define SINGLE_ARG_FUNC(_funcname) static SQInteger math_##_funcname(VMHANDLE v){ \
-	SQFloat f; \
+#define SINGLE_ARG_FUNC(_funcname) static LVInteger math_##_funcname(VMHANDLE v){ \
+	LVFloat f; \
 	lv_getfloat(v,2,&f); \
-	lv_pushfloat(v,(SQFloat)_funcname(f)); \
+	lv_pushfloat(v,(LVFloat)_funcname(f)); \
 	return 1; \
 }
 
-#define TWO_ARGS_FUNC(_funcname) static SQInteger math_##_funcname(VMHANDLE v){ \
-	SQFloat p1,p2; \
+#define TWO_ARGS_FUNC(_funcname) static LVInteger math_##_funcname(VMHANDLE v){ \
+	LVFloat p1,p2; \
 	lv_getfloat(v,2,&p1); \
 	lv_getfloat(v,3,&p2); \
-	lv_pushfloat(v,(SQFloat)_funcname(p1,p2)); \
+	lv_pushfloat(v,(LVFloat)_funcname(p1,p2)); \
 	return 1; \
 }
 
-static SQInteger math_srand(VMHANDLE v) {
-	SQInteger i;
+static LVInteger math_srand(VMHANDLE v) {
+	LVInteger i;
 	if (LV_FAILED(lv_getinteger(v, 2, &i)))
 		return lv_throwerror(v, _LC("invalid param"));
 	srand((unsigned int)i);
 	return 0;
 }
 
-static SQInteger math_rand(VMHANDLE v) {
+static LVInteger math_rand(VMHANDLE v) {
 	lv_pushinteger(v, rand());
 	return 1;
 }
 
-static SQInteger math_abs(VMHANDLE v) {
-	SQInteger n;
+static LVInteger math_abs(VMHANDLE v) {
+	LVInteger n;
 	lv_getinteger(v, 2, &n);
-	lv_pushinteger(v, (SQInteger)abs((int)n));
+	lv_pushinteger(v, (LVInteger)abs((int)n));
 	return 1;
 }
 
-static SQInteger math_universe(VMHANDLE v) {
+static LVInteger math_universe(VMHANDLE v) {
 	lv_pushinteger(v, 42);
 	return 1;
 }
@@ -88,7 +88,7 @@ static const SQRegFunction mathlib_funcs[] = {
 #endif
 
 LVRESULT mod_init_math(VMHANDLE v) {
-	SQInteger i = 0;
+	LVInteger i = 0;
 	while (mathlib_funcs[i].name != 0) {
 		lv_pushstring(v, mathlib_funcs[i].name, -1);
 		lv_newclosure(v, mathlib_funcs[i].f, 0);
@@ -102,7 +102,7 @@ LVRESULT mod_init_math(VMHANDLE v) {
 	lv_pushinteger(v, RAND_MAX);
 	lv_newslot(v, -3, LVFalse);
 	lv_pushstring(v, _LC("PI"), -1);
-	lv_pushfloat(v, (SQFloat)M_PI);
+	lv_pushfloat(v, (LVFloat)M_PI);
 	lv_newslot(v, -3, LVFalse);
 
 	return LV_OK;

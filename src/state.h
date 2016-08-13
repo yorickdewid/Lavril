@@ -13,40 +13,40 @@ struct SQTable;
 struct SQStringTable {
 	SQStringTable(SQSharedState *ss);
 	~SQStringTable();
-	SQString *Add(const SQChar *, SQInteger len);
+	SQString *Add(const LVChar *, LVInteger len);
 	void Remove(SQString *);
 
   private:
-	void Resize(SQInteger size);
-	void AllocNodes(SQInteger size);
+	void Resize(LVInteger size);
+	void AllocNodes(LVInteger size);
 	SQString **_strings;
-	SQUnsignedInteger _numofslots;
-	SQUnsignedInteger _slotused;
+	LVUnsignedInteger _numofslots;
+	LVUnsignedInteger _slotused;
 	SQSharedState *_sharedstate;
 };
 
 struct RefTable {
 	struct RefNode {
 		SQObjectPtr obj;
-		SQUnsignedInteger refs;
+		LVUnsignedInteger refs;
 		struct RefNode *next;
 	};
 	RefTable();
 	~RefTable();
 	void AddRef(SQObject& obj);
 	LVBool Release(SQObject& obj);
-	SQUnsignedInteger GetRefCount(SQObject& obj);
+	LVUnsignedInteger GetRefCount(SQObject& obj);
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
 #endif
 	void Finalize();
   private:
-	RefNode *Get(SQObject& obj, SQHash& mainpos, RefNode **prev, bool add);
-	RefNode *Add(SQHash mainpos, SQObject& obj);
-	void Resize(SQUnsignedInteger size);
-	void AllocNodes(SQUnsignedInteger size);
-	SQUnsignedInteger _numofslots;
-	SQUnsignedInteger _slotused;
+	RefNode *Get(SQObject& obj, LVHash& mainpos, RefNode **prev, bool add);
+	RefNode *Add(LVHash mainpos, SQObject& obj);
+	void Resize(LVUnsignedInteger size);
+	void AllocNodes(LVUnsignedInteger size);
+	LVUnsignedInteger _numofslots;
+	LVUnsignedInteger _slotused;
 	RefNode *_nodes;
 	RefNode *_freelist;
 	RefNode **_buckets;
@@ -63,12 +63,12 @@ struct SQSharedState {
 	void Init();
 
   public:
-	SQChar *GetScratchPad(SQInteger size);
-	SQInteger GetMetaMethodIdxByName(const SQObjectPtr& name);
+	LVChar *GetScratchPad(LVInteger size);
+	LVInteger GetMetaMethodIdxByName(const SQObjectPtr& name);
 #ifndef NO_GARBAGE_COLLECTOR
-	SQInteger CollectGarbage(SQVM *vm);
+	LVInteger CollectGarbage(SQVM *vm);
 	void RunMark(SQVM *vm, SQCollectable **tchain);
-	SQInteger ResurrectUnreachable(SQVM *vm);
+	LVInteger ResurrectUnreachable(SQVM *vm);
 	static void MarkObject(SQObjectPtr& o, SQCollectable **chain);
 #endif
 	SQObjectPtrVec *_metamethods;
@@ -115,8 +115,8 @@ struct SQSharedState {
 	SQRELEASEHOOK _releasehook;
 
   private:
-	SQChar *_scratchpad;
-	SQInteger _scratchpadsize;
+	LVChar *_scratchpad;
+	LVInteger _scratchpadsize;
 };
 
 #define _sp(s) (_sharedstate->GetScratchPad(s))
@@ -133,6 +133,6 @@ struct SQSharedState {
 #define _instance_ddel  _table(_sharedstate->_instance_default_delegate)
 #define _weakref_ddel   _table(_sharedstate->_weakref_default_delegate)
 
-bool CompileTypemask(SQIntVec& res, const SQChar *typemask);
+bool CompileTypemask(SQIntVec& res, const LVChar *typemask);
 
 #endif // _STATE_H_

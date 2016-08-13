@@ -17,23 +17,23 @@
 #define scvprintf vfprintf
 #endif
 
-void print_func(VMHANDLE v, const SQChar *s, ...) {
+void print_func(VMHANDLE v, const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(VMHANDLE v, const SQChar *s, ...) {
+void error_func(VMHANDLE v, const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
 }
 
-// void call_test(VMHANDLE v, int n, float f, const SQChar *s) {
+// void call_test(VMHANDLE v, int n, float f, const LVChar *s) {
 // 	/* Save the stack size before the call */
-// 	SQInteger top = lv_gettop(v);
+// 	LVInteger top = lv_gettop(v);
 
 // 	/* Push the global table */
 // 	lv_pushroottable(v);
@@ -52,17 +52,17 @@ void error_func(VMHANDLE v, const SQChar *s, ...) {
 // 	lv_settop(v, top);
 // }
 
-static SQInteger kaas(VMHANDLE v) {
+static LVInteger kaas(VMHANDLE v) {
 	puts("kaas\n");
 	return 0;
 }
 
-static SQInteger kaas_ex(VMHANDLE v) {
+static LVInteger kaas_ex(VMHANDLE v) {
 	puts("kaas_ex\n");
 	return 0;
 }
 
-static SQInteger method(VMHANDLE v) {
+static LVInteger method(VMHANDLE v) {
 	puts("method\n");
 	return 0;
 }
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 	// if (lv_gettype(v, -1) != OT_TABLE)
 	// return lv_throwerror(v, _LC("table expected"));
 
-	// SQInteger top = lv_gettop(v);
+	// LVInteger top = lv_gettop(v);
 
 	//////////////////////////////
 	lv_pushstring(v, _LC("troll"), -1);
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
 		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_newclass(v, LVFalse);
 		lv_settypetag(v, -1, (LVUserPointer)SQ_STREAM_TYPE_TAG);
-		SQInteger i = 0;
+		LVInteger i = 0;
 		while (_stream_methods[i].name != 0) {
 			const SQRegFunction& f = _stream_methods[i];
 			lv_pushstring(v, f.name, -1);
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
 		lv_newclass(v, LVTrue);
 		lv_settypetag(v, -1, 1/*tag*/);
 
-		// SQInteger i = 0;
+		// LVInteger i = 0;
 		// while (methods[i].name != 0) {
 		// const SQRegFunction& f = methods[i];
 		lv_pushstring(v, "method", -1);
@@ -228,8 +228,8 @@ int main(int argc, char *argv[]) {
 
 	const char *statement = "var _x = troll();println(_x.method());";
 
-	SQInteger _retval = 0;
-	SQInteger sz = scstrlen(statement);
+	LVInteger _retval = 0;
+	LVInteger sz = scstrlen(statement);
 	if (LV_SUCCEEDED(lv_compilebuffer(v, statement, sz, _LC("vmext"), LVTrue))) {
 		lv_pushroottable(v);
 		if (LV_SUCCEEDED(lv_call(v, 1, _retval, LVTrue)) && _retval) {

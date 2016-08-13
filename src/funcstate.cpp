@@ -8,7 +8,7 @@
 #include "funcstate.h"
 
 #ifdef _DEBUG_DUMP
-SQInstructionDesc g_InstrDesc[] = {
+SQInstructionDesc instruction_desc[] = {
 	{_LC("_OP_LINE")},
 	{_LC("_OP_LOAD")},
 	{_LC("_OP_LOADINT")},
@@ -90,7 +90,6 @@ void DumpLiteral(SQObjectPtr& o) {
 		default:
 			scprintf(_LC("(%s %p)"), GetTypeName(o), (void *)_rawval(o));
 			break;
-			break; //shut up compiler
 	}
 }
 
@@ -113,24 +112,24 @@ FunctionState::FunctionState(SQSharedState *ss, FunctionState *parent, CompilerE
 	_ss = ss;
 }
 
-void FunctionState::Error(const SQChar *err) {
+void FunctionState::Error(const LVChar *err) {
 	_errfunc(_errtarget, err);
 }
 
 #ifdef _DEBUG_DUMP
 void FunctionState::Dump(FunctionPrototype *func) {
-	SQUnsignedInteger n = 0, i;
-	SQInteger si;
+	LVUnsignedInteger n = 0, i;
+	LVInteger si;
 
 	scprintf(_LC("--------------------------------------------------------------------\n"));
 	scprintf(_LC("function: %s\n"), type(func->_name) == OT_STRING ? _stringval(func->_name) : _LC("unknown"));
-	scprintf(_LC("stack size: " LVFORMATINT "\n"), func->_stacksize);
+	scprintf(_LC("stack size: " _PRINT_INT_FMT "\n"), func->_stacksize);
 	if (_varparams)
 		scprintf(_LC("varparams: true\n"));
 
 	scprintf(_LC("literals:\n"));
 	SQObjectPtr refidx, key, val;
-	SQInteger idx;
+	LVInteger idx;
 	SQObjectPtrVec templiterals;
 	templiterals.resize(_nliterals);
 	while ((idx = _table(_literals)->Next(false, refidx, key, val)) != -1) {
@@ -138,7 +137,7 @@ void FunctionState::Dump(FunctionPrototype *func) {
 		templiterals[_integer(val)] = key;
 	}
 	for (i = 0; i < templiterals.size(); i++) {
-		scprintf(_LC("\t[" LVFORMATINT "] "), n);
+		scprintf(_LC("\t[" _PRINT_INT_FMT "] "), n);
 		DumpLiteral(templiterals[i]);
 		scprintf(_LC("\n"));
 		n++;
@@ -146,7 +145,7 @@ void FunctionState::Dump(FunctionPrototype *func) {
 	scprintf(_LC("parameters:\n"));
 	n = 0;
 	for (i = 0; i < _parameters.size(); i++) {
-		scprintf(_LC("\t[" LVFORMATINT "] "), n);
+		scprintf(_LC("\t[" _PRINT_INT_FMT "] "), n);
 		DumpLiteral(_parameters[i]);
 		scprintf(_LC("\n"));
 		n++;
@@ -154,13 +153,13 @@ void FunctionState::Dump(FunctionPrototype *func) {
 	scprintf(_LC("variables:\n"));
 	for (si = 0; si < func->_nlocalvarinfos; si++) {
 		SQLocalVarInfo lvi = func->_localvarinfos[si];
-		scprintf(_LC("\t[" LVFORMATINT "] %s \t" LVFORMATINT " -> " LVFORMATINT "\n"), lvi._pos, _stringval(lvi._name), lvi._start_op, lvi._end_op);
+		scprintf(_LC("\t[" _PRINT_INT_FMT "] %s \t" _PRINT_INT_FMT " -> " _PRINT_INT_FMT "\n"), lvi._pos, _stringval(lvi._name), lvi._start_op, lvi._end_op);
 		n++;
 	}
 	scprintf(_LC("line info:\n"));
 	for (i = 0; i < _lineinfos.size(); i++) {
 		SQLineInfo li = _lineinfos[i];
-		scprintf(_LC("\top [" LVFORMATINT "] line [" LVFORMATINT "] \n"), li._op, li._line);
+		scprintf(_LC("\top [" _PRINT_INT_FMT "] line [" _PRINT_INT_FMT "] \n"), li._op, li._line);
 		n++;
 	}
 	scprintf(_LC("instruction set:\n"));
@@ -169,12 +168,12 @@ void FunctionState::Dump(FunctionPrototype *func) {
 		SQInstruction& inst = _instructions[i];
 		if (inst.op == _OP_LOAD || inst.op == _OP_DLOAD || inst.op == _OP_PREPCALLK || inst.op == _OP_GETK ) {
 
-			SQInteger lidx = inst._arg1;
-			scprintf(_LC("\t[" LVFORMATINT3 "] %15s %d "), n, g_InstrDesc[inst.op].name, inst._arg0);
+			LVInteger lidx = inst._arg1;
+			scprintf(_LC("\t[" _PRINT_INT_FMT3 "] %15s %d "), n, instruction_desc[inst.op].name, inst._arg0);
 			if (lidx >= 0xFFFFFFFF)
 				scprintf(_LC("null"));
 			else {
-				SQInteger refidx;
+				LVInteger refidx;
 				SQObjectPtr val, key, refo;
 				while (((refidx = _table(_literals)->Next(false, refo, key, val)) != -1) && (_integer(val) != lidx)) {
 					refo = refidx;
@@ -189,7 +188,7 @@ void FunctionState::Dump(FunctionPrototype *func) {
 				if (lidx >= 0xFFFFFFFF)
 					scprintf(_LC("null"));
 				else {
-					SQInteger refidx;
+					LVInteger refidx;
 					SQObjectPtr val, key, refo;
 					while (((refidx = _table(_literals)->Next(false, refo, key, val)) != -1) && (_integer(val) != lidx)) {
 						refo = refidx;
@@ -199,13 +198,13 @@ void FunctionState::Dump(FunctionPrototype *func) {
 				}
 			}
 		} else if (inst.op == _OP_LOADFLOAT) {
-			scprintf(_LC("\t[" LVFORMATINT3 "] %15s %d %f %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, *((SQFloat *)&inst._arg1), inst._arg2, inst._arg3);
+			scprintf(_LC("\t[" _PRINT_INT_FMT3 "] %15s %d %f %d %d\n"), n, instruction_desc[inst.op].name, inst._arg0, *((LVFloat *)&inst._arg1), inst._arg2, inst._arg3);
 		}
 		/*  else if(inst.op==_OP_ARITH){
-				scprintf(_LC("[%03d] %15s %d %d %d %c\n"),n,g_InstrDesc[inst.op].name,inst._arg0,inst._arg1,inst._arg2,inst._arg3);
+				scprintf(_LC("[%03d] %15s %d %d %d %c\n"),n,instruction_desc[inst.op].name,inst._arg0,inst._arg1,inst._arg2,inst._arg3);
 			}*/
 		else {
-			scprintf(_LC("\t[" LVFORMATINT3 "] %15s %d %d %d %d\n"), n, g_InstrDesc[inst.op].name, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+			scprintf(_LC("\t[" _PRINT_INT_FMT3 "] %15s %d %d %d %d\n"), n, instruction_desc[inst.op].name, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
 		}
 		n++;
 	}
@@ -213,15 +212,15 @@ void FunctionState::Dump(FunctionPrototype *func) {
 }
 #endif
 
-SQInteger FunctionState::GetNumericConstant(const SQInteger cons) {
+LVInteger FunctionState::GetNumericConstant(const LVInteger cons) {
 	return GetConstant(SQObjectPtr(cons));
 }
 
-SQInteger FunctionState::GetNumericConstant(const SQFloat cons) {
+LVInteger FunctionState::GetNumericConstant(const LVFloat cons) {
 	return GetConstant(SQObjectPtr(cons));
 }
 
-SQInteger FunctionState::GetConstant(const SQObject& cons) {
+LVInteger FunctionState::GetConstant(const SQObject& cons) {
 	SQObjectPtr val;
 	if (!_table(_literals)->Get(cons, val)) {
 		val = _nliterals;
@@ -235,42 +234,42 @@ SQInteger FunctionState::GetConstant(const SQObject& cons) {
 	return _integer(val);
 }
 
-void FunctionState::SetIntructionParams(SQInteger pos, SQInteger arg0, SQInteger arg1, SQInteger arg2, SQInteger arg3) {
-	_instructions[pos]._arg0 = (unsigned char) * ((SQUnsignedInteger *)&arg0);
-	_instructions[pos]._arg1 = (SQInt32) * ((SQUnsignedInteger *)&arg1);
-	_instructions[pos]._arg2 = (unsigned char) * ((SQUnsignedInteger *)&arg2);
-	_instructions[pos]._arg3 = (unsigned char) * ((SQUnsignedInteger *)&arg3);
+void FunctionState::SetIntructionParams(LVInteger pos, LVInteger arg0, LVInteger arg1, LVInteger arg2, LVInteger arg3) {
+	_instructions[pos]._arg0 = (unsigned char) * ((LVUnsignedInteger *)&arg0);
+	_instructions[pos]._arg1 = (LVInt32) * ((LVUnsignedInteger *)&arg1);
+	_instructions[pos]._arg2 = (unsigned char) * ((LVUnsignedInteger *)&arg2);
+	_instructions[pos]._arg3 = (unsigned char) * ((LVUnsignedInteger *)&arg3);
 }
 
-void FunctionState::SetIntructionParam(SQInteger pos, SQInteger arg, SQInteger val) {
+void FunctionState::SetIntructionParam(LVInteger pos, LVInteger arg, LVInteger val) {
 	switch (arg) {
 		case 0:
-			_instructions[pos]._arg0 = (unsigned char) * ((SQUnsignedInteger *)&val);
+			_instructions[pos]._arg0 = (unsigned char) * ((LVUnsignedInteger *)&val);
 			break;
 		case 1:
 		case 4:
-			_instructions[pos]._arg1 = (SQInt32) * ((SQUnsignedInteger *)&val);
+			_instructions[pos]._arg1 = (LVInt32) * ((LVUnsignedInteger *)&val);
 			break;
 		case 2:
-			_instructions[pos]._arg2 = (unsigned char) * ((SQUnsignedInteger *)&val);
+			_instructions[pos]._arg2 = (unsigned char) * ((LVUnsignedInteger *)&val);
 			break;
 		case 3:
-			_instructions[pos]._arg3 = (unsigned char) * ((SQUnsignedInteger *)&val);
+			_instructions[pos]._arg3 = (unsigned char) * ((LVUnsignedInteger *)&val);
 			break;
 	};
 }
 
-SQInteger FunctionState::AllocStackPos() {
-	SQInteger npos = _vlocals.size();
+LVInteger FunctionState::AllocStackPos() {
+	LVInteger npos = _vlocals.size();
 	_vlocals.push_back(SQLocalVarInfo());
-	if (_vlocals.size() > ((SQUnsignedInteger)_stacksize)) {
+	if (_vlocals.size() > ((LVUnsignedInteger)_stacksize)) {
 		if (_stacksize > MAX_FUNC_STACKSIZE) Error(_LC("internal compiler error: too many locals"));
 		_stacksize = _vlocals.size();
 	}
 	return npos;
 }
 
-SQInteger FunctionState::PushTarget(SQInteger n) {
+LVInteger FunctionState::PushTarget(LVInteger n) {
 	if (n != -1) {
 		_targetstack.push_back(n);
 		return n;
@@ -280,16 +279,16 @@ SQInteger FunctionState::PushTarget(SQInteger n) {
 	return n;
 }
 
-SQInteger FunctionState::GetUpTarget(SQInteger n) {
+LVInteger FunctionState::GetUpTarget(LVInteger n) {
 	return _targetstack[((_targetstack.size() - 1) - n)];
 }
 
-SQInteger FunctionState::TopTarget() {
+LVInteger FunctionState::TopTarget() {
 	return _targetstack.back();
 }
 
-SQInteger FunctionState::PopTarget() {
-	SQUnsignedInteger npos = _targetstack.back();
+LVInteger FunctionState::PopTarget() {
+	LVUnsignedInteger npos = _targetstack.back();
 	assert(npos < _vlocals.size());
 	SQLocalVarInfo& t = _vlocals[npos];
 	if (type(t._name) == OT_NULL) {
@@ -299,13 +298,13 @@ SQInteger FunctionState::PopTarget() {
 	return npos;
 }
 
-SQInteger FunctionState::GetStackSize() {
+LVInteger FunctionState::GetStackSize() {
 	return _vlocals.size();
 }
 
-SQInteger FunctionState::CountOuters(SQInteger stacksize) {
-	SQInteger outers = 0;
-	SQInteger k = _vlocals.size() - 1;
+LVInteger FunctionState::CountOuters(LVInteger stacksize) {
+	LVInteger outers = 0;
+	LVInteger k = _vlocals.size() - 1;
 	while (k >= stacksize) {
 		SQLocalVarInfo& lvi = _vlocals[k];
 		k--;
@@ -316,8 +315,8 @@ SQInteger FunctionState::CountOuters(SQInteger stacksize) {
 	return outers;
 }
 
-void FunctionState::SetStackSize(SQInteger n) {
-	SQInteger size = _vlocals.size();
+void FunctionState::SetStackSize(LVInteger n) {
+	LVInteger size = _vlocals.size();
 	while (size > n) {
 		size--;
 		SQLocalVarInfo lvi = _vlocals.back();
@@ -341,26 +340,26 @@ bool FunctionState::IsConstant(const SQObject& name, SQObject& e) {
 	return false;
 }
 
-bool FunctionState::IsLocal(SQUnsignedInteger stkpos) {
+bool FunctionState::IsLocal(LVUnsignedInteger stkpos) {
 	if (stkpos >= _vlocals.size())return false;
 	else if (type(_vlocals[stkpos]._name) != OT_NULL)return true;
 	return false;
 }
 
-SQInteger FunctionState::PushLocalVariable(const SQObject& name) {
-	SQInteger pos = _vlocals.size();
+LVInteger FunctionState::PushLocalVariable(const SQObject& name) {
+	LVInteger pos = _vlocals.size();
 	SQLocalVarInfo lvi;
 	lvi._name = name;
 	lvi._start_op = GetCurrentPos() + 1;
 	lvi._pos = _vlocals.size();
 	_vlocals.push_back(lvi);
-	if (_vlocals.size() > ((SQUnsignedInteger)_stacksize))
+	if (_vlocals.size() > ((LVUnsignedInteger)_stacksize))
 		_stacksize = _vlocals.size();
 	return pos;
 }
 
-SQInteger FunctionState::GetLocalVariable(const SQObject& name) {
-	SQInteger locals = _vlocals.size();
+LVInteger FunctionState::GetLocalVariable(const SQObject& name) {
+	LVInteger locals = _vlocals.size();
 	while (locals >= 1) {
 		SQLocalVarInfo& lvi = _vlocals[locals - 1];
 		if (type(lvi._name) == OT_STRING && _string(lvi._name) == _string(name)) {
@@ -371,30 +370,30 @@ SQInteger FunctionState::GetLocalVariable(const SQObject& name) {
 	return -1;
 }
 
-void FunctionState::MarkLocalAsOuter(SQInteger pos) {
+void FunctionState::MarkLocalAsOuter(LVInteger pos) {
 	SQLocalVarInfo& lvi = _vlocals[pos];
 	lvi._end_op = UINT_MINUS_ONE;
 	_outers++;
 }
 
-SQInteger FunctionState::GetOuterVariable(const SQObject& name) {
-	SQInteger outers = _outervalues.size();
-	for (SQInteger i = 0; i < outers; i++) {
+LVInteger FunctionState::GetOuterVariable(const SQObject& name) {
+	LVInteger outers = _outervalues.size();
+	for (LVInteger i = 0; i < outers; i++) {
 		if (_string(_outervalues[i]._name) == _string(name))
 			return i;
 	}
-	SQInteger pos = -1;
+	LVInteger pos = -1;
 	if (_parent) {
 		pos = _parent->GetLocalVariable(name);
 		if (pos == -1) {
 			pos = _parent->GetOuterVariable(name);
 			if (pos != -1) {
-				_outervalues.push_back(SQOuterVar(name, SQObjectPtr(SQInteger(pos)), otOUTER)); //local
+				_outervalues.push_back(SQOuterVar(name, SQObjectPtr(LVInteger(pos)), otOUTER)); //local
 				return _outervalues.size() - 1;
 			}
 		} else {
 			_parent->MarkLocalAsOuter(pos);
-			_outervalues.push_back(SQOuterVar(name, SQObjectPtr(SQInteger(pos)), otLOCAL)); //local
+			_outervalues.push_back(SQOuterVar(name, SQObjectPtr(LVInteger(pos)), otLOCAL)); //local
 			return _outervalues.size() - 1;
 
 
@@ -408,7 +407,7 @@ void FunctionState::AddParameter(const SQObject& name) {
 	_parameters.push_back(name);
 }
 
-void FunctionState::AddLineInfos(SQInteger line, bool lineop, bool force) {
+void FunctionState::AddLineInfos(LVInteger line, bool lineop, bool force) {
 	if (_lastline != line || force) {
 		SQLineInfo li;
 		li._line = line;
@@ -422,8 +421,8 @@ void FunctionState::AddLineInfos(SQInteger line, bool lineop, bool force) {
 }
 
 void FunctionState::DiscardTarget() {
-	SQInteger discardedtarget = PopTarget();
-	SQInteger size = _instructions.size();
+	LVInteger discardedtarget = PopTarget();
+	LVInteger size = _instructions.size();
 	if (size > 0 && _optimization) {
 		SQInstruction& pi = _instructions[size - 1]; //previous instruction
 		switch (pi.op) {
@@ -439,7 +438,7 @@ void FunctionState::DiscardTarget() {
 }
 
 void FunctionState::AddInstruction(SQInstruction& i) {
-	SQInteger size = _instructions.size();
+	LVInteger size = _instructions.size();
 	if (size > 0 && _optimization) { //simple optimizer
 		SQInstruction& pi = _instructions[size - 1]; //previous instruction
 		switch (i.op) {
@@ -491,7 +490,7 @@ void FunctionState::AddInstruction(SQInstruction& i) {
 				}
 				break;
 			case _OP_APPENDARRAY: {
-				SQInteger aat = -1;
+				LVInteger aat = -1;
 				switch (pi.op) {
 					case _OP_LOAD:
 						aat = AAT_LITERAL;
@@ -586,15 +585,15 @@ void FunctionState::AddInstruction(SQInstruction& i) {
 	_instructions.push_back(i);
 }
 
-SQObject FunctionState::CreateString(const SQChar *s, SQInteger len) {
+SQObject FunctionState::CreateString(const LVChar *s, LVInteger len) {
 	SQObjectPtr ns(SQString::Create(_sharedstate, s, len));
-	_table(_strings)->NewSlot(ns, (SQInteger)1);
+	_table(_strings)->NewSlot(ns, (LVInteger)1);
 	return ns;
 }
 
 SQObject FunctionState::CreateTable() {
 	SQObjectPtr nt(SQTable::Create(_sharedstate, 0));
-	_table(_strings)->NewSlot(nt, (SQInteger)1);
+	_table(_strings)->NewSlot(nt, (LVInteger)1);
 	return nt;
 }
 
@@ -604,7 +603,7 @@ FunctionPrototype *FunctionState::BuildProto() {
 	                       _lineinfos.size(), _localvarinfos.size(), _defaultparams.size());
 
 	SQObjectPtr refidx, key, val;
-	SQInteger idx;
+	LVInteger idx;
 
 	f->_stacksize = _stacksize;
 	f->_sourcename = _sourcename;
@@ -616,12 +615,12 @@ FunctionPrototype *FunctionState::BuildProto() {
 		refidx = idx;
 	}
 
-	for (SQUnsignedInteger nf = 0; nf < _functions.size(); nf++) f->_functions[nf] = _functions[nf];
-	for (SQUnsignedInteger np = 0; np < _parameters.size(); np++) f->_parameters[np] = _parameters[np];
-	for (SQUnsignedInteger no = 0; no < _outervalues.size(); no++) f->_outervalues[no] = _outervalues[no];
-	for (SQUnsignedInteger nl = 0; nl < _localvarinfos.size(); nl++) f->_localvarinfos[nl] = _localvarinfos[nl];
-	for (SQUnsignedInteger ni = 0; ni < _lineinfos.size(); ni++) f->_lineinfos[ni] = _lineinfos[ni];
-	for (SQUnsignedInteger nd = 0; nd < _defaultparams.size(); nd++) f->_defaultparams[nd] = _defaultparams[nd];
+	for (LVUnsignedInteger nf = 0; nf < _functions.size(); nf++) f->_functions[nf] = _functions[nf];
+	for (LVUnsignedInteger np = 0; np < _parameters.size(); np++) f->_parameters[np] = _parameters[np];
+	for (LVUnsignedInteger no = 0; no < _outervalues.size(); no++) f->_outervalues[no] = _outervalues[no];
+	for (LVUnsignedInteger nl = 0; nl < _localvarinfos.size(); nl++) f->_localvarinfos[nl] = _localvarinfos[nl];
+	for (LVUnsignedInteger ni = 0; ni < _lineinfos.size(); ni++) f->_lineinfos[ni] = _lineinfos[ni];
+	for (LVUnsignedInteger nd = 0; nd < _defaultparams.size(); nd++) f->_defaultparams[nd] = _defaultparams[nd];
 
 	memcpy(f->_instructions, &_instructions[0], _instructions.size()*sizeof(SQInstruction));
 

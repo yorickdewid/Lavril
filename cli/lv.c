@@ -34,21 +34,21 @@ int MemAllocHook(int allocType, void *userData, size_t size, int blockType,
 }
 #endif
 
-SQInteger quit(VMHANDLE v) {
+LVInteger quit(VMHANDLE v) {
 	int *done;
 	lv_getuserpointer(v, -1, (LVUserPointer *)&done);
 	*done = 1;
 	return 0;
 }
 
-void print_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void print_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
 }
 
-void error_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
+void error_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 	va_list vl;
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
@@ -56,7 +56,7 @@ void error_func(VMHANDLE LV_UNUSED_ARG(v), const SQChar *s, ...) {
 }
 
 void print_version_info() {
-	scfprintf(stdout, _LC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(SQInteger) * 8)));
+	scfprintf(stdout, _LC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(LVInteger) * 8)));
 }
 
 void print_interactive_console_info() {
@@ -74,12 +74,12 @@ void print_usage() {
 	          _LC("  -h              This help\n"));
 }
 
-enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
+enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 	int i;
 	int compiles_only = 0;
 	int run_statement_only = 0;
 #ifdef SQUNICODE
-	static SQChar temp[512];
+	static LVChar temp[512];
 #endif
 	char *output = NULL;
 	char *statement = NULL;
@@ -135,11 +135,11 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 		}
 
 		if (run_statement_only) {
-			SQInteger _retval = 0;
+			LVInteger _retval = 0;
 
 			int i = scstrlen(statement);
 			if (i > 0) {
-				SQInteger oldtop = lv_gettop(v);
+				LVInteger oldtop = lv_gettop(v);
 				if (LV_SUCCEEDED(lv_compilebuffer(v, statement, i, _LC("lv"), LVTrue))) {
 					lv_pushroottable(v);
 					lv_call(v, 1, _retval, LVTrue);
@@ -152,7 +152,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 		}
 
 		if (arg < argc) {
-			const SQChar *filename = NULL;
+			const LVChar *filename = NULL;
 #ifdef SQUNICODE
 			mbstowcs(temp, argv[arg], strlen(argv[arg]));
 			filename = temp;
@@ -164,11 +164,11 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 
 			if (compiles_only) {
 				if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
-					const SQChar *outfile = _LC("out.lavc");
+					const LVChar *outfile = _LC("out.lavc");
 					if (output) {
 #ifdef SQUNICODE
 						int len = (int)(strlen(output) + 1);
-						mbstowcs(lv_getscratchpad(v, len * sizeof(SQChar)), output, len);
+						mbstowcs(lv_getscratchpad(v, len * sizeof(LVChar)), output, len);
 						outfile = lv_getscratchpad(v, -1);
 #else
 						outfile = output;
@@ -184,10 +184,10 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 					lv_pushroottable(v);
 
 					for (i = arg; i < argc; ++i) {
-						const SQChar *a;
+						const LVChar *a;
 #ifdef SQUNICODE
 						int alen = (int)strlen(argv[i]);
-						a = lv_getscratchpad(v, (int)(alen * sizeof(SQChar)));
+						a = lv_getscratchpad(v, (int)(alen * sizeof(LVChar)));
 						mbstowcs(lv_getscratchpad(v, -1), argv[i], alen);
 						lv_getscratchpad(v, -1)[alen] = _LC('\0');
 #else
@@ -219,11 +219,11 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], SQInteger *retval) {
 }
 
 void interactive(VMHANDLE v) {
-	SQChar buffer[CLI_MAXINPUT];
-	SQInteger blocks = 0;
-	SQInteger string = 0;
-	SQInteger retval = 0;
-	SQInteger done = 0;
+	LVChar buffer[CLI_MAXINPUT];
+	LVInteger blocks = 0;
+	LVInteger string = 0;
+	LVInteger retval = 0;
+	LVInteger done = 0;
 
 	print_version_info();
 	print_interactive_console_info();
@@ -237,7 +237,7 @@ void interactive(VMHANDLE v) {
 	lv_pop(v, 1);
 
 	while (!done) {
-		SQInteger i = 0;
+		LVInteger i = 0;
 		scprintf(_LC("\nlv> "));
 		while (!done) {
 			int c = getchar();
@@ -255,18 +255,18 @@ void interactive(VMHANDLE v) {
 				buffer[i++] = _LC('\n');
 			} else if (c == _LC('}')) {
 				blocks--;
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			} else if (c == _LC('{') && !string) {
 				blocks++;
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			} else if (c == _LC('"') || c == _LC('\'')) {
 				string = !string;
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			} else if (i >= CLI_MAXINPUT - 1) {
 				scfprintf(stderr, _LC("lv: input line too long\n"));
 				break;
 			} else {
-				buffer[i++] = (SQChar)c;
+				buffer[i++] = (LVChar)c;
 			}
 		}
 
@@ -274,13 +274,13 @@ void interactive(VMHANDLE v) {
 
 		if (buffer[0] == _LC('=')) {
 			scsprintf(lv_getscratchpad(v, CLI_MAXINPUT), (size_t)CLI_MAXINPUT, _LC("return (%s)"), &buffer[1]);
-			memcpy(buffer, lv_getscratchpad(v, -1), (scstrlen(lv_getscratchpad(v, -1)) + 1)*sizeof(SQChar));
+			memcpy(buffer, lv_getscratchpad(v, -1), (scstrlen(lv_getscratchpad(v, -1)) + 1)*sizeof(LVChar));
 			retval = 1;
 		}
 
 		i = scstrlen(buffer);
 		if (i > 0) {
-			SQInteger oldtop = lv_gettop(v);
+			LVInteger oldtop = lv_gettop(v);
 			if (LV_SUCCEEDED(lv_compilebuffer(v, buffer, i, _LC("lv"), LVTrue))) {
 				lv_pushroottable(v);
 				if (LV_SUCCEEDED(lv_call(v, 1, retval, LVTrue)) && retval) {
@@ -301,7 +301,7 @@ void interactive(VMHANDLE v) {
 
 int main(int argc, char *argv[]) {
 	VMHANDLE v;
-	SQInteger retval = 0;
+	LVInteger retval = 0;
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 	_CrtSetAllocHook(MemAllocHook);
@@ -316,6 +316,7 @@ int main(int argc, char *argv[]) {
 	lv_init_modules(v);
 
 	init_module(sqlite, v);
+	init_module(pgsql, v);
 
 	lv_registererrorhandlers(v);
 

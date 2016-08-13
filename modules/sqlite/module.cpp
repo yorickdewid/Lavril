@@ -8,7 +8,7 @@ struct LVSQLITEObj {
 	int _rc;
 	char *_err_msg;
 	void *_jmpbuf;
-	const SQChar **_error;
+	const LVChar **_error;
 };
 
 #define OBJECT_INSTANCE(v) \
@@ -24,19 +24,19 @@ void mod_sqlite_free(LVSQLITEObj *exp) {
 	}
 }
 
-static void mod_sqlite_error(LVSQLITEObj *exp, const SQChar *error) {
+static void mod_sqlite_error(LVSQLITEObj *exp, const LVChar *error) {
 	if (exp->_error)
 		*exp->_error = error;
 	longjmp(*((jmp_buf *)exp->_jmpbuf), -1);
 }
 
-static SQInteger mod_sqlite_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static LVInteger mod_sqlite_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
 	LVSQLITEObj *self = ((LVSQLITEObj *)p);
 	mod_sqlite_free(self);
 	return 1;
 }
 
-static int mod_sqlite_callback(void *data, int argc, char **argv, char **azColName) {
+/*static int mod_sqlite_callback(void *data, int argc, char **argv, char **azColName) {
 	int i;
 	VMHANDLE v = (VMHANDLE)data;
 	lv_newtable(v);
@@ -46,9 +46,9 @@ static int mod_sqlite_callback(void *data, int argc, char **argv, char **azColNa
 		lv_rawset(v, -3);
 	}
 	return 0;
-}
+}*/
 
-LVSQLITEObj *mod_sqlite_init(const SQChar *filename, const SQChar **error) {
+LVSQLITEObj *mod_sqlite_init(const LVChar *filename, const LVChar **error) {
 	LVSQLITEObj *volatile exp = (LVSQLITEObj *)lv_malloc(sizeof(LVSQLITEObj));
 	exp->_db = NULL;
 	exp->_err_msg = NULL;
@@ -65,9 +65,9 @@ LVSQLITEObj *mod_sqlite_init(const SQChar *filename, const SQChar **error) {
 	return exp;
 }
 
-static SQInteger _sqlite_exec(VMHANDLE v) {
+static LVInteger _sqlite_exec(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
-	const SQChar *query;
+	const LVChar *query;
 	lv_getstring(v, 2, &query);
 	self->_rc = sqlite3_exec(self->_db, query, NULL, NULL, NULL);
 	if (self->_rc != SQLITE_OK) {
@@ -77,8 +77,8 @@ static SQInteger _sqlite_exec(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _sqlite_constructor(VMHANDLE v) {
-	const SQChar *error, *location;
+static LVInteger _sqlite_constructor(VMHANDLE v) {
+	const LVChar *error, *location;
 	lv_getstring(v, 2, &location);
 	LVSQLITEObj *db = mod_sqlite_init(location, &error);
 	if (!db)
@@ -88,7 +88,7 @@ static SQInteger _sqlite_constructor(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _sqlite__typeof(VMHANDLE v) {
+static LVInteger _sqlite__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("curl"), -1);
 	return 1;
 }
@@ -103,7 +103,7 @@ static const SQRegFunction sqlitelib_funcs[] = {
 #undef _DECL_SQLITE_FUNC
 
 LVRESULT mod_init_sqlite(VMHANDLE v) {
-	SQInteger i = 0;
+	LVInteger i = 0;
 
 	lv_pushstring(v, _LC("sqlite"), -1);
 	lv_newclass(v, LVFalse);

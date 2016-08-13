@@ -19,7 +19,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 
   public:
 	static SQClosure *Create(SQSharedState *ss, FunctionPrototype *func, SQWeakRef *root) {
-		SQInteger size = _CALC_CLOSURE_SIZE(func);
+		LVInteger size = _CALC_CLOSURE_SIZE(func);
 		SQClosure *nc = (SQClosure *)LV_MALLOC(size);
 		new (nc) SQClosure(ss, func);
 		nc->_outervalues = (SQObjectPtr *)(nc + 1);
@@ -33,7 +33,7 @@ struct SQClosure : public CHAINABLE_OBJ {
 
 	void Release() {
 		FunctionPrototype *f = _function;
-		SQInteger size = _CALC_CLOSURE_SIZE(f);
+		LVInteger size = _CALC_CLOSURE_SIZE(f);
 		_DESTRUCT_VECTOR(SQObjectPtr, f->_noutervalues, _outervalues);
 		_DESTRUCT_VECTOR(SQObjectPtr, f->_ndefaultparams, _defaultparams);
 		__ObjRelease(_function);
@@ -122,7 +122,7 @@ struct SQOuter : public CHAINABLE_OBJ {
 #endif
 
 	SQObjectPtr *_valptr;  /* pointer to value on stack, or _value below */
-	SQInteger    _idx;     /* idx in stack array, for relocation */
+	LVInteger    _idx;     /* idx in stack array, for relocation */
 	SQObjectPtr  _value;   /* value of outer after stack frame is closed */
 	SQOuter     *_next;    /* pointer to next outer when frame is open   */
 };
@@ -164,7 +164,7 @@ struct SQGenerator : public CHAINABLE_OBJ {
 		sq_delete(this, SQGenerator);
 	}
 
-	bool Yield(SQVM *v, SQInteger target);
+	bool Yield(SQVM *v, LVInteger target);
 	bool Resume(SQVM *v, SQObjectPtr& dest);
 #ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable **chain);
@@ -198,8 +198,8 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 	}
 
   public:
-	static SQNativeClosure *Create(SQSharedState *ss, SQFUNCTION func, SQInteger nouters) {
-		SQInteger size = _CALC_NATVIVECLOSURE_SIZE(nouters);
+	static SQNativeClosure *Create(SQSharedState *ss, SQFUNCTION func, LVInteger nouters) {
+		LVInteger size = _CALC_NATVIVECLOSURE_SIZE(nouters);
 		SQNativeClosure *nc = (SQNativeClosure *)LV_MALLOC(size);
 		new (nc) SQNativeClosure(ss, func);
 		nc->_outervalues = (SQObjectPtr *)(nc + 1);
@@ -225,7 +225,7 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 	}
 
 	void Release() {
-		SQInteger size = _CALC_NATVIVECLOSURE_SIZE(_noutervalues);
+		LVInteger size = _CALC_NATVIVECLOSURE_SIZE(_noutervalues);
 		_DESTRUCT_VECTOR(SQObjectPtr, _noutervalues, _outervalues);
 		this->~SQNativeClosure();
 		lv_free(this, size);
@@ -243,10 +243,10 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 	}
 #endif
 
-	SQInteger _nparamscheck;
+	LVInteger _nparamscheck;
 	SQIntVec _typecheck;
 	SQObjectPtr *_outervalues;
-	SQUnsignedInteger _noutervalues;
+	LVUnsignedInteger _noutervalues;
 	SQWeakRef *_env;
 	SQFUNCTION _function;
 	SQObjectPtr _name;

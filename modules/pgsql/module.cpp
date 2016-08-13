@@ -11,7 +11,7 @@ struct LVPGSQLObj {
 	void *_jmpbuf;
 	int nFields;
 	int i, j;
-	const SQChar **_error;
+	const LVChar **_error;
 };
 
 #define OBJECT_INSTANCE(v) \
@@ -29,19 +29,19 @@ void mod_pgsql_free(LVPGSQLObj *exp) {
 	}
 }
 
-static void mod_pgsql_error(LVPGSQLObj *exp, const SQChar *error) {
+static void mod_pgsql_error(LVPGSQLObj *exp, const LVChar *error) {
 	if (exp->_error)
 		*exp->_error = error;
 	longjmp(*((jmp_buf *)exp->_jmpbuf), -1);
 }
 
-static SQInteger mod_pgsql_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static LVInteger mod_pgsql_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
 	LVPGSQLObj *self = ((LVPGSQLObj *)p);
 	mod_pgsql_free(self);
 	return 1;
 }
 
-LVPGSQLObj *mod_pgsql_init(VMHANDLE v, const SQChar *connstr, const SQChar **error) {
+LVPGSQLObj *mod_pgsql_init(VMHANDLE v, const LVChar *connstr, const LVChar **error) {
 	LVPGSQLObj *volatile exp = (LVPGSQLObj *)lv_malloc(sizeof(LVPGSQLObj));
 	exp->_conninfo = NULL;
 	exp->_conn = NULL;
@@ -52,7 +52,7 @@ LVPGSQLObj *mod_pgsql_init(VMHANDLE v, const SQChar *connstr, const SQChar **err
 		exp->_conn = PQconnectdb(connstr);
 		if (PQstatus(exp->_conn) != CONNECTION_OK) {
 			char *pgerror = PQerrorMessage(exp->_conn);
-			SQChar *temp = lv_getscratchpad(v, scstrlen(pgerror) + 1);
+			LVChar *temp = lv_getscratchpad(v, scstrlen(pgerror) + 1);
 			scstrcpy(temp, pgerror);
 			mod_pgsql_error(exp, temp);
 		}
@@ -63,9 +63,9 @@ LVPGSQLObj *mod_pgsql_init(VMHANDLE v, const SQChar *connstr, const SQChar **err
 	return exp;
 }
 
-static SQInteger _pgsql_exec(VMHANDLE v) {
+static LVInteger _pgsql_exec(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
-	const SQChar *query;
+	const LVChar *query;
 	lv_getstring(v, 2, &query);
 	self->_res = PQexec(self->_conn, query);
 	if (PQresultStatus(self->_res) != PGRES_COMMAND_OK) {
@@ -77,9 +77,9 @@ static SQInteger _pgsql_exec(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _pgsql_query(VMHANDLE v) {
+static LVInteger _pgsql_query(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
-	const SQChar *query;
+	const LVChar *query;
 	lv_getstring(v, 2, &query);
 	self->_res = PQexec(self->_conn, query);
 	if (PQresultStatus(self->_res) != PGRES_TUPLES_OK) {
@@ -89,12 +89,12 @@ static SQInteger _pgsql_query(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _pgsql_fetch(VMHANDLE v) {
+static LVInteger _pgsql_fetch(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	lv_newarray(v, 0);
-	for (SQInteger i = 0; i < PQntuples(self->_res); ++i) {
+	for (LVInteger i = 0; i < PQntuples(self->_res); ++i) {
 		lv_newtable(v);
-		for (SQInteger j = 0; j < PQnfields(self->_res); ++j) {
+		for (LVInteger j = 0; j < PQnfields(self->_res); ++j) {
 			lv_pushstring(v, PQfname(self->_res, j), -1);
 			lv_pushstring(v, PQgetvalue(self->_res, i, j), -1);
 			lv_rawset(v, -3);
@@ -104,32 +104,32 @@ static SQInteger _pgsql_fetch(VMHANDLE v) {
 	return 1;
 }
 
-static SQInteger _pgsql_rows(VMHANDLE v) {
+static LVInteger _pgsql_rows(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	lv_pushinteger(v, PQntuples(self->_res));
 	return 1;
 }
 
-static SQInteger _pgsql_version(VMHANDLE v) {
+static LVInteger _pgsql_version(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	lv_pushinteger(v, PQserverVersion(self->_conn));
 	return 1;
 }
 
-static SQInteger _pgsql_database(VMHANDLE v) {
+static LVInteger _pgsql_database(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	lv_pushstring(v, PQdb(self->_conn), -1);
 	return 1;
 }
 
-static SQInteger _pgsql_user(VMHANDLE v) {
+static LVInteger _pgsql_user(VMHANDLE v) {
 	OBJECT_INSTANCE(v);
 	lv_pushstring(v, PQuser(self->_conn), -1);
 	return 1;
 }
 
-static SQInteger _pgsql_constructor(VMHANDLE v) {
-	const SQChar *error, *connstr;
+static LVInteger _pgsql_constructor(VMHANDLE v) {
+	const LVChar *error, *connstr;
 	lv_getstring(v, 2, &connstr);
 	LVPGSQLObj *db = mod_pgsql_init(v, connstr, &error);
 	if (!db) {
@@ -140,7 +140,7 @@ static SQInteger _pgsql_constructor(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _pgsql__typeof(VMHANDLE v) {
+static LVInteger _pgsql__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("pgsql"), -1);
 	return 1;
 }
@@ -161,7 +161,7 @@ static const SQRegFunction pgsqllib_funcs[] = {
 #undef _DECL_PGSQL_FUNC
 
 LVRESULT mod_init_pgsql(VMHANDLE v) {
-	SQInteger i = 0;
+	LVInteger i = 0;
 
 	lv_pushstring(v, _LC("pgsql"), -1);
 	lv_newclass(v, LVFalse);

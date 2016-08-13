@@ -58,25 +58,25 @@ enum SQMetaMethod {
 
 
 #define _CONSTRUCT_VECTOR(type,size,ptr) { \
-    for(SQInteger n = 0; n < ((SQInteger)size); n++) { \
+    for(LVInteger n = 0; n < ((LVInteger)size); n++) { \
             new (&ptr[n]) type(); \
         } \
 }
 
 #define _DESTRUCT_VECTOR(type,size,ptr) { \
-    for(SQInteger nl = 0; nl < ((SQInteger)size); nl++) { \
+    for(LVInteger nl = 0; nl < ((LVInteger)size); nl++) { \
             ptr[nl].~type(); \
     } \
 }
 
 #define _COPY_VECTOR(dest,src,size) { \
-    for(SQInteger _n_ = 0; _n_ < ((SQInteger)size); _n_++) { \
+    for(LVInteger _n_ = 0; _n_ < ((LVInteger)size); _n_++) { \
         dest[_n_] = src[_n_]; \
     } \
 }
 
 #define _NULL_SQOBJECT_VECTOR(vec,size) { \
-    for(SQInteger _n_ = 0; _n_ < ((SQInteger)size); _n_++) { \
+    for(LVInteger _n_ = 0; _n_ < ((LVInteger)size); _n_++) { \
         vec[_n_].Null(); \
     } \
 }
@@ -84,12 +84,14 @@ enum SQMetaMethod {
 #define MINPOWER2 4
 
 struct SQRefCounted {
-	SQUnsignedInteger _uiRef;
+	LVUnsignedInteger _uiRef;
 	struct SQWeakRef *_weakref;
+
 	SQRefCounted() {
 		_uiRef = 0;
 		_weakref = NULL;
 	}
+
 	virtual ~SQRefCounted();
 	SQWeakRef *GetWeakRef(SQObjectType type);
 	virtual void Release() = 0;
@@ -155,19 +157,20 @@ struct SQObjectPtr;
 #define _stringval(obj) (obj)._unVal.pString->_val
 #define _userdataval(obj) ((LVUserPointer)LV_ALIGN((obj)._unVal.pUserData + 1))
 
-#define tofloat(num) ((type(num)==OT_INTEGER)?(SQFloat)_integer(num):_float(num))
-#define tointeger(num) ((type(num)==OT_FLOAT)?(SQInteger)_float(num):_integer(num))
+#define tofloat(num) ((type(num)==OT_INTEGER)?(LVFloat)_integer(num):_float(num))
+#define tointeger(num) ((type(num)==OT_FLOAT)?(LVInteger)_float(num):_integer(num))
 
 #if defined(USEDOUBLE) && !defined(_SQ64) || !defined(USEDOUBLE) && defined(_LV64)
-#define SQ_REFOBJECT_INIT() SQ_OBJECT_RAWINIT()
+#define OBJECT_RAWINIT() { _unVal.raw = 0; }
+#define REFOBJECT_INIT() OBJECT_RAWINIT()
 #else
-#define SQ_REFOBJECT_INIT()
+#define REFOBJECT_INIT()
 #endif
 
 #define _REF_TYPE_DECL(type,_class,sym) \
     SQObjectPtr(_class * x) \
     { \
-        SQ_OBJECT_RAWINIT() \
+        OBJECT_RAWINIT() \
         _type=type; \
         _unVal.sym = x; \
         assert(_unVal.pTable); \
@@ -180,7 +183,7 @@ struct SQObjectPtr;
         tOldType=_type; \
         unOldVal=_unVal; \
         _type = type; \
-        SQ_REFOBJECT_INIT() \
+        REFOBJECT_INIT() \
         _unVal.sym = x; \
         _unVal.pRefCounted->_uiRef++; \
         __Release(tOldType,unOldVal); \
@@ -190,7 +193,7 @@ struct SQObjectPtr;
 #define _SCALAR_TYPE_DECL(type,_class,sym) \
     SQObjectPtr(_class x) \
     { \
-        SQ_OBJECT_RAWINIT() \
+        OBJECT_RAWINIT() \
         _type=type; \
         _unVal.sym = x; \
     } \
@@ -198,14 +201,14 @@ struct SQObjectPtr;
     {  \
         __Release(_type,_unVal); \
         _type = type; \
-        SQ_OBJECT_RAWINIT() \
+        OBJECT_RAWINIT() \
         _unVal.sym = x; \
         return *this; \
     }
 
 struct SQObjectPtr : public SQObject {
 	SQObjectPtr() {
-		SQ_OBJECT_RAWINIT()
+		OBJECT_RAWINIT()
 		_type = OT_NULL;
 		_unVal.pUserPointer = NULL;
 	}
@@ -236,19 +239,19 @@ struct SQObjectPtr : public SQObject {
 	_REF_TYPE_DECL(OT_THREAD, SQVM, pThread)
 	_REF_TYPE_DECL(OT_FUNCPROTO, FunctionPrototype, pFunctionProto)
 
-	_SCALAR_TYPE_DECL(OT_INTEGER, SQInteger, nInteger)
-	_SCALAR_TYPE_DECL(OT_FLOAT, SQFloat, fFloat)
+	_SCALAR_TYPE_DECL(OT_INTEGER, LVInteger, nInteger)
+	_SCALAR_TYPE_DECL(OT_FLOAT, LVFloat, fFloat)
 	_SCALAR_TYPE_DECL(OT_USERPOINTER, LVUserPointer, pUserPointer)
 
 	SQObjectPtr(bool bBool) {
-		SQ_OBJECT_RAWINIT()
+		OBJECT_RAWINIT()
 		_type = OT_BOOL;
 		_unVal.nInteger = bBool ? 1 : 0;
 	}
 
 	inline SQObjectPtr& operator=(bool b) {
 		__Release(_type, _unVal);
-		SQ_OBJECT_RAWINIT()
+		OBJECT_RAWINIT()
 		_type = OT_BOOL;
 		_unVal.nInteger = b ? 1 : 0;
 		return *this;
@@ -286,16 +289,16 @@ struct SQObjectPtr : public SQObject {
 		SQObjectType tOldType = _type;
 		SQObjectValue unOldVal = _unVal;
 		_type = OT_NULL;
-		_unVal.raw = (SQRawObjectVal)NULL;
+		_unVal.raw = (LVRawObjectVal)NULL;
 		__Release(tOldType , unOldVal);
 	}
 
-	// #ifdef _DEBUG_DUMP
+#ifdef _DEBUG
 	void dump();
-	// #endif
+#endif
 
   private:
-	SQObjectPtr(const SQChar *) {} //safety
+	SQObjectPtr(const LVChar *) {} //safety
 };
 
 inline void _Swap(SQObject& a, SQObject& b) {
@@ -341,10 +344,10 @@ struct SQDelegable : public CHAINABLE_OBJ {
 	SQTable *_delegate;
 };
 
-SQUnsignedInteger TranslateIndex(const SQObjectPtr& idx);
+LVUnsignedInteger TranslateIndex(const SQObjectPtr& idx);
 typedef sqvector<SQObjectPtr> SQObjectPtrVec;
-typedef sqvector<SQInteger> SQIntVec;
-const SQChar *GetTypeName(const SQObjectPtr& obj1);
-const SQChar *IdType2Name(SQObjectType type);
+typedef sqvector<LVInteger> SQIntVec;
+const LVChar *GetTypeName(const SQObjectPtr& obj1);
+const LVChar *IdType2Name(SQObjectType type);
 
 #endif // _OBJECT_H_

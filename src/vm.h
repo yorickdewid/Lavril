@@ -13,12 +13,12 @@
 
 #define GET_FLAG_RAW                0x00000001
 #define GET_FLAG_DO_NOT_RAISE_ERROR 0x00000002
-//base lib
+
 void lv_base_register(VMHANDLE v);
 
 struct SQExceptionTrap {
 	SQExceptionTrap() {}
-	SQExceptionTrap(SQInteger ss, SQInteger stackbase, SQInstruction *ip, SQInteger ex_target) {
+	SQExceptionTrap(LVInteger ss, LVInteger stackbase, SQInstruction *ip, LVInteger ex_target) {
 		_stacksize = ss;
 		_stackbase = stackbase;
 		_ip = ip;
@@ -27,10 +27,10 @@ struct SQExceptionTrap {
 	SQExceptionTrap(const SQExceptionTrap& et) {
 		(*this) = et;
 	}
-	SQInteger _stackbase;
-	SQInteger _stacksize;
+	LVInteger _stackbase;
+	LVInteger _stacksize;
 	SQInstruction *_ip;
-	SQInteger _extarget;
+	LVInteger _extarget;
 };
 
 #define _INLINE
@@ -47,79 +47,79 @@ struct SQVM : public CHAINABLE_OBJ {
 		SQObjectPtr *_literals;
 		SQObjectPtr _closure;
 		SQGenerator *_generator;
-		SQInt32 _etraps;
-		SQInt32 _prevstkbase;
-		SQInt32 _prevtop;
-		SQInt32 _target;
-		SQInt32 _ncalls;
+		LVInt32 _etraps;
+		LVInt32 _prevstkbase;
+		LVInt32 _prevtop;
+		LVInt32 _target;
+		LVInt32 _ncalls;
 		LVBool _root;
 	};
 
 	typedef sqvector<CallInfo> CallInfoVec;
   public:
-	void DebugHookProxy(SQInteger type, const SQChar *sourcename, SQInteger line, const SQChar *funcname);
-	static void _DebugHookProxy(VMHANDLE v, SQInteger type, const SQChar *sourcename, SQInteger line, const SQChar *funcname);
+	void DebugHookProxy(LVInteger type, const LVChar *sourcename, LVInteger line, const LVChar *funcname);
+	static void _DebugHookProxy(VMHANDLE v, LVInteger type, const LVChar *sourcename, LVInteger line, const LVChar *funcname);
 	enum ExecutionType { ET_CALL, ET_RESUME_GENERATOR, ET_RESUME_VM, ET_RESUME_THROW_VM };
 	SQVM(SQSharedState *ss);
 	~SQVM();
-	bool Init(SQVM *friendvm, SQInteger stacksize);
-	bool Execute(SQObjectPtr& func, SQInteger nargs, SQInteger stackbase, SQObjectPtr& outres, LVBool raiseerror, ExecutionType et = ET_CALL);
+	bool Init(SQVM *friendvm, LVInteger stacksize);
+	bool Execute(SQObjectPtr& func, LVInteger nargs, LVInteger stackbase, SQObjectPtr& outres, LVBool raiseerror, ExecutionType et = ET_CALL);
 	//starts a native call return when the NATIVE closure returns
-	bool CallNative(SQNativeClosure *nclosure, SQInteger nargs, SQInteger newbase, SQObjectPtr& retval, bool& suspend);
+	bool CallNative(SQNativeClosure *nclosure, LVInteger nargs, LVInteger newbase, SQObjectPtr& retval, bool& suspend);
 	//starts a SQUIRREL call in the same "Execution loop"
-	bool StartCall(SQClosure *closure, SQInteger target, SQInteger nargs, SQInteger stackbase, bool tailcall);
+	bool StartCall(SQClosure *closure, LVInteger target, LVInteger nargs, LVInteger stackbase, bool tailcall);
 	bool CreateClassInstance(SQClass *theclass, SQObjectPtr& inst, SQObjectPtr& constructor);
 	//call a generic closure pure SQUIRREL or NATIVE
-	bool Call(SQObjectPtr& closure, SQInteger nparams, SQInteger stackbase, SQObjectPtr& outres, LVBool raiseerror);
+	bool Call(SQObjectPtr& closure, LVInteger nparams, LVInteger stackbase, SQObjectPtr& outres, LVBool raiseerror);
 	LVRESULT Suspend();
 
-	void CallDebugHook(SQInteger type, SQInteger forcedline = 0);
+	void CallDebugHook(LVInteger type, LVInteger forcedline = 0);
 	void CallErrorHandler(SQObjectPtr& e);
-	bool Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest, SQUnsignedInteger getflags, SQInteger selfidx);
-	SQInteger FallBackGet(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest);
+	bool Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest, LVUnsignedInteger getflags, LVInteger selfidx);
+	LVInteger FallBackGet(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest);
 	bool InvokeDefaultDelegate(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest);
-	bool Set(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, SQInteger selfidx);
-	SQInteger FallBackSet(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val);
+	bool Set(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, LVInteger selfidx);
+	LVInteger FallBackSet(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val);
 	bool NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, bool bstatic);
 	bool NewSlotA(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, const SQObjectPtr& attrs, bool bstatic, bool raw);
 	bool DeleteSlot(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& res);
 	bool Clone(const SQObjectPtr& self, SQObjectPtr& target);
-	bool ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, SQInteger& res);
+	bool ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, LVInteger& res);
 	bool StringCat(const SQObjectPtr& str, const SQObjectPtr& obj, SQObjectPtr& dest);
 	static bool IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res);
-	bool ToString(const SQObjectPtr& o, SQObjectPtr& res, SQInteger ident = 0);
+	bool ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident = 0);
 	SQString *PrintObjVal(const SQObjectPtr& o);
 
 	/* Exception handeling */
-	void Raise_Error(const SQChar *s, ...);
+	void Raise_Error(const LVChar *s, ...);
 	void Raise_Error(const SQObjectPtr& desc);
 	void Raise_IdxError(const SQObjectPtr& o);
 	void Raise_CompareError(const SQObject& o1, const SQObject& o2);
-	void Raise_ParamTypeError(SQInteger nparam, SQInteger typemask, SQInteger type);
+	void Raise_ParamTypeError(LVInteger nparam, LVInteger typemask, LVInteger type);
 
 	void FindOuter(SQObjectPtr& target, SQObjectPtr *stackindex);
 	void RelocateOuters();
 	void CloseOuters(SQObjectPtr *stackindex);
 
 	bool TypeOf(const SQObjectPtr& obj1, SQObjectPtr& dest);
-	bool CallMetaMethod(SQObjectPtr& closure, SQMetaMethod mm, SQInteger nparams, SQObjectPtr& outres);
-	bool ArithMetaMethod(SQInteger op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& dest);
-	bool Return(SQInteger _arg0, SQInteger _arg1, SQObjectPtr& retval);
+	bool CallMetaMethod(SQObjectPtr& closure, SQMetaMethod mm, LVInteger nparams, SQObjectPtr& outres);
+	bool ArithMetaMethod(LVInteger op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& dest);
+	bool Return(LVInteger _arg0, LVInteger _arg1, SQObjectPtr& retval);
 
 	//new stuff
-	_INLINE bool ARITH_OP(SQUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);
-	_INLINE bool BW_OP(SQUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);
+	_INLINE bool ARITH_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);
+	_INLINE bool BW_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);
 	_INLINE bool NEG_OP(SQObjectPtr& trg, const SQObjectPtr& o1);
 	_INLINE bool CMP_OP(CmpOP op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& res);
 	bool CLOSURE_OP(SQObjectPtr& target, FunctionPrototype *func);
-	bool CLASS_OP(SQObjectPtr& target, SQInteger base, SQInteger attrs);
+	bool CLASS_OP(SQObjectPtr& target, LVInteger base, LVInteger attrs);
 	//return true if the loop is finished
-	bool FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr& o3, SQObjectPtr& o4, SQInteger arg_2, int exitpos, int& jump);
-	//_INLINE bool LOCAL_INC(SQInteger op,SQObjectPtr &target, SQObjectPtr &a, SQObjectPtr &incr);
-	_INLINE bool PLOCAL_INC(SQInteger op, SQObjectPtr& target, SQObjectPtr& a, SQObjectPtr& incr);
-	_INLINE bool DerefInc(SQInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObjectPtr& key, SQObjectPtr& incr, bool postfix, SQInteger arg0);
+	bool FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr& o3, SQObjectPtr& o4, LVInteger arg_2, int exitpos, int& jump);
+	//_INLINE bool LOCAL_INC(LVInteger op,SQObjectPtr &target, SQObjectPtr &a, SQObjectPtr &incr);
+	_INLINE bool PLOCAL_INC(LVInteger op, SQObjectPtr& target, SQObjectPtr& a, SQObjectPtr& incr);
+	_INLINE bool DerefInc(LVInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObjectPtr& key, SQObjectPtr& incr, bool postfix, LVInteger arg0);
 	// #ifdef _DEBUG_DUMP
-	void dumpstack(SQInteger stackbase = -1, bool dumpall = false);
+	void dumpstack(LVInteger stackbase = -1, bool dumpall = false);
 	// #endif
 
 #ifndef NO_GARBAGE_COLLECTOR
@@ -130,35 +130,35 @@ struct SQVM : public CHAINABLE_OBJ {
 #endif
 	void Finalize();
 	void GrowCallStack() {
-		SQInteger newsize = _alloccallsstacksize * 2;
+		LVInteger newsize = _alloccallsstacksize * 2;
 		_callstackdata.resize(newsize);
 		_callsstack = &_callstackdata[0];
 		_alloccallsstacksize = newsize;
 	}
-	bool EnterFrame(SQInteger newbase, SQInteger newtop, bool tailcall);
+	bool EnterFrame(LVInteger newbase, LVInteger newtop, bool tailcall);
 	void LeaveFrame();
 	void Release() {
 		sq_delete(this, SQVM);
 	}
 	////////////////////////////////////////////////////////////////////////////
 	//stack functions for the api
-	void Remove(SQInteger n);
+	void Remove(LVInteger n);
 
 	static bool IsFalse(SQObjectPtr& o);
 
 	void Pop();
-	void Pop(SQInteger n);
+	void Pop(LVInteger n);
 	void Push(const SQObjectPtr& o);
 	void PushNull();
 	SQObjectPtr& Top();
 	SQObjectPtr& PopGet();
-	SQObjectPtr& GetUp(SQInteger n);
-	SQObjectPtr& GetAt(SQInteger n);
+	SQObjectPtr& GetUp(LVInteger n);
+	SQObjectPtr& GetAt(LVInteger n);
 
 	SQObjectPtrVec _stack;
 
-	SQInteger _top;
-	SQInteger _stackbase;
+	LVInteger _top;
+	LVInteger _stackbase;
 	SQOuter *_openouters;
 	SQObjectPtr _roottable;
 	SQObjectPtr _lasterror;
@@ -172,8 +172,8 @@ struct SQVM : public CHAINABLE_OBJ {
 
 	/* Stacks */
 	CallInfo *_callsstack;
-	SQInteger _callsstacksize;
-	SQInteger _alloccallsstacksize;
+	LVInteger _callsstacksize;
+	LVInteger _alloccallsstacksize;
 	sqvector<CallInfo> _callstackdata;
 
 	ExceptionsTraps _etraps;
@@ -182,28 +182,28 @@ struct SQVM : public CHAINABLE_OBJ {
 
 	/* VMs sharing the same state */
 	SQSharedState *_sharedstate;
-	SQInteger _nnativecalls;
-	SQInteger _nmetamethodscall;
+	LVInteger _nnativecalls;
+	LVInteger _nmetamethodscall;
 	SQRELEASEHOOK _releasehook;
 
 	/* Suspend infos */
 	LVBool _suspended;
 	LVBool _suspended_root;
-	SQInteger _suspended_target;
-	SQInteger _suspended_traps;
+	LVInteger _suspended_target;
+	LVInteger _suspended_traps;
 };
 
 struct AutoDec {
-	AutoDec(SQInteger *n) {
+	AutoDec(LVInteger *n) {
 		_n = n;
 	}
 	~AutoDec() {
 		(*_n)--;
 	}
-	SQInteger *_n;
+	LVInteger *_n;
 };
 
-inline SQObjectPtr& stack_get(VMHANDLE v, SQInteger idx) {
+inline SQObjectPtr& stack_get(VMHANDLE v, LVInteger idx) {
 	return ((idx >= 0) ? (v->GetAt(idx + v->_stackbase - 1)) : (v->GetUp(idx)));
 }
 
@@ -216,7 +216,7 @@ inline SQObjectPtr& stack_get(VMHANDLE v, SQInteger idx) {
 #endif
 
 #define PUSH_CALLINFO(v,nci){ \
-    SQInteger css = v->_callsstacksize; \
+    LVInteger css = v->_callsstacksize; \
     if(css == v->_alloccallsstacksize) { \
         v->GrowCallStack(); \
     } \
@@ -226,7 +226,7 @@ inline SQObjectPtr& stack_get(VMHANDLE v, SQInteger idx) {
 }
 
 #define POP_CALLINFO(v){ \
-    SQInteger css = --v->_callsstacksize; \
+    LVInteger css = --v->_callsstacksize; \
     v->ci->_closure.Null(); \
     v->ci = css?&v->_callsstack[css-1]:NULL;    \
 }

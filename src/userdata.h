@@ -14,7 +14,7 @@ struct SQUserData : SQDelegable {
 		SetDelegate(NULL);
 	}
 
-	static SQUserData *Create(SQSharedState *ss, SQInteger size) {
+	static SQUserData *Create(SQSharedState *ss, LVInteger size) {
 		SQUserData *ud = (SQUserData *)LV_MALLOC(LV_ALIGN(sizeof(SQUserData)) + size);
 		new (ud) SQUserData(ss);
 		ud->_size = size;
@@ -35,12 +35,12 @@ struct SQUserData : SQDelegable {
 	void Release() {
 		if (_hook)
 			_hook((LVUserPointer)LV_ALIGN(this + 1), _size);
-		SQInteger tsize = _size;
+		LVInteger tsize = _size;
 		this->~SQUserData();
 		LV_FREE(this, LV_ALIGN(sizeof(SQUserData)) + tsize);
 	}
 
-	SQInteger _size;
+	LVInteger _size;
 	SQRELEASEHOOK _hook;
 	LVUserPointer _typetag;
 };

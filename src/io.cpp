@@ -3,7 +3,7 @@
 
 #define SQ_FILE_TYPE_TAG (SQ_STREAM_TYPE_TAG | 0x00000001)
 
-LVFILE lv_fopen(const SQChar *filename , const SQChar *mode) {
+LVFILE lv_fopen(const LVChar *filename , const LVChar *mode) {
 #ifndef LVUNICODE
 	return (LVFILE)fopen(filename, mode);
 #else
@@ -11,17 +11,17 @@ LVFILE lv_fopen(const SQChar *filename , const SQChar *mode) {
 #endif
 }
 
-SQInteger lv_fread(void *buffer, SQInteger size, SQInteger count, LVFILE file) {
-	SQInteger ret = (SQInteger)fread(buffer, size, count, (FILE *)file);
+LVInteger lv_fread(void *buffer, LVInteger size, LVInteger count, LVFILE file) {
+	LVInteger ret = (LVInteger)fread(buffer, size, count, (FILE *)file);
 	return ret;
 }
 
-SQInteger lv_fwrite(const LVUserPointer buffer, SQInteger size, SQInteger count, LVFILE file) {
-	return (SQInteger)fwrite(buffer, size, count, (FILE *)file);
+LVInteger lv_fwrite(const LVUserPointer buffer, LVInteger size, LVInteger count, LVFILE file) {
+	return (LVInteger)fwrite(buffer, size, count, (FILE *)file);
 }
 
-SQInteger lv_fseek(LVFILE file, SQInteger offset, SQInteger origin) {
-	SQInteger realorigin;
+LVInteger lv_fseek(LVFILE file, LVInteger offset, LVInteger origin) {
+	LVInteger realorigin;
 	switch (origin) {
 		case LV_SEEK_CUR:
 			realorigin = SEEK_CUR;
@@ -38,19 +38,19 @@ SQInteger lv_fseek(LVFILE file, SQInteger offset, SQInteger origin) {
 	return fseek((FILE *)file, (long)offset, (int)realorigin);
 }
 
-SQInteger lv_ftell(LVFILE file) {
+LVInteger lv_ftell(LVFILE file) {
 	return ftell((FILE *)file);
 }
 
-SQInteger lv_fflush(LVFILE file) {
+LVInteger lv_fflush(LVFILE file) {
 	return fflush((FILE *)file);
 }
 
-SQInteger lv_fclose(LVFILE file) {
+LVInteger lv_fclose(LVFILE file) {
 	return fclose((FILE *)file);
 }
 
-SQInteger lv_feof(LVFILE file) {
+LVInteger lv_feof(LVFILE file) {
 	return feof((FILE *)file);
 }
 
@@ -67,7 +67,7 @@ struct SQFile : public SQStream {
 	virtual ~SQFile() {
 		Close();
 	}
-	bool Open(const SQChar *filename , const SQChar *mode) {
+	bool Open(const LVChar *filename , const LVChar *mode) {
 		Close();
 		if ( (_handle = lv_fopen(filename, mode)) ) {
 			_owns = true;
@@ -82,26 +82,26 @@ struct SQFile : public SQStream {
 			_owns = false;
 		}
 	}
-	SQInteger Read(void *buffer, SQInteger size) {
+	LVInteger Read(void *buffer, LVInteger size) {
 		return lv_fread(buffer, 1, size, _handle);
 	}
-	SQInteger Write(void *buffer, SQInteger size) {
+	LVInteger Write(void *buffer, LVInteger size) {
 		return lv_fwrite(buffer, 1, size, _handle);
 	}
-	SQInteger Flush() {
+	LVInteger Flush() {
 		return lv_fflush(_handle);
 	}
-	SQInteger Tell() {
+	LVInteger Tell() {
 		return lv_ftell(_handle);
 	}
-	SQInteger Len() {
-		SQInteger prevpos = Tell();
+	LVInteger Len() {
+		LVInteger prevpos = Tell();
 		Seek(0, LV_SEEK_END);
-		SQInteger size = Tell();
+		LVInteger size = Tell();
 		Seek(prevpos, LV_SEEK_SET);
 		return size;
 	}
-	SQInteger Seek(SQInteger offset, SQInteger origin)  {
+	LVInteger Seek(LVInteger offset, LVInteger origin)  {
 		return lv_fseek(_handle, offset, origin);
 	}
 	bool IsValid() {
@@ -118,20 +118,20 @@ struct SQFile : public SQStream {
 	bool _owns;
 };
 
-static SQInteger _file__typeof(VMHANDLE v) {
+static LVInteger _file__typeof(VMHANDLE v) {
 	lv_pushstring(v, _LC("file"), -1);
 	return 1;
 }
 
-static SQInteger _file_releasehook(LVUserPointer p, SQInteger LV_UNUSED_ARG(size)) {
+static LVInteger _file_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
 	SQFile *self = (SQFile *)p;
 	self->~SQFile();
 	lv_free(self, sizeof(SQFile));
 	return 1;
 }
 
-static SQInteger _file_constructor(VMHANDLE v) {
-	const SQChar *filename, *mode;
+static LVInteger _file_constructor(VMHANDLE v) {
+	const LVChar *filename, *mode;
 	bool owns = true;
 	SQFile *f;
 	LVFILE newf;
@@ -157,7 +157,7 @@ static SQInteger _file_constructor(VMHANDLE v) {
 	return 0;
 }
 
-static SQInteger _file_close(VMHANDLE v) {
+static LVInteger _file_close(VMHANDLE v) {
 	SQFile *self = NULL;
 	if (LV_SUCCEEDED(lv_getinstanceup(v, 1, (LVUserPointer *)&self, (LVUserPointer)SQ_FILE_TYPE_TAG))
 	        && self != NULL) {
@@ -176,7 +176,7 @@ static const SQRegFunction _file_methods[] = {
 };
 
 LVRESULT lv_createfile(VMHANDLE v, LVFILE file, LVBool own) {
-	SQInteger top = lv_gettop(v);
+	LVInteger top = lv_gettop(v);
 	lv_pushregistrytable(v);
 	lv_pushstring(v, _LC("std_file"), -1);
 	if (LV_SUCCEEDED(lv_get(v, -2))) {
@@ -197,7 +197,7 @@ LVRESULT lv_createfile(VMHANDLE v, LVFILE file, LVBool own) {
 	return LV_ERROR;
 }
 
-LVRESULT lv_getfile(VMHANDLE v, SQInteger idx, LVFILE *file) {
+LVRESULT lv_getfile(VMHANDLE v, LVInteger idx, LVFILE *file) {
 	SQFile *fileobj = NULL;
 	if (LV_SUCCEEDED(lv_getinstanceup(v, idx, (LVUserPointer *)&fileobj, (LVUserPointer)SQ_FILE_TYPE_TAG))) {
 		*file = fileobj->GetHandle();
@@ -208,20 +208,20 @@ LVRESULT lv_getfile(VMHANDLE v, SQInteger idx, LVFILE *file) {
 #define IO_BUFFER_SIZE 2048
 struct IOBuffer {
 	unsigned char buffer[IO_BUFFER_SIZE];
-	SQInteger size;
-	SQInteger ptr;
+	LVInteger size;
+	LVInteger ptr;
 	LVFILE file;
 };
 
-SQInteger _read_byte(IOBuffer *iobuffer) {
+LVInteger _read_byte(IOBuffer *iobuffer) {
 	if (iobuffer->ptr < iobuffer->size) {
 
-		SQInteger ret = iobuffer->buffer[iobuffer->ptr];
+		LVInteger ret = iobuffer->buffer[iobuffer->ptr];
 		iobuffer->ptr++;
 		return ret;
 	} else {
 		if ( (iobuffer->size = lv_fread(iobuffer->buffer, 1, IO_BUFFER_SIZE, iobuffer->file )) > 0 ) {
-			SQInteger ret = iobuffer->buffer[0];
+			LVInteger ret = iobuffer->buffer[0];
 			iobuffer->ptr = 1;
 			return ret;
 		}
@@ -230,16 +230,16 @@ SQInteger _read_byte(IOBuffer *iobuffer) {
 	return 0;
 }
 
-SQInteger _read_two_bytes(IOBuffer *iobuffer) {
+LVInteger _read_two_bytes(IOBuffer *iobuffer) {
 	if (iobuffer->ptr < iobuffer->size) {
 		if (iobuffer->size < 2) return 0;
-		SQInteger ret = *((const wchar_t *)&iobuffer->buffer[iobuffer->ptr]);
+		LVInteger ret = *((const wchar_t *)&iobuffer->buffer[iobuffer->ptr]);
 		iobuffer->ptr += 2;
 		return ret;
 	} else {
 		if ( (iobuffer->size = lv_fread(iobuffer->buffer, 1, IO_BUFFER_SIZE, iobuffer->file )) > 0 ) {
 			if (iobuffer->size < 2) return 0;
-			SQInteger ret = *((const wchar_t *)&iobuffer->buffer[0]);
+			LVInteger ret = *((const wchar_t *)&iobuffer->buffer[0]);
 			iobuffer->ptr = 2;
 			return ret;
 		}
@@ -248,20 +248,20 @@ SQInteger _read_two_bytes(IOBuffer *iobuffer) {
 	return 0;
 }
 
-static SQInteger _io_file_lexfeed_PLAIN(LVUserPointer iobuf) {
+static LVInteger _io_file_lexfeed_PLAIN(LVUserPointer iobuf) {
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	return _read_byte(iobuffer);
 
 }
 
 #ifdef LVUNICODE
-static SQInteger _io_file_lexfeed_UTF8(LVUserPointer iobuf) {
+static LVInteger _io_file_lexfeed_UTF8(LVUserPointer iobuf) {
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 #define READ(iobuf) \
 	if((inchar = (unsigned char)_read_byte(iobuf)) == 0) \
 		return 0;
 
-	static const SQInteger utf8_lengths[16] = {
+	static const LVInteger utf8_lengths[16] = {
 		1, 1, 1, 1, 1, 1, 1, 1, /* 0000 to 0111 : 1 byte (plain ASCII) */
 		0, 0, 0, 0,             /* 1000 to 1011 : not valid */
 		2, 2,                   /* 1100, 1101 : 2 bytes */
@@ -270,18 +270,18 @@ static SQInteger _io_file_lexfeed_UTF8(LVUserPointer iobuf) {
 	};
 	static const unsigned char byte_masks[5] = {0, 0, 0x1f, 0x0f, 0x07};
 	unsigned char inchar;
-	SQInteger c = 0;
+	LVInteger c = 0;
 	READ(iobuffer);
 	c = inchar;
 	//
 	if (c >= 0x80) {
-		SQInteger tmp;
-		SQInteger codelen = utf8_lengths[c >> 4];
+		LVInteger tmp;
+		LVInteger codelen = utf8_lengths[c >> 4];
 		if (codelen == 0)
 			return 0;
 		//"invalid UTF-8 stream";
 		tmp = c & byte_masks[codelen];
-		for (SQInteger n = 0; n < codelen - 1; n++) {
+		for (LVInteger n = 0; n < codelen - 1; n++) {
 			tmp <<= 6;
 			READ(iobuffer);
 			tmp |= inchar & 0x3F;
@@ -292,16 +292,16 @@ static SQInteger _io_file_lexfeed_UTF8(LVUserPointer iobuf) {
 }
 #endif
 
-static SQInteger _io_file_lexfeed_UCS2_LE(LVUserPointer iobuf) {
-	SQInteger ret;
+static LVInteger _io_file_lexfeed_UCS2_LE(LVUserPointer iobuf) {
+	LVInteger ret;
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	if ( (ret = _read_two_bytes(iobuffer)) > 0 )
 		return ret;
 	return 0;
 }
 
-static SQInteger _io_file_lexfeed_UCS2_BE(LVUserPointer iobuf) {
-	SQInteger c;
+static LVInteger _io_file_lexfeed_UCS2_BE(LVUserPointer iobuf) {
+	LVInteger c;
 	IOBuffer *iobuffer = (IOBuffer *)iobuf;
 	if ( (c = _read_two_bytes(iobuffer)) > 0 ) {
 		c = ((c >> 8) & 0x00FF) | ((c << 8) & 0xFF00);
@@ -310,21 +310,21 @@ static SQInteger _io_file_lexfeed_UCS2_BE(LVUserPointer iobuf) {
 	return 0;
 }
 
-SQInteger file_read(LVUserPointer file, LVUserPointer buf, SQInteger size) {
-	SQInteger ret;
+LVInteger file_read(LVUserPointer file, LVUserPointer buf, LVInteger size) {
+	LVInteger ret;
 	if ((ret = lv_fread(buf, 1, size, (LVFILE)file )) != 0)
 		return ret;
 	return -1;
 }
 
-SQInteger file_write(LVUserPointer file, LVUserPointer p, SQInteger size) {
+LVInteger file_write(LVUserPointer file, LVUserPointer p, LVInteger size) {
 	return lv_fwrite(p, 1, size, (LVFILE)file);
 }
 
-LVRESULT lv_loadfile(VMHANDLE v, const SQChar *filename, LVBool printerror) {
+LVRESULT lv_loadfile(VMHANDLE v, const LVChar *filename, LVBool printerror) {
 	LVFILE file = lv_fopen(filename, _LC("rb"));
 
-	SQInteger ret;
+	LVInteger ret;
 	unsigned short us;
 	unsigned char uc;
 	SQLEXREADFUNC func = _io_file_lexfeed_PLAIN;
@@ -334,7 +334,7 @@ LVRESULT lv_loadfile(VMHANDLE v, const SQChar *filename, LVBool printerror) {
 			//probably an empty file
 			us = 0;
 		}
-		if (us == SQ_BYTECODE_STREAM_TAG) { //BYTECODE
+		if (us == BYTECODE_STREAM_TAG) { //BYTECODE
 			lv_fseek(file, 0, LV_SEEK_SET);
 			if (LV_SUCCEEDED(lv_readclosure(v, file_read, file))) {
 				lv_fclose(file);
@@ -385,7 +385,7 @@ LVRESULT lv_loadfile(VMHANDLE v, const SQChar *filename, LVBool printerror) {
 	return lv_throwerror(v, _LC("cannot open the file"));
 }
 
-LVRESULT lv_execfile(VMHANDLE v, const SQChar *filename, LVBool retval, LVBool printerror) {
+LVRESULT lv_execfile(VMHANDLE v, const LVChar *filename, LVBool retval, LVBool printerror) {
 	if (LV_SUCCEEDED(lv_loadfile(v, filename, printerror))) {
 		lv_push(v, -2);
 		if (LV_SUCCEEDED(lv_call(v, 1, retval, LVTrue))) {
@@ -397,7 +397,7 @@ LVRESULT lv_execfile(VMHANDLE v, const SQChar *filename, LVBool retval, LVBool p
 	return LV_ERROR;
 }
 
-LVRESULT lv_writeclosuretofile(VMHANDLE v, const SQChar *filename) {
+LVRESULT lv_writeclosuretofile(VMHANDLE v, const LVChar *filename) {
 	LVFILE file = lv_fopen(filename, _LC("wb+"));
 	if (!file)
 		return lv_throwerror(v, _LC("cannot open the file"));
@@ -409,8 +409,8 @@ LVRESULT lv_writeclosuretofile(VMHANDLE v, const SQChar *filename) {
 	return LV_ERROR; //forward the error
 }
 
-SQInteger _g_io_loadfile(VMHANDLE v) {
-	const SQChar *filename;
+LVInteger _g_io_loadfile(VMHANDLE v) {
+	const LVChar *filename;
 	LVBool printerror = LVFalse;
 	lv_getstring(v, 2, &filename);
 	if (lv_gettop(v) >= 3) {
@@ -421,16 +421,16 @@ SQInteger _g_io_loadfile(VMHANDLE v) {
 	return LV_ERROR; //propagates the error
 }
 
-SQInteger _g_io_writeclosuretofile(VMHANDLE v) {
-	const SQChar *filename;
+LVInteger _g_io_writeclosuretofile(VMHANDLE v) {
+	const LVChar *filename;
 	lv_getstring(v, 2, &filename);
 	if (LV_SUCCEEDED(lv_writeclosuretofile(v, filename)))
 		return 1;
 	return LV_ERROR; //propagates the error
 }
 
-SQInteger _g_io_execfile(VMHANDLE v) {
-	const SQChar *filename;
+LVInteger _g_io_execfile(VMHANDLE v) {
+	const LVChar *filename;
 	LVBool printerror = LVFalse;
 	lv_getstring(v, 2, &filename);
 	if (lv_gettop(v) >= 3) {
@@ -442,7 +442,7 @@ SQInteger _g_io_execfile(VMHANDLE v) {
 	return LV_ERROR; //propagates the error
 }
 
-CALLBACK SQInteger callback_loadunit(VMHANDLE v, const SQChar *sSource, LVBool printerror) {
+CALLBACK LVInteger callback_loadunit(VMHANDLE v, const LVChar *sSource, LVBool printerror) {
 	if (LV_FAILED(lv_execfile(v, sSource, LVTrue, printerror))) {
 		return LV_ERROR;
 	}
@@ -458,7 +458,7 @@ static const SQRegFunction iolib_funcs[] = {
 };
 
 LVRESULT mod_init_io(VMHANDLE v) {
-	SQInteger top = lv_gettop(v);
+	LVInteger top = lv_gettop(v);
 	//create delegate
 	declare_stream(v, _LC("file"), (LVUserPointer)SQ_FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
 	lv_pushstring(v, _LC("stdout"), -1);
