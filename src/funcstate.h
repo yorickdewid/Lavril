@@ -4,22 +4,22 @@
 #include "utils.h"
 
 struct FunctionState {
-	FunctionState(SQSharedState *ss, FunctionState *parent, CompilerErrorFunc efunc, void *ed);
+	FunctionState(LVSharedState *ss, FunctionState *parent, CompilerErrorFunc efunc, void *ed);
 	~FunctionState();
 	// #ifdef _DEBUG_DUMP
 	void Dump(FunctionPrototype *func);
 	// #endif
 	void Error(const LVChar *err);
-	FunctionState *PushChildState(SQSharedState *ss);
+	FunctionState *PushChildState(LVSharedState *ss);
 	void PopChildState();
-	void AddInstruction(SQOpcode _op, LVInteger arg0 = 0, LVInteger arg1 = 0, LVInteger arg2 = 0, LVInteger arg3 = 0) {
-		SQInstruction i(_op, arg0, arg1, arg2, arg3);
+	void AddInstruction(Opcode _op, LVInteger arg0 = 0, LVInteger arg1 = 0, LVInteger arg2 = 0, LVInteger arg3 = 0) {
+		LVInstruction i(_op, arg0, arg1, arg2, arg3);
 		AddInstruction(i);
 	}
-	void AddInstruction(SQInstruction& i);
+	void AddInstruction(LVInstruction& i);
 	void SetIntructionParams(LVInteger pos, LVInteger arg0, LVInteger arg1, LVInteger arg2 = 0, LVInteger arg3 = 0);
 	void SetIntructionParam(LVInteger pos, LVInteger arg, LVInteger val);
-	SQInstruction& GetInstruction(LVInteger pos) {
+	LVInstruction& GetInstruction(LVInteger pos) {
 		return _instructions[pos];
 	}
 	void PopInstructions(LVInteger size) {
@@ -41,12 +41,12 @@ struct FunctionState {
 	}
 	LVInteger GetNumericConstant(const LVInteger cons);
 	LVInteger GetNumericConstant(const LVFloat cons);
-	LVInteger PushLocalVariable(const SQObject& name);
-	void AddParameter(const SQObject& name);
-	//void AddOuterValue(const SQObject &name);
-	LVInteger GetLocalVariable(const SQObject& name);
+	LVInteger PushLocalVariable(const LVObject& name);
+	void AddParameter(const LVObject& name);
+	//void AddOuterValue(const LVObject &name);
+	LVInteger GetLocalVariable(const LVObject& name);
 	void MarkLocalAsOuter(LVInteger pos);
-	LVInteger GetOuterVariable(const SQObject& name);
+	LVInteger GetOuterVariable(const LVObject& name);
 	LVInteger GenerateCode();
 	LVInteger GetStackSize();
 	LVInteger CalcStackFrameSize();
@@ -59,45 +59,45 @@ struct FunctionState {
 	LVInteger GetUpTarget(LVInteger n);
 	void DiscardTarget();
 	bool IsLocal(LVUnsignedInteger stkpos);
-	SQObject CreateString(const LVChar *s, LVInteger len = -1);
-	SQObject CreateTable();
-	bool IsConstant(const SQObject& name, SQObject& e);
+	LVObject CreateString(const LVChar *s, LVInteger len = -1);
+	LVObject CreateTable();
+	bool IsConstant(const LVObject& name, LVObject& e);
 	LVInteger _returnexp;
-	SQLocalVarInfoVec _vlocals;
-	SQIntVec _targetstack;
+	LVLocalVarInfoVec _vlocals;
+	LVIntVector _targetstack;
 	LVInteger _stacksize;
 	bool _varparams;
 	bool _bgenerator;
-	SQIntVec _unresolvedbreaks;
-	SQIntVec _unresolvedcontinues;
-	SQObjectPtrVec _functions;
-	SQObjectPtrVec _parameters;
-	SQOuterVarVec _outervalues;
-	SQInstructionVec _instructions;
-	SQLocalVarInfoVec _localvarinfos;
-	SQObjectPtr _literals;
-	SQObjectPtr _strings;
-	SQObjectPtr _name;
-	SQObjectPtr _sourcename; /* Name of unit */
+	LVIntVector _unresolvedbreaks;
+	LVIntVector _unresolvedcontinues;
+	LVObjectPtrVec _functions;
+	LVObjectPtrVec _parameters;
+	LVOuterVarVec _outervalues;
+	LVInstructionVec _instructions;
+	LVLocalVarInfoVec _localvarinfos;
+	LVObjectPtr _literals;
+	LVObjectPtr _strings;
+	LVObjectPtr _name;
+	LVObjectPtr _sourcename; /* Name of unit */
 	LVInteger _nliterals;
-	SQLineInfoVec _lineinfos;
+	LVLineInfoVec _lineinfos;
 	FunctionState *_parent;
-	SQIntVec _scope_blocks;
-	SQIntVec _breaktargets;
-	SQIntVec _continuetargets;
-	SQIntVec _defaultparams;
+	LVIntVector _scope_blocks;
+	LVIntVector _breaktargets;
+	LVIntVector _continuetargets;
+	LVIntVector _defaultparams;
 	LVInteger _lastline;
 	LVInteger _traps; /* Contains number of nested exception traps */
 	LVInteger _outers;
 	bool _optimization;
-	SQSharedState *_sharedstate;
-	sqvector<FunctionState *> _childstates;
-	LVInteger GetConstant(const SQObject& cons);
+	LVSharedState *_sharedstate;
+	lvvector<FunctionState *> _childstates;
+	LVInteger GetConstant(const LVObject& cons);
 
   private:
 	CompilerErrorFunc _errfunc;
 	void *_errtarget;
-	SQSharedState *_ss;
+	LVSharedState *_ss;
 };
 
 #endif // _FUNCTIONSTATE_H_

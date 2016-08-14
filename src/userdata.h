@@ -1,33 +1,33 @@
 #ifndef _USERDATA_H_
 #define _USERDATA_H_
 
-struct SQUserData : SQDelegable {
-	SQUserData(SQSharedState *ss) {
+struct LVUserData : LVDelegable {
+	LVUserData(LVSharedState *ss) {
 		_delegate = 0;
 		_hook = NULL;
 		INIT_CHAIN();
 		ADD_TO_CHAIN(&_ss(this)->_gc_chain, this);
 	}
 
-	~SQUserData() {
+	~LVUserData() {
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 		SetDelegate(NULL);
 	}
 
-	static SQUserData *Create(SQSharedState *ss, LVInteger size) {
-		SQUserData *ud = (SQUserData *)LV_MALLOC(LV_ALIGN(sizeof(SQUserData)) + size);
-		new (ud) SQUserData(ss);
+	static LVUserData *Create(LVSharedState *ss, LVInteger size) {
+		LVUserData *ud = (LVUserData *)LV_MALLOC(LV_ALIGN(sizeof(LVUserData)) + size);
+		new (ud) LVUserData(ss);
 		ud->_size = size;
 		ud->_typetag = 0;
 		return ud;
 	}
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
+	void Mark(LVCollectable **chain);
 	void Finalize() {
 		SetDelegate(NULL);
 	}
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_USERDATA;
 	}
 #endif
@@ -36,12 +36,12 @@ struct SQUserData : SQDelegable {
 		if (_hook)
 			_hook((LVUserPointer)LV_ALIGN(this + 1), _size);
 		LVInteger tsize = _size;
-		this->~SQUserData();
-		LV_FREE(this, LV_ALIGN(sizeof(SQUserData)) + tsize);
+		this->~LVUserData();
+		LV_FREE(this, LV_ALIGN(sizeof(LVUserData)) + tsize);
 	}
 
 	LVInteger _size;
-	SQRELEASEHOOK _hook;
+	LVRELEASEHOOK _hook;
 	LVUserPointer _typetag;
 };
 

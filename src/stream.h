@@ -1,7 +1,7 @@
 #ifndef _STREAM_H_
 #define _STREAM_H_
 
-struct SQStream {
+struct LVStream {
 	virtual LVInteger Read(void *buffer, LVInteger size) = 0;
 	virtual LVInteger Write(void *buffer, LVInteger size) = 0;
 	virtual LVInteger Flush() = 0;
@@ -24,5 +24,5 @@ LVInteger _stream_eos(VMHANDLE v);
 LVInteger _stream_flush(VMHANDLE v);
 
 #define _DECL_STREAM_FUNC(name,nparams,typecheck) {_LC(#name),_stream_##name,nparams,typecheck}
-LVRESULT declare_stream(VMHANDLE v, const LVChar *name, LVUserPointer typetag, const LVChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals);
+LVRESULT declare_stream(VMHANDLE v, const LVChar *name, LVUserPointer typetag, const LVChar *reg_name, const LVRegFunction *methods, const LVRegFunction *globals);
 #endif // _STREAM_H_

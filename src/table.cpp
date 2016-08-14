@@ -4,7 +4,7 @@
 #include "funcproto.h"
 #include "closure.h"
 
-SQTable::SQTable(SQSharedState *ss, LVInteger nInitialSize) {
+LVTable::LVTable(LVSharedState *ss, LVInteger nInitialSize) {
 	LVInteger pow2size = MINPOWER2;
 	while (nInitialSize > pow2size)pow2size = pow2size << 1;
 	AllocNodes(pow2size);
@@ -14,7 +14,7 @@ SQTable::SQTable(SQSharedState *ss, LVInteger nInitialSize) {
 	ADD_TO_CHAIN(&_sharedstate->_gc_chain, this);
 }
 
-void SQTable::Remove(const SQObjectPtr& key) {
+void LVTable::Remove(const LVObjectPtr& key) {
 	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
 	if (n) {
 		n->val.Null();
@@ -24,7 +24,7 @@ void SQTable::Remove(const SQObjectPtr& key) {
 	}
 }
 
-void SQTable::AllocNodes(LVInteger nSize) {
+void LVTable::AllocNodes(LVInteger nSize) {
 	_HashNode *nodes = (_HashNode *)LV_MALLOC(sizeof(_HashNode) * nSize);
 	for (LVInteger i = 0; i < nSize; i++) {
 		_HashNode& n = nodes[i];
@@ -36,7 +36,7 @@ void SQTable::AllocNodes(LVInteger nSize) {
 	_firstfree = &_nodes[_numofnodes - 1];
 }
 
-void SQTable::Rehash(bool force) {
+void LVTable::Rehash(bool force) {
 	LVInteger oldsize = _numofnodes;
 	//prevent problems with the integer division
 	if (oldsize < 4)oldsize = 4;
@@ -62,8 +62,8 @@ void SQTable::Rehash(bool force) {
 	LV_FREE(nold, oldsize * sizeof(_HashNode));
 }
 
-SQTable *SQTable::Clone() {
-	SQTable *nt = Create(_opt_ss(this), _numofnodes);
+LVTable *LVTable::Clone() {
+	LVTable *nt = Create(_opt_ss(this), _numofnodes);
 #ifdef _FAST_CLONE
 	_HashNode *basesrc = _nodes;
 	_HashNode *basedst = nt->_nodes;
@@ -87,7 +87,7 @@ SQTable *SQTable::Clone() {
 	nt->_usednodes = _usednodes;
 #else
 	LVInteger ridx = 0;
-	SQObjectPtr key, val;
+	LVObjectPtr key, val;
 	while ((ridx = Next(true, ridx, key, val)) != -1) {
 		nt->NewSlot(key, val);
 	}
@@ -96,7 +96,7 @@ SQTable *SQTable::Clone() {
 	return nt;
 }
 
-bool SQTable::Get(const SQObjectPtr& key, SQObjectPtr& val) {
+bool LVTable::Get(const LVObjectPtr& key, LVObjectPtr& val) {
 	if (type(key) == OT_NULL)
 		return false;
 	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
@@ -107,7 +107,7 @@ bool SQTable::Get(const SQObjectPtr& key, SQObjectPtr& val) {
 	return false;
 }
 
-bool SQTable::NewSlot(const SQObjectPtr& key, const SQObjectPtr& val) {
+bool LVTable::NewSlot(const LVObjectPtr& key, const LVObjectPtr& val) {
 	assert(type(key) != OT_NULL);
 	LVHash h = HashObj(key) & (_numofnodes - 1);
 	_HashNode *n = _Get(key, h);
@@ -161,14 +161,14 @@ bool SQTable::NewSlot(const SQObjectPtr& key, const SQObjectPtr& val) {
 	return NewSlot(key, val);
 }
 
-LVInteger SQTable::Next(bool getweakrefs, const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval) {
+LVInteger LVTable::Next(bool getweakrefs, const LVObjectPtr& refpos, LVObjectPtr& outkey, LVObjectPtr& outval) {
 	LVInteger idx = (LVInteger)TranslateIndex(refpos);
 	while (idx < _numofnodes) {
 		if (type(_nodes[idx].key) != OT_NULL) {
 			//first found
 			_HashNode& n = _nodes[idx];
 			outkey = n.key;
-			outval = getweakrefs ? (SQObject)n.val : _realval(n.val);
+			outval = getweakrefs ? (LVObject)n.val : _realval(n.val);
 			//return idx for the next iteration
 			return ++idx;
 		}
@@ -179,7 +179,7 @@ LVInteger SQTable::Next(bool getweakrefs, const SQObjectPtr& refpos, SQObjectPtr
 }
 
 
-bool SQTable::Set(const SQObjectPtr& key, const SQObjectPtr& val) {
+bool LVTable::Set(const LVObjectPtr& key, const LVObjectPtr& val) {
 	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
 	if (n) {
 		n->val = val;
@@ -188,7 +188,7 @@ bool SQTable::Set(const SQObjectPtr& key, const SQObjectPtr& val) {
 	return false;
 }
 
-void SQTable::_ClearNodes() {
+void LVTable::_ClearNodes() {
 	for (LVInteger i = 0; i < _numofnodes; i++) {
 		_HashNode& n = _nodes[i];
 		n.key.Null();
@@ -196,12 +196,12 @@ void SQTable::_ClearNodes() {
 	}
 }
 
-void SQTable::Finalize() {
+void LVTable::Finalize() {
 	_ClearNodes();
 	SetDelegate(NULL);
 }
 
-void SQTable::Clear() {
+void LVTable::Clear() {
 	_ClearNodes();
 	_usednodes = 0;
 	Rehash(true);

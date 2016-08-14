@@ -146,7 +146,7 @@ static LVInteger _pgsql__typeof(VMHANDLE v) {
 }
 
 #define _DECL_PGSQL_FUNC(name,nparams,tycheck) {_LC(#name),_pgsql_##name,nparams,tycheck}
-static const SQRegFunction pgsqllib_funcs[] = {
+static const LVRegFunction pgsqllib_funcs[] = {
 	_DECL_PGSQL_FUNC(constructor, 2, _LC(".s")),
 	_DECL_PGSQL_FUNC(exec, 2, _LC("xs")),
 	_DECL_PGSQL_FUNC(query, 2, _LC("xs")),
@@ -156,7 +156,7 @@ static const SQRegFunction pgsqllib_funcs[] = {
 	_DECL_PGSQL_FUNC(database, 1, _LC("x")),
 	_DECL_PGSQL_FUNC(user, 1, _LC("x")),
 	_DECL_PGSQL_FUNC(_typeof, 1, _LC("x")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_PGSQL_FUNC
 

@@ -1,18 +1,18 @@
 #ifndef _CLASS_H_
 #define _CLASS_H_
 
-struct SQInstance;
+struct LVInstance;
 
-struct SQClassMember {
-	SQObjectPtr val;
-	SQObjectPtr attrs;
+struct LVClassMember {
+	LVObjectPtr val;
+	LVObjectPtr attrs;
 	void Null() {
 		val.Null();
 		attrs.Null();
 	}
 };
 
-typedef sqvector<SQClassMember> SQClassMemberVec;
+typedef lvvector<LVClassMember> LVClassMemberVec;
 
 #define MEMBER_TYPE_METHOD 0x01000000
 #define MEMBER_TYPE_FIELD 0x02000000
@@ -24,24 +24,24 @@ typedef sqvector<SQClassMember> SQClassMemberVec;
 #define _member_type(o) (_integer(o)&0xFF000000)
 #define _member_idx(o) (_integer(o)&0x00FFFFFF)
 
-struct SQClass : public CHAINABLE_OBJ {
-	SQClass(SQSharedState *ss, SQClass *base);
+struct LVClass : public CHAINABLE_OBJ {
+	LVClass(LVSharedState *ss, LVClass *base);
 
   public:
-	static SQClass *Create(SQSharedState *ss, SQClass *base) {
-		SQClass *newclass = (SQClass *)LV_MALLOC(sizeof(SQClass));
-		new (newclass) SQClass(ss, base);
+	static LVClass *Create(LVSharedState *ss, LVClass *base) {
+		LVClass *newclass = (LVClass *)LV_MALLOC(sizeof(LVClass));
+		new (newclass) LVClass(ss, base);
 		return newclass;
 	}
 
-	~SQClass();
+	~LVClass();
 
-	bool NewSlot(SQSharedState *ss, const SQObjectPtr& key, const SQObjectPtr& val, bool bstatic);
+	bool NewSlot(LVSharedState *ss, const LVObjectPtr& key, const LVObjectPtr& val, bool bstatic);
 
-	bool Get(const SQObjectPtr& key, SQObjectPtr& val) {
+	bool Get(const LVObjectPtr& key, LVObjectPtr& val) {
 		if (_members->Get(key, val)) {
 			if (_isfield(val)) {
-				SQObjectPtr& o = _defaultvalues[_member_idx(val)].val;
+				LVObjectPtr& o = _defaultvalues[_member_idx(val)].val;
 				val = _realval(o);
 			} else {
 				val = _methods[_member_idx(val)].val;
@@ -51,7 +51,7 @@ struct SQClass : public CHAINABLE_OBJ {
 		return false;
 	}
 
-	bool GetConstructor(SQObjectPtr& ctor) {
+	bool GetConstructor(LVObjectPtr& ctor) {
 		if (_constructoridx != -1) {
 			ctor = _methods[_constructoridx].val;
 			return true;
@@ -59,8 +59,8 @@ struct SQClass : public CHAINABLE_OBJ {
 		return false;
 	}
 
-	bool SetAttributes(const SQObjectPtr& key, const SQObjectPtr& val);
-	bool GetAttributes(const SQObjectPtr& key, SQObjectPtr& outval);
+	bool SetAttributes(const LVObjectPtr& key, const LVObjectPtr& val);
+	bool GetAttributes(const LVObjectPtr& key, LVObjectPtr& outval);
 
 	void Lock() {
 		_locked = true;
@@ -71,68 +71,68 @@ struct SQClass : public CHAINABLE_OBJ {
 		if (_hook) {
 			_hook(_typetag, 0);
 		}
-		sq_delete(this, SQClass);
+		lv_delete(this, LVClass);
 	}
 	void Finalize();
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable ** );
+	void Mark(LVCollectable ** );
 
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_CLASS;
 	}
 #endif
 
-	LVInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval);
-	SQInstance *CreateInstance();
-	SQTable *_members;
-	SQClass *_base;
-	SQClassMemberVec _defaultvalues;
-	SQClassMemberVec _methods;
-	SQObjectPtr _metamethods[MT_LAST];
-	SQObjectPtr _attributes;
+	LVInteger Next(const LVObjectPtr& refpos, LVObjectPtr& outkey, LVObjectPtr& outval);
+	LVInstance *CreateInstance();
+	LVTable *_members;
+	LVClass *_base;
+	LVClassMemberVec _defaultvalues;
+	LVClassMemberVec _methods;
+	LVObjectPtr _metamethods[MT_LAST];
+	LVObjectPtr _attributes;
 	LVUserPointer _typetag;
-	SQRELEASEHOOK _hook;
+	LVRELEASEHOOK _hook;
 	bool _locked;
 	LVInteger _constructoridx;
 	LVInteger _udsize;
 };
 
 #define calcinstancesize(_theclass_) \
-    (_theclass_->_udsize + LV_ALIGN(sizeof(SQInstance) +  (sizeof(SQObjectPtr)*(_theclass_->_defaultvalues.size()>0?_theclass_->_defaultvalues.size()-1:0))))
+    (_theclass_->_udsize + LV_ALIGN(sizeof(LVInstance) +  (sizeof(LVObjectPtr)*(_theclass_->_defaultvalues.size()>0?_theclass_->_defaultvalues.size()-1:0))))
 
-struct SQInstance : public SQDelegable {
-	void Init(SQSharedState *ss);
-	SQInstance(SQSharedState *ss, SQClass *c, LVInteger memsize);
-	SQInstance(SQSharedState *ss, SQInstance *c, LVInteger memsize);
+struct LVInstance : public LVDelegable {
+	void Init(LVSharedState *ss);
+	LVInstance(LVSharedState *ss, LVClass *c, LVInteger memsize);
+	LVInstance(LVSharedState *ss, LVInstance *c, LVInteger memsize);
 
   public:
-	static SQInstance *Create(SQSharedState *ss, SQClass *theclass) {
+	static LVInstance *Create(LVSharedState *ss, LVClass *theclass) {
 		LVInteger size = calcinstancesize(theclass);
-		SQInstance *newinst = (SQInstance *)LV_MALLOC(size);
-		new (newinst) SQInstance(ss, theclass, size);
+		LVInstance *newinst = (LVInstance *)LV_MALLOC(size);
+		new (newinst) LVInstance(ss, theclass, size);
 		if (theclass->_udsize) {
 			newinst->_userpointer = ((unsigned char *)newinst) + (size - theclass->_udsize);
 		}
 		return newinst;
 	}
 
-	SQInstance *Clone(SQSharedState *ss) {
+	LVInstance *Clone(LVSharedState *ss) {
 		LVInteger size = calcinstancesize(_class);
-		SQInstance *newinst = (SQInstance *)LV_MALLOC(size);
-		new (newinst) SQInstance(ss, this, size);
+		LVInstance *newinst = (LVInstance *)LV_MALLOC(size);
+		new (newinst) LVInstance(ss, this, size);
 		if (_class->_udsize) {
 			newinst->_userpointer = ((unsigned char *)newinst) + (size - _class->_udsize);
 		}
 		return newinst;
 	}
 
-	~SQInstance();
+	~LVInstance();
 
-	bool Get(const SQObjectPtr& key, SQObjectPtr& val)  {
+	bool Get(const LVObjectPtr& key, LVObjectPtr& val)  {
 		if (_class->_members->Get(key, val)) {
 			if (_isfield(val)) {
-				SQObjectPtr& o = _values[_member_idx(val)];
+				LVObjectPtr& o = _values[_member_idx(val)];
 				val = _realval(o);
 			} else {
 				val = _class->_methods[_member_idx(val)].val;
@@ -142,8 +142,8 @@ struct SQInstance : public SQDelegable {
 		return false;
 	}
 
-	bool Set(const SQObjectPtr& key, const SQObjectPtr& val) {
-		SQObjectPtr idx;
+	bool Set(const LVObjectPtr& key, const LVObjectPtr& val) {
+		LVObjectPtr idx;
 		if (_class->_members->Get(key, idx) && _isfield(idx)) {
 			_values[_member_idx(idx)] = val;
 			return true;
@@ -159,28 +159,28 @@ struct SQInstance : public SQDelegable {
 		_uiRef--;
 		if (_uiRef > 0) return;
 		LVInteger size = _memsize;
-		this->~SQInstance();
+		this->~LVInstance();
 		LV_FREE(this, size);
 	}
 
 	void Finalize();
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable ** );
+	void Mark(LVCollectable ** );
 
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_INSTANCE;
 	}
 #endif
 
-	bool InstanceOf(SQClass *trg);
-	bool GetMetaMethod(SQVM *v, SQMetaMethod mm, SQObjectPtr& res);
+	bool InstanceOf(LVClass *trg);
+	bool GetMetaMethod(LVVM *v, LVMetaMethod mm, LVObjectPtr& res);
 
-	SQClass *_class;
+	LVClass *_class;
 	LVUserPointer _userpointer;
-	SQRELEASEHOOK _hook;
+	LVRELEASEHOOK _hook;
 	LVInteger _memsize;
-	SQObjectPtr _values[1];
+	LVObjectPtr _values[1];
 };
 
 #endif // _CLASS_H_

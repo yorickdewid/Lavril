@@ -1,28 +1,28 @@
 #ifndef _ARRAY_H_
 #define _ARRAY_H_
 
-struct SQArray : public CHAINABLE_OBJ {
+struct LVArray : public CHAINABLE_OBJ {
   private:
-	SQArray(SQSharedState *ss, LVInteger nsize) {
+	LVArray(LVSharedState *ss, LVInteger nsize) {
 		_values.resize(nsize);
 		INIT_CHAIN();
 		ADD_TO_CHAIN(&_ss(this)->_gc_chain, this);
 	}
 
-	~SQArray() {
+	~LVArray() {
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
 
   public:
-	static SQArray *Create(SQSharedState *ss, LVInteger nInitialSize) {
-		SQArray *newarray = (SQArray *)LV_MALLOC(sizeof(SQArray));
-		new (newarray) SQArray(ss, nInitialSize);
+	static LVArray *Create(LVSharedState *ss, LVInteger nInitialSize) {
+		LVArray *newarray = (LVArray *)LV_MALLOC(sizeof(LVArray));
+		new (newarray) LVArray(ss, nInitialSize);
 		return newarray;
 	}
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
-	SQObjectType GetType() {
+	void Mark(LVCollectable **chain);
+	LVObjectType GetType() {
 		return OT_ARRAY;
 	}
 #endif
@@ -31,27 +31,27 @@ struct SQArray : public CHAINABLE_OBJ {
 		_values.resize(0);
 	}
 
-	bool Get(const LVInteger nidx, SQObjectPtr& val) {
+	bool Get(const LVInteger nidx, LVObjectPtr& val) {
 		if (nidx >= 0 && nidx < (LVInteger)_values.size()) {
-			SQObjectPtr& o = _values[nidx];
+			LVObjectPtr& o = _values[nidx];
 			val = _realval(o);
 			return true;
 		} else return false;
 	}
 
-	bool Set(const LVInteger nidx, const SQObjectPtr& val) {
+	bool Set(const LVInteger nidx, const LVObjectPtr& val) {
 		if (nidx >= 0 && nidx < (LVInteger)_values.size()) {
 			_values[nidx] = val;
 			return true;
 		} else return false;
 	}
 
-	LVInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval) {
+	LVInteger Next(const LVObjectPtr& refpos, LVObjectPtr& outkey, LVObjectPtr& outval) {
 		LVUnsignedInteger idx = TranslateIndex(refpos);
 		while (idx < _values.size()) {
 			//first found
 			outkey = (LVInteger)idx;
-			SQObjectPtr& o = _values[idx];
+			LVObjectPtr& o = _values[idx];
 			outval = _realval(o);
 			//return idx for the next iteration
 			return ++idx;
@@ -60,8 +60,8 @@ struct SQArray : public CHAINABLE_OBJ {
 		return -1;
 	}
 
-	SQArray *Clone() {
-		SQArray *anew = Create(_opt_ss(this), 0);
+	LVArray *Clone() {
+		LVArray *anew = Create(_opt_ss(this), 0);
 		anew->_values.copy(_values);
 		return anew;
 	}
@@ -71,11 +71,11 @@ struct SQArray : public CHAINABLE_OBJ {
 	}
 
 	void Resize(LVInteger size) {
-		SQObjectPtr _null;
+		LVObjectPtr _null;
 		Resize(size, _null);
 	}
 
-	void Resize(LVInteger size, SQObjectPtr& fill) {
+	void Resize(LVInteger size, LVObjectPtr& fill) {
 		_values.resize(size, fill);
 		ShrinkIfNeeded();
 	}
@@ -84,13 +84,13 @@ struct SQArray : public CHAINABLE_OBJ {
 		_values.reserve(size);
 	}
 
-	void Append(const SQObject& o) {
+	void Append(const LVObject& o) {
 		_values.push_back(o);
 	}
 
-	void Extend(const SQArray *a);
+	void Extend(const LVArray *a);
 
-	SQObjectPtr& Top() {
+	LVObjectPtr& Top() {
 		return _values.top();
 	}
 
@@ -99,7 +99,7 @@ struct SQArray : public CHAINABLE_OBJ {
 		ShrinkIfNeeded();
 	}
 
-	bool Insert(LVInteger idx, const SQObject& val) {
+	bool Insert(LVInteger idx, const LVObject& val) {
 		if (idx < 0 || idx > (LVInteger)_values.size())
 			return false;
 		_values.insert(idx, val);
@@ -120,9 +120,9 @@ struct SQArray : public CHAINABLE_OBJ {
 	}
 
 	void Release() {
-		sq_delete(this, SQArray);
+		lv_delete(this, LVArray);
 	}
 
-	SQObjectPtrVec _values;
+	LVObjectPtrVec _values;
 };
 #endif // _ARRAY_H_

@@ -2,8 +2,8 @@
 #include "stream.h"
 
 #define SETUP_STREAM(v) \
-	SQStream *self = NULL; \
-	if(LV_FAILED(lv_getinstanceup(v,1,(LVUserPointer*)&self,(LVUserPointer)SQ_STREAM_TYPE_TAG))) \
+	LVStream *self = NULL; \
+	if(LV_FAILED(lv_getinstanceup(v,1,(LVUserPointer*)&self,(LVUserPointer)STREAM_TYPE_TAG))) \
 		return lv_throwerror(v,_LC("invalid type tag")); \
 	if(!self || !self->IsValid())  \
 		return lv_throwerror(v,_LC("the stream is invalid"));
@@ -229,7 +229,7 @@ LVInteger _stream__cloned(VMHANDLE v) {
 	return lv_throwerror(v, _LC("this object cannot be cloned"));
 }
 
-static const SQRegFunction _stream_methods[] = {
+static const LVRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(readblob, 2, _LC("xn")),
 	_DECL_STREAM_FUNC(readn, 2, _LC("xn")),
 	_DECL_STREAM_FUNC(writeblob, -2, _LC("xx")),
@@ -240,7 +240,7 @@ static const SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(eos, 1, _LC("x")),
 	_DECL_STREAM_FUNC(flush, 1, _LC("x")),
 	_DECL_STREAM_FUNC(_cloned, 0, NULL),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 
 void init_streamclass(VMHANDLE v) {
@@ -249,10 +249,10 @@ void init_streamclass(VMHANDLE v) {
 	if (LV_FAILED(lv_get(v, -2))) {
 		lv_pushstring(v, _LC("std_stream"), -1);
 		lv_newclass(v, LVFalse);
-		lv_settypetag(v, -1, (LVUserPointer)SQ_STREAM_TYPE_TAG);
+		lv_settypetag(v, -1, (LVUserPointer)STREAM_TYPE_TAG);
 		LVInteger i = 0;
 		while (_stream_methods[i].name != 0) {
-			const SQRegFunction& f = _stream_methods[i];
+			const LVRegFunction& f = _stream_methods[i];
 			lv_pushstring(v, f.name, -1);
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);
@@ -272,7 +272,7 @@ void init_streamclass(VMHANDLE v) {
 	lv_pop(v, 1);
 }
 
-LVRESULT declare_stream(VMHANDLE v, const LVChar *name, LVUserPointer typetag, const LVChar *reg_name, const SQRegFunction *methods, const SQRegFunction *globals) {
+LVRESULT declare_stream(VMHANDLE v, const LVChar *name, LVUserPointer typetag, const LVChar *reg_name, const LVRegFunction *methods, const LVRegFunction *globals) {
 	if (lv_gettype(v, -1) != OT_TABLE)
 		return lv_throwerror(v, _LC("table expected"));
 	LVInteger top = lv_gettop(v);
@@ -286,7 +286,7 @@ LVRESULT declare_stream(VMHANDLE v, const LVChar *name, LVUserPointer typetag, c
 		lv_settypetag(v, -1, typetag);
 		LVInteger i = 0;
 		while (methods[i].name != 0) {
-			const SQRegFunction& f = methods[i];
+			const LVRegFunction& f = methods[i];
 			lv_pushstring(v, f.name, -1);
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);
@@ -299,7 +299,7 @@ LVRESULT declare_stream(VMHANDLE v, const LVChar *name, LVUserPointer typetag, c
 
 		i = 0;
 		while (globals[i].name != 0) {
-			const SQRegFunction& f = globals[i];
+			const LVRegFunction& f = globals[i];
 			lv_pushstring(v, f.name, -1);
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);

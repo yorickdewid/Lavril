@@ -1,6 +1,6 @@
 #include "pcheader.h"
 
-#ifndef SQ_EXCLUDE_DEFAULT_MEMFUNCTIONS
+#ifndef _EXCLUDE_DEFAULT_MEMFUNCTIONS
 
 void *lv_vm_malloc(LVUnsignedInteger size) {
 	return malloc(size);

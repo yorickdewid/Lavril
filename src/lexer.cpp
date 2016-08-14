@@ -13,7 +13,7 @@
 #define INIT_TEMP_STRING() { _longstr.resize(0);}
 #define APPEND_CHAR(c) { _longstr.push_back(c);}
 #define TERMINATE_BUFFER() {_longstr.push_back(_LC('\0'));}
-#define ADD_KEYWORD(key,id) _keywords->NewSlot(SQString::Create(ss, _LC(#key)), LVInteger(id))
+#define ADD_KEYWORD(key,id) _keywords->NewSlot(LVString::Create(ss, _LC(#key)), LVInteger(id))
 
 LVLexer::LVLexer() {}
 
@@ -21,11 +21,11 @@ LVLexer::~LVLexer() {
 	_keywords->Release();
 }
 
-void LVLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, LVUserPointer up, CompilerErrorFunc efunc, void *ed) {
+void LVLexer::Init(LVSharedState *ss, LVLEXREADFUNC rg, LVUserPointer up, CompilerErrorFunc efunc, void *ed) {
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
-	_keywords = SQTable::Create(ss, 38);
+	_keywords = LVTable::Create(ss, 38);
 
 	ADD_KEYWORD(while, TK_WHILE);
 	ADD_KEYWORD(do, TK_DO);
@@ -93,7 +93,7 @@ void LVLexer::Next() {
 }
 
 const LVChar *LVLexer::Tok2Str(LVInteger tok) {
-	SQObjectPtr itr, key, val;
+	LVObjectPtr itr, key, val;
 	LVInteger nitr;
 	while ((nitr = _keywords->Next(false, itr, key, val)) != -1) {
 		itr = (LVInteger)nitr;
@@ -351,7 +351,7 @@ LVInteger LVLexer::Lex() {
 }
 
 LVInteger LVLexer::GetIDType(const LVChar *s, LVInteger len) {
-	SQObjectPtr t;
+	LVObjectPtr t;
 	if (_keywords->GetStr(s, len, t)) {
 		return LVInteger(_integer(t));
 	}

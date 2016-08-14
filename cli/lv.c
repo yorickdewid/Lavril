@@ -9,7 +9,7 @@
 #endif
 #include <lavril.h>
 
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 #define scfprintf fwprintf
 #define scvprintf vfwprintf
 #else
@@ -78,7 +78,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 	int i;
 	int compiles_only = 0;
 	int run_statement_only = 0;
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 	static LVChar temp[512];
 #endif
 	char *output = NULL;
@@ -153,7 +153,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 
 		if (arg < argc) {
 			const LVChar *filename = NULL;
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 			mbstowcs(temp, argv[arg], strlen(argv[arg]));
 			filename = temp;
 #else
@@ -166,7 +166,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 				if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
 					const LVChar *outfile = _LC("out.lavc");
 					if (output) {
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 						int len = (int)(strlen(output) + 1);
 						mbstowcs(lv_getscratchpad(v, len * sizeof(LVChar)), output, len);
 						outfile = lv_getscratchpad(v, -1);
@@ -185,7 +185,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 
 					for (i = arg; i < argc; ++i) {
 						const LVChar *a;
-#ifdef SQUNICODE
+#ifdef LVUNICODE
 						int alen = (int)strlen(argv[i]);
 						a = lv_getscratchpad(v, (int)(alen * sizeof(LVChar)));
 						mbstowcs(lv_getscratchpad(v, -1), argv[i], alen);
@@ -198,7 +198,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 					}
 
 					if (LV_SUCCEEDED(lv_call(v, callargs, LVTrue, LVTrue))) {
-						SQObjectType type = lv_gettype(v, -1);
+						LVObjectType type = lv_gettype(v, -1);
 						if (type == OT_INTEGER) {
 							*retval = type;
 							lv_getinteger(v, -1, retval);

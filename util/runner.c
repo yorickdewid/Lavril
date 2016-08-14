@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		if (LV_SUCCEEDED(lv_call(v, callargs, LVTrue, LVTrue))) {
-			SQObjectType type = lv_gettype(v, -1);
+			LVObjectType type = lv_gettype(v, -1);
 			if (type == OT_INTEGER) {
 				retval = type;
 				lv_getinteger(v, -1, &retval);

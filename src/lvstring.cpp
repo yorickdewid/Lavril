@@ -201,11 +201,11 @@ static LVInteger _string_endswith(VMHANDLE v) {
 
 /*#ifdef REGEX
 #define SETUP_REX(v) \
-	SQRex *self = NULL; \
-	sq_getinstanceup(v,1,(LVUserPointer *)&self,0);
+	LVRex *self = NULL; \
+	lv_getinstanceup(v,1,(LVUserPointer *)&self,0);
 
-static LVInteger _rexobj_releasehook(LVUserPointer p, LVInteger SQ_UNUSED_ARG(size)) {
-	SQRex *self = ((SQRex *)p);
+static LVInteger _rexobj_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
+	LVRex *self = ((LVRex *)p);
 	sqstd_rex_free(self);
 	return 1;
 }
@@ -223,13 +223,13 @@ static LVInteger _regexp_match(VMHANDLE v) {
 }
 
 static void _addrexmatch(VMHANDLE v, const LVChar *str, const LVChar *begin, const LVChar *end) {
-	sq_newtable(v);
+	lv_newtable(v);
 	lv_pushstring(v, _LC("begin"), -1);
 	lv_pushinteger(v, begin - str);
-	sq_rawset(v, -3);
+	lv_rawset(v, -3);
 	lv_pushstring(v, _LC("end"), -1);
 	lv_pushinteger(v, end - str);
-	sq_rawset(v, -3);
+	lv_rawset(v, -3);
 }
 
 static LVInteger _regexp_search(VMHANDLE v) {
@@ -255,15 +255,15 @@ static LVInteger _regexp_capture(VMHANDLE v) {
 		lv_getinteger(v, 3, &start);
 	if (sqstd_rex_search(self, str + start, &begin, &end) == LVTrue) {
 		LVInteger n = sqstd_rex_getsubexpcount(self);
-		SQRexMatch match;
-		sq_newarray(v, 0);
+		LVRexMatch match;
+		lv_newarray(v, 0);
 		for (LVInteger i = 0; i < n; i++) {
 			sqstd_rex_getsubexp(self, i, &match);
 			if (match.len > 0)
 				_addrexmatch(v, str, match.begin, match.begin + match.len);
 			else
 				_addrexmatch(v, str, str, str); //empty match
-			sq_arrayappend(v, -2);
+			lv_arrayappend(v, -2);
 		}
 		return 1;
 	}
@@ -279,11 +279,11 @@ static LVInteger _regexp_subexpcount(VMHANDLE v) {
 static LVInteger _regexp_constructor(VMHANDLE v) {
 	const LVChar *error, *pattern;
 	lv_getstring(v, 2, &pattern);
-	SQRex *rex = sqstd_rex_compile(pattern, &error);
+	LVRex *rex = sqstd_rex_compile(pattern, &error);
 	if (!rex)
 		return lv_throwerror(v, error);
-	sq_setinstanceup(v, 1, rex);
-	sq_setreleasehook(v, 1, _rexobj_releasehook);
+	lv_setinstanceup(v, 1, rex);
+	lv_setreleasehook(v, 1, _rexobj_releasehook);
 	return 0;
 }
 
@@ -293,20 +293,20 @@ static LVInteger _regexp__typeof(VMHANDLE v) {
 }
 
 #define _DECL_REX_FUNC(name,nparams,pmask) {_LC(#name),_regexp_##name,nparams,pmask}
-static const SQRegFunction rexobj_funcs[] = {
+static const LVRegFunction rexobj_funcs[] = {
 	_DECL_REX_FUNC(constructor, 2, _LC(".s")),
 	_DECL_REX_FUNC(search, -2, _LC("xsn")),
 	_DECL_REX_FUNC(match, 2, _LC("xs")),
 	_DECL_REX_FUNC(capture, -2, _LC("xsn")),
 	_DECL_REX_FUNC(subexpcount, 1, _LC("x")),
 	_DECL_REX_FUNC(_typeof, 1, _LC("x")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_REX_FUNC
 #endif*/
 
 #define _DECL_FUNC(name,nparams,pmask) {_LC(#name),_string_##name,nparams,pmask}
-static const SQRegFunction stringlib_funcs[] = {
+static const LVRegFunction stringlib_funcs[] = {
 	_DECL_FUNC(strip, 2, _LC(".s")),
 	_DECL_FUNC(lstrip, 2, _LC(".s")),
 	_DECL_FUNC(rstrip, 2, _LC(".s")),
@@ -314,7 +314,7 @@ static const SQRegFunction stringlib_funcs[] = {
 	_DECL_FUNC(escape, 2, _LC(".s")),
 	_DECL_FUNC(startswith, 3, _LC(".ss")),
 	_DECL_FUNC(endswith, 3, _LC(".ss")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC
 
@@ -323,9 +323,9 @@ LVInteger mod_init_string(VMHANDLE v) {
 
 	/*#ifdef REGEX
 		lv_pushstring(v, _LC("regexp"), -1);
-		sq_newclass(v, LVFalse);
+		lv_newclass(v, LVFalse);
 		while (rexobj_funcs[i].name != 0) {
-			const SQRegFunction& f = rexobj_funcs[i];
+			const LVRegFunction& f = rexobj_funcs[i];
 			lv_pushstring(v, f.name, -1);
 			lv_newclosure(v, f.f, 0);
 			lv_setparamscheck(v, f.nparamscheck, f.typemask);

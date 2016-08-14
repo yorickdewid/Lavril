@@ -1,9 +1,9 @@
 #include "pcheader.h"
 
 CALLBACK static void printcallstack(VMHANDLE v) {
-	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
+	LVPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
-		SQStackInfos si;
+		LVStackInfos si;
 		LVInteger level = 1; /* Skip native function */
 		pf(v, _LC("\nBacktrace: (most recent first)\n"));
 		while (LV_SUCCEEDED(lv_stackinfos(v, level, &si))) {
@@ -28,18 +28,18 @@ CALLBACK static void printcallstack(VMHANDLE v) {
 
 		for (level = 0; level < 10; level++) {
 			seq = 0;
-			while ((name = sq_getlocal(v, level, seq))) {
+			while ((name = lv_getlocal(v, level, seq))) {
 				seq++;
-				switch (sq_gettype(v, -1)) {
+				switch (lv_gettype(v, -1)) {
 					case OT_NULL:
 						pf(v, _LC("[%s] NULL\n"), name);
 						break;
 					case OT_INTEGER:
-						sq_getinteger(v, -1, &i);
+						lv_getinteger(v, -1, &i);
 						pf(v, _LC("[%s] %d\n"), name, i);
 						break;
 					case OT_FLOAT:
-						sq_getfloat(v, -1, &f);
+						lv_getfloat(v, -1, &f);
 						pf(v, _LC("[%s] %.14g\n"), name, f);
 						break;
 					case OT_USERPOINTER:
@@ -81,15 +81,15 @@ CALLBACK static void printcallstack(VMHANDLE v) {
 						break;
 					case OT_BOOL: {
 						LVBool bval;
-						sq_getbool(v, -1, &bval);
-						pf(v, _LC("[%s] %s\n"), name, bval == SQTrue ? _LC("true") : _LC("false"));
+						lv_getbool(v, -1, &bval);
+						pf(v, _LC("[%s] %s\n"), name, bval == LVTrue ? _LC("true") : _LC("false"));
 					}
 					break;
 					default:
 						assert(0);
 						break;
 				}
-				sq_pop(v, 1);
+				lv_pop(v, 1);
 			}
 		}
 #endif
@@ -97,7 +97,7 @@ CALLBACK static void printcallstack(VMHANDLE v) {
 }
 
 CALLBACK static LVInteger callback_printerror(VMHANDLE v) {
-	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
+	LVPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		const LVChar *sErr = 0;
 		if (lv_gettop(v) >= 1) {
@@ -113,7 +113,7 @@ CALLBACK static LVInteger callback_printerror(VMHANDLE v) {
 }
 
 CALLBACK void callback_compiler_error(VMHANDLE v, const LVChar *sErr, const LVChar *sSource, LVInteger line, LVInteger column) {
-	SQPRINTFUNCTION pf = lv_geterrorfunc(v);
+	LVPRINTFUNCTION pf = lv_geterrorfunc(v);
 	if (pf) {
 		pf(v, _LC("%s:%d:%d: error %s\n"), sSource, line, column, sErr);
 	}

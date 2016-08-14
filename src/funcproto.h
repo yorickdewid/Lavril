@@ -3,68 +3,68 @@
 
 #include "opcodes.h"
 
-enum SQOuterType {
+enum LVOuterType {
 	otLOCAL = 0,
 	otOUTER = 1
 };
 
-struct SQOuterVar {
-	SQOuterVar() {}
-	SQOuterVar(const SQObjectPtr& name, const SQObjectPtr& src, SQOuterType t) {
+struct LVOuterVar {
+	LVOuterVar() {}
+	LVOuterVar(const LVObjectPtr& name, const LVObjectPtr& src, LVOuterType t) {
 		_name = name;
 		_src = src;
 		_type = t;
 	}
 
-	SQOuterVar(const SQOuterVar& ov) {
+	LVOuterVar(const LVOuterVar& ov) {
 		_type = ov._type;
 		_src = ov._src;
 		_name = ov._name;
 	}
 
-	SQOuterType _type;
-	SQObjectPtr _name;
-	SQObjectPtr _src;
+	LVOuterType _type;
+	LVObjectPtr _name;
+	LVObjectPtr _src;
 };
 
-struct SQLocalVarInfo {
-	SQLocalVarInfo(): _start_op(0), _end_op(0), _pos(0) {}
-	SQLocalVarInfo(const SQLocalVarInfo& lvi) {
+struct LVLocalVarInfo {
+	LVLocalVarInfo(): _start_op(0), _end_op(0), _pos(0) {}
+	LVLocalVarInfo(const LVLocalVarInfo& lvi) {
 		_name = lvi._name;
 		_start_op = lvi._start_op;
 		_end_op = lvi._end_op;
 		_pos = lvi._pos;
 	}
 
-	SQObjectPtr _name;
+	LVObjectPtr _name;
 	LVUnsignedInteger _start_op;
 	LVUnsignedInteger _end_op;
 	LVUnsignedInteger _pos;
 };
 
-struct SQLineInfo {
+struct LVLineInfo {
 	LVInteger _line;
 	LVInteger _op;
 };
 
-typedef sqvector<SQOuterVar> SQOuterVarVec;
-typedef sqvector<SQLocalVarInfo> SQLocalVarInfoVec;
-typedef sqvector<SQLineInfo> SQLineInfoVec;
+typedef lvvector<LVOuterVar> LVOuterVarVec;
+typedef lvvector<LVLocalVarInfo> LVLocalVarInfoVec;
+typedef lvvector<LVLineInfo> LVLineInfoVec;
 
 #define _FUNC_SIZE(ni,nl,nparams,nfuncs,nouters,nlineinf,localinf,defparams) (sizeof(FunctionPrototype) \
-        +((ni-1)*sizeof(SQInstruction))+(nl*sizeof(SQObjectPtr)) \
-        +(nparams*sizeof(SQObjectPtr))+(nfuncs*sizeof(SQObjectPtr)) \
-        +(nouters*sizeof(SQOuterVar))+(nlineinf*sizeof(SQLineInfo)) \
-        +(localinf*sizeof(SQLocalVarInfo))+(defparams*sizeof(LVInteger)))
+        +((ni-1)*sizeof(LVInstruction))+(nl*sizeof(LVObjectPtr)) \
+        +(nparams*sizeof(LVObjectPtr))+(nfuncs*sizeof(LVObjectPtr)) \
+        +(nouters*sizeof(LVOuterVar))+(nlineinf*sizeof(LVLineInfo)) \
+        +(localinf*sizeof(LVLocalVarInfo))+(defparams*sizeof(LVInteger)))
 
 
 struct FunctionPrototype : public CHAINABLE_OBJ {
   private:
-	FunctionPrototype(SQSharedState *ss);
+	FunctionPrototype(LVSharedState *ss);
 	~FunctionPrototype();
 
   public:
-	static FunctionPrototype *Create(SQSharedState *ss, LVInteger ninstructions,
+	static FunctionPrototype *Create(LVSharedState *ss, LVInteger ninstructions,
 	                                 LVInteger nliterals, LVInteger nparameters,
 	                                 LVInteger nfunctions, LVInteger noutervalues,
 	                                 LVInteger nlineinfos, LVInteger nlocalvarinfos, LVInteger ndefaultparams) {
@@ -73,85 +73,85 @@ struct FunctionPrototype : public CHAINABLE_OBJ {
 		f = (FunctionPrototype *)lv_vm_malloc(_FUNC_SIZE(ninstructions, nliterals, nparameters, nfunctions, noutervalues, nlineinfos, nlocalvarinfos, ndefaultparams));
 		new (f) FunctionPrototype(ss);
 		f->_ninstructions = ninstructions;
-		f->_literals = (SQObjectPtr *)&f->_instructions[ninstructions];
+		f->_literals = (LVObjectPtr *)&f->_instructions[ninstructions];
 		f->_nliterals = nliterals;
-		f->_parameters = (SQObjectPtr *)&f->_literals[nliterals];
+		f->_parameters = (LVObjectPtr *)&f->_literals[nliterals];
 		f->_nparameters = nparameters;
-		f->_functions = (SQObjectPtr *)&f->_parameters[nparameters];
+		f->_functions = (LVObjectPtr *)&f->_parameters[nparameters];
 		f->_nfunctions = nfunctions;
-		f->_outervalues = (SQOuterVar *)&f->_functions[nfunctions];
+		f->_outervalues = (LVOuterVar *)&f->_functions[nfunctions];
 		f->_noutervalues = noutervalues;
-		f->_lineinfos = (SQLineInfo *)&f->_outervalues[noutervalues];
+		f->_lineinfos = (LVLineInfo *)&f->_outervalues[noutervalues];
 		f->_nlineinfos = nlineinfos;
-		f->_localvarinfos = (SQLocalVarInfo *)&f->_lineinfos[nlineinfos];
+		f->_localvarinfos = (LVLocalVarInfo *)&f->_lineinfos[nlineinfos];
 		f->_nlocalvarinfos = nlocalvarinfos;
 		f->_defaultparams = (LVInteger *)&f->_localvarinfos[nlocalvarinfos];
 		f->_ndefaultparams = ndefaultparams;
 
-		_CONSTRUCT_VECTOR(SQObjectPtr, f->_nliterals, f->_literals);
-		_CONSTRUCT_VECTOR(SQObjectPtr, f->_nparameters, f->_parameters);
-		_CONSTRUCT_VECTOR(SQObjectPtr, f->_nfunctions, f->_functions);
-		_CONSTRUCT_VECTOR(SQOuterVar, f->_noutervalues, f->_outervalues);
-		//_CONSTRUCT_VECTOR(SQLineInfo,f->_nlineinfos,f->_lineinfos); //not required are 2 integers
-		_CONSTRUCT_VECTOR(SQLocalVarInfo, f->_nlocalvarinfos, f->_localvarinfos);
+		_CONSTRUCT_VECTOR(LVObjectPtr, f->_nliterals, f->_literals);
+		_CONSTRUCT_VECTOR(LVObjectPtr, f->_nparameters, f->_parameters);
+		_CONSTRUCT_VECTOR(LVObjectPtr, f->_nfunctions, f->_functions);
+		_CONSTRUCT_VECTOR(LVOuterVar, f->_noutervalues, f->_outervalues);
+		//_CONSTRUCT_VECTOR(LVLineInfo,f->_nlineinfos,f->_lineinfos); //not required are 2 integers
+		_CONSTRUCT_VECTOR(LVLocalVarInfo, f->_nlocalvarinfos, f->_localvarinfos);
 		return f;
 	}
 
 	void Release() {
-		_DESTRUCT_VECTOR(SQObjectPtr, _nliterals, _literals);
-		_DESTRUCT_VECTOR(SQObjectPtr, _nparameters, _parameters);
-		_DESTRUCT_VECTOR(SQObjectPtr, _nfunctions, _functions);
-		_DESTRUCT_VECTOR(SQOuterVar, _noutervalues, _outervalues);
-		//_DESTRUCT_VECTOR(SQLineInfo,_nlineinfos,_lineinfos); //not required are 2 integers
-		_DESTRUCT_VECTOR(SQLocalVarInfo, _nlocalvarinfos, _localvarinfos);
+		_DESTRUCT_VECTOR(LVObjectPtr, _nliterals, _literals);
+		_DESTRUCT_VECTOR(LVObjectPtr, _nparameters, _parameters);
+		_DESTRUCT_VECTOR(LVObjectPtr, _nfunctions, _functions);
+		_DESTRUCT_VECTOR(LVOuterVar, _noutervalues, _outervalues);
+		//_DESTRUCT_VECTOR(LVLineInfo,_nlineinfos,_lineinfos); //not required are 2 integers
+		_DESTRUCT_VECTOR(LVLocalVarInfo, _nlocalvarinfos, _localvarinfos);
 		LVInteger size = _FUNC_SIZE(_ninstructions, _nliterals, _nparameters, _nfunctions, _noutervalues, _nlineinfos, _nlocalvarinfos, _ndefaultparams);
 		this->~FunctionPrototype();
 		lv_vm_free(this, size);
 	}
 
-	const LVChar *GetLocal(SQVM *v, LVUnsignedInteger stackbase, LVUnsignedInteger nseq, LVUnsignedInteger nop);
-	LVInteger GetLine(SQInstruction *curr);
-	bool Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write);
-	static bool Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
+	const LVChar *GetLocal(LVVM *v, LVUnsignedInteger stackbase, LVUnsignedInteger nseq, LVUnsignedInteger nop);
+	LVInteger GetLine(LVInstruction *curr);
+	bool Save(LVVM *v, LVUserPointer up, LVWRITEFUNC write);
+	static bool Load(LVVM *v, LVUserPointer up, LVREADFUNC read, LVObjectPtr& ret);
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
+	void Mark(LVCollectable **chain);
 	void Finalize() {
-		_NULL_SQOBJECT_VECTOR(_literals, _nliterals);
+		_NULL_OBJECT_VECTOR(_literals, _nliterals);
 	}
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_FUNCPROTO;
 	}
 #endif
 
-	SQObjectPtr _sourcename;
-	SQObjectPtr _name;
+	LVObjectPtr _sourcename;
+	LVObjectPtr _name;
 	LVInteger _stacksize;
 	bool _bgenerator;
 	LVInteger _varparams;
 
 	LVInteger _nlocalvarinfos;
-	SQLocalVarInfo *_localvarinfos;
+	LVLocalVarInfo *_localvarinfos;
 
 	LVInteger _nlineinfos;
-	SQLineInfo *_lineinfos;
+	LVLineInfo *_lineinfos;
 
 	LVInteger _nliterals;
-	SQObjectPtr *_literals;
+	LVObjectPtr *_literals;
 
 	LVInteger _nparameters;
-	SQObjectPtr *_parameters;
+	LVObjectPtr *_parameters;
 
 	LVInteger _nfunctions;
-	SQObjectPtr *_functions;
+	LVObjectPtr *_functions;
 
 	LVInteger _noutervalues;
-	SQOuterVar *_outervalues;
+	LVOuterVar *_outervalues;
 
 	LVInteger _ndefaultparams;
 	LVInteger *_defaultparams;
 
 	LVInteger _ninstructions;
-	SQInstruction _instructions[1];
+	LVInstruction _instructions[1];
 };
 
 #endif // _FUNCTION_H_

@@ -643,10 +643,10 @@ try_again:
 }
 
 #define _DECL_FUNC(name,nparams,tycheck) {_LC(#name),name,nparams,tycheck}
-static const SQRegFunction jsonlib_funcs[] = {
+static const LVRegFunction jsonlib_funcs[] = {
 	_DECL_FUNC(json_encode, 2, NULL),
 	_DECL_FUNC(json_decode, 2, _LC(".s")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC
 

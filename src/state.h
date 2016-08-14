@@ -4,45 +4,45 @@
 #include "utils.h"
 #include "object.h"
 
-struct SQString;
-struct SQTable;
+struct LVString;
+struct LVTable;
 
 /* Max number of character for a printed number */
 #define NUMBER_MAX_CHAR 50
 
-struct SQStringTable {
-	SQStringTable(SQSharedState *ss);
-	~SQStringTable();
-	SQString *Add(const LVChar *, LVInteger len);
-	void Remove(SQString *);
+struct LVStringTable {
+	LVStringTable(LVSharedState *ss);
+	~LVStringTable();
+	LVString *Add(const LVChar *, LVInteger len);
+	void Remove(LVString *);
 
   private:
 	void Resize(LVInteger size);
 	void AllocNodes(LVInteger size);
-	SQString **_strings;
+	LVString **_strings;
 	LVUnsignedInteger _numofslots;
 	LVUnsignedInteger _slotused;
-	SQSharedState *_sharedstate;
+	LVSharedState *_sharedstate;
 };
 
 struct RefTable {
 	struct RefNode {
-		SQObjectPtr obj;
+		LVObjectPtr obj;
 		LVUnsignedInteger refs;
 		struct RefNode *next;
 	};
 	RefTable();
 	~RefTable();
-	void AddRef(SQObject& obj);
-	LVBool Release(SQObject& obj);
-	LVUnsignedInteger GetRefCount(SQObject& obj);
+	void AddRef(LVObject& obj);
+	LVBool Release(LVObject& obj);
+	LVUnsignedInteger GetRefCount(LVObject& obj);
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
+	void Mark(LVCollectable **chain);
 #endif
 	void Finalize();
   private:
-	RefNode *Get(SQObject& obj, LVHash& mainpos, RefNode **prev, bool add);
-	RefNode *Add(LVHash mainpos, SQObject& obj);
+	RefNode *Get(LVObject& obj, LVHash& mainpos, RefNode **prev, bool add);
+	RefNode *Add(LVHash mainpos, LVObject& obj);
 	void Resize(LVUnsignedInteger size);
 	void AllocNodes(LVUnsignedInteger size);
 	LVUnsignedInteger _numofslots;
@@ -55,64 +55,64 @@ struct RefTable {
 #define ADD_STRING(ss,str,len) ss->_stringtable->Add(str,len)
 #define REMOVE_STRING(ss,bstr) ss->_stringtable->Remove(bstr)
 
-struct SQObjectPtr;
+struct LVObjectPtr;
 
-struct SQSharedState {
-	SQSharedState();
-	~SQSharedState();
+struct LVSharedState {
+	LVSharedState();
+	~LVSharedState();
 	void Init();
 
   public:
 	LVChar *GetScratchPad(LVInteger size);
-	LVInteger GetMetaMethodIdxByName(const SQObjectPtr& name);
+	LVInteger GetMetaMethodIdxByName(const LVObjectPtr& name);
 #ifndef NO_GARBAGE_COLLECTOR
-	LVInteger CollectGarbage(SQVM *vm);
-	void RunMark(SQVM *vm, SQCollectable **tchain);
-	LVInteger ResurrectUnreachable(SQVM *vm);
-	static void MarkObject(SQObjectPtr& o, SQCollectable **chain);
+	LVInteger CollectGarbage(LVVM *vm);
+	void RunMark(LVVM *vm, LVCollectable **tchain);
+	LVInteger ResurrectUnreachable(LVVM *vm);
+	static void MarkObject(LVObjectPtr& o, LVCollectable **chain);
 #endif
-	SQObjectPtrVec *_metamethods;
-	SQObjectPtr _metamethodsmap;
-	SQObjectPtrVec *_systemstrings;
-	SQObjectPtrVec *_types;
-	SQStringTable *_stringtable;
+	LVObjectPtrVec *_metamethods;
+	LVObjectPtr _metamethodsmap;
+	LVObjectPtrVec *_systemstrings;
+	LVObjectPtrVec *_types;
+	LVStringTable *_stringtable;
 	RefTable _refs_table;
-	SQObjectPtr _registry;
-	SQObjectPtr _consts;
-	SQObjectPtr _constructoridx;
+	LVObjectPtr _registry;
+	LVObjectPtr _consts;
+	LVObjectPtr _constructoridx;
 #ifndef NO_GARBAGE_COLLECTOR
-	SQCollectable *_gc_chain;
+	LVCollectable *_gc_chain;
 #endif
-	SQObjectPtr _root_vm;
-	SQObjectPtr _table_default_delegate;
-	static const SQRegFunction _table_default_delegate_funcz[];
-	SQObjectPtr _array_default_delegate;
-	static const SQRegFunction _array_default_delegate_funcz[];
-	SQObjectPtr _string_default_delegate;
-	static const SQRegFunction _string_default_delegate_funcz[];
-	SQObjectPtr _number_default_delegate;
-	static const SQRegFunction _number_default_delegate_funcz[];
-	SQObjectPtr _generator_default_delegate;
-	static const SQRegFunction _generator_default_delegate_funcz[];
-	SQObjectPtr _closure_default_delegate;
-	static const SQRegFunction _closure_default_delegate_funcz[];
-	SQObjectPtr _thread_default_delegate;
-	static const SQRegFunction _thread_default_delegate_funcz[];
-	SQObjectPtr _class_default_delegate;
-	static const SQRegFunction _class_default_delegate_funcz[];
-	SQObjectPtr _instance_default_delegate;
-	static const SQRegFunction _instance_default_delegate_funcz[];
-	SQObjectPtr _weakref_default_delegate;
-	static const SQRegFunction _weakref_default_delegate_funcz[];
+	LVObjectPtr _root_vm;
+	LVObjectPtr _table_default_delegate;
+	static const LVRegFunction _table_default_delegate_funcz[];
+	LVObjectPtr _array_default_delegate;
+	static const LVRegFunction _array_default_delegate_funcz[];
+	LVObjectPtr _string_default_delegate;
+	static const LVRegFunction _string_default_delegate_funcz[];
+	LVObjectPtr _number_default_delegate;
+	static const LVRegFunction _number_default_delegate_funcz[];
+	LVObjectPtr _generator_default_delegate;
+	static const LVRegFunction _generator_default_delegate_funcz[];
+	LVObjectPtr _closure_default_delegate;
+	static const LVRegFunction _closure_default_delegate_funcz[];
+	LVObjectPtr _thread_default_delegate;
+	static const LVRegFunction _thread_default_delegate_funcz[];
+	LVObjectPtr _class_default_delegate;
+	static const LVRegFunction _class_default_delegate_funcz[];
+	LVObjectPtr _instance_default_delegate;
+	static const LVRegFunction _instance_default_delegate_funcz[];
+	LVObjectPtr _weakref_default_delegate;
+	static const LVRegFunction _weakref_default_delegate_funcz[];
 
-	SQCOMPILERERROR _compilererrorhandler;
-	SQLOADUNIT _unitloaderhandler;
-	SQPRINTFUNCTION _printfunc;
-	SQPRINTFUNCTION _errorfunc;
+	LVCOMPILERERROR _compilererrorhandler;
+	LVLOADUNIT _unitloaderhandler;
+	LVPRINTFUNCTION _printfunc;
+	LVPRINTFUNCTION _errorfunc;
 	bool _debuginfo;
 	bool _notifyallexceptions;
 	LVUserPointer _foreignptr;
-	SQRELEASEHOOK _releasehook;
+	LVRELEASEHOOK _releasehook;
 
   private:
 	LVChar *_scratchpad;
@@ -133,6 +133,6 @@ struct SQSharedState {
 #define _instance_ddel  _table(_sharedstate->_instance_default_delegate)
 #define _weakref_ddel   _table(_sharedstate->_weakref_default_delegate)
 
-bool CompileTypemask(SQIntVec& res, const LVChar *typemask);
+bool CompileTypemask(LVIntVector& res, const LVChar *typemask);
 
 #endif // _STATE_H_

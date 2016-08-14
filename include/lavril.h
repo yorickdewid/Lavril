@@ -43,20 +43,20 @@ extern "C" {
 #define LVTrue  (1)
 #define LVFalse (0)
 
-struct SQVM;
-struct SQTable;
-struct SQArray;
-struct SQString;
-struct SQClosure;
-struct SQGenerator;
-struct SQNativeClosure;
-struct SQUserData;
-struct SQFunctionProto;
-struct SQRefCounted;
-struct SQClass;
-struct SQInstance;
-struct SQDelegable;
-struct SQOuter;
+struct LVVM;
+struct LVTable;
+struct LVArray;
+struct LVString;
+struct LVClosure;
+struct LVGenerator;
+struct LVNativeClosure;
+struct LVUserData;
+struct LVFunctionProto; //TODO unused
+struct LVRefCounted;
+struct LVClass;
+struct LVInstance;
+struct LVDelegable;
+struct LVOuter;
 
 #ifdef _UNICODE
 #define LVUNICODE
@@ -106,7 +106,7 @@ struct SQOuter;
 #define _RT_WEAKREF         0x00010000
 #define _RT_OUTER           0x00020000
 
-#define SQ_STREAM_TYPE_TAG 0x80000000
+#define STREAM_TYPE_TAG 0x80000000
 
 #define init_module(mod,v) mod_init_##mod(v)
 #define register_module(mod) LAVRIL_API LVRESULT mod_init_##mod(VMHANDLE v)
@@ -116,7 +116,7 @@ struct SQOuter;
 #define LV_SEEK_END 1
 #define LV_SEEK_SET 2
 
-typedef enum tagSQObjectType {
+typedef enum {
 	OT_NULL =           (_RT_NULL | OBJECT_CANBEFALSE),
 	OT_INTEGER =        (_RT_INTEGER | OBJECT_NUMERIC | OBJECT_CANBEFALSE),
 	OT_FLOAT =          (_RT_FLOAT | OBJECT_NUMERIC | OBJECT_CANBEFALSE),
@@ -135,74 +135,75 @@ typedef enum tagSQObjectType {
 	OT_INSTANCE =       (_RT_INSTANCE | OBJECT_REF_COUNTED | OBJECT_DELEGABLE),
 	OT_WEAKREF =        (_RT_WEAKREF | OBJECT_REF_COUNTED),
 	OT_OUTER =          (_RT_OUTER | OBJECT_REF_COUNTED) /* Internal usage */
-} SQObjectType;
+} LVObjectType;
 
 #define ISREFCOUNTED(t) (t&OBJECT_REF_COUNTED)
 
-typedef union tagSQObjectValue {
-	struct SQTable *pTable;
-	struct SQArray *pArray;
-	struct SQClosure *pClosure;
-	struct SQOuter *pOuter;
-	struct SQGenerator *pGenerator;
-	struct SQNativeClosure *pNativeClosure;
-	struct SQString *pString;
-	struct SQUserData *pUserData;
+typedef union {
+	struct LVTable *pTable;
+	struct LVArray *pArray;
+	struct LVClosure *pClosure;
+	struct LVOuter *pOuter;
+	struct LVGenerator *pGenerator;
+	struct LVNativeClosure *pNativeClosure;
+	struct LVString *pString;
+	struct LVUserData *pUserData;
 	LVInteger nInteger;
 	LVFloat fFloat;
 	LVUserPointer pUserPointer;
 	struct FunctionPrototype *pFunctionProto;
-	struct SQRefCounted *pRefCounted;
-	struct SQDelegable *pDelegable;
-	struct SQVM *pThread;
-	struct SQClass *pClass;
-	struct SQInstance *pInstance;
-	struct SQWeakRef *pWeakRef;
+	struct LVRefCounted *pRefCounted;
+	struct LVDelegable *pDelegable;
+	struct LVVM *pThread;
+	struct LVClass *pClass;
+	struct LVInstance *pInstance;
+	struct LVWeakRef *pWeakRef;
 	LVRawObjectVal raw;
-} SQObjectValue;
+} LVObjectValue;
 
-typedef struct tagSQObject {
-	SQObjectType _type;
-	SQObjectValue _unVal;
-} SQObject;
+typedef struct {
+	LVObjectType _type;
+	LVObjectValue _unVal;
+} LVObject;
 
-typedef struct  tagSQMemberHandle {
+//TODO not used
+typedef struct {
 	LVBool _static;
 	LVInteger _index;
-} SQMemberHandle;
+} LVMemberHandle;
 
-typedef struct tagSQStackInfos {
+typedef struct {
 	const LVChar *funcname;
 	const LVChar *source;
 	LVInteger line;
-} SQStackInfos;
+} LVStackInfos;
 
-typedef struct SQVM *VMHANDLE;
-typedef SQObject HSQOBJECT;
-typedef SQMemberHandle HSQMEMBERHANDLE;
-typedef LVInteger (*SQFUNCTION)(VMHANDLE);
-typedef LVInteger (*SQRELEASEHOOK)(LVUserPointer, LVInteger size);
-typedef CALLBACK void (*SQCOMPILERERROR)(VMHANDLE, const LVChar * /*desc*/, const LVChar * /*source*/, LVInteger /*line*/, LVInteger /*column*/);
-typedef CALLBACK void (*SQPRINTFUNCTION)(VMHANDLE, const LVChar *, ...);
-typedef CALLBACK void (*SQDEBUGHOOK)(VMHANDLE /*v*/, LVInteger /*type*/, const LVChar * /*sourcename*/, LVInteger /*line*/, const LVChar * /*funcname*/);
-typedef LVInteger (*SQLOADUNIT)(VMHANDLE /*v*/, const LVChar * /*sourcename*/, LVBool /*printerr*/);
-typedef LVInteger (*SQWRITEFUNC)(LVUserPointer, LVUserPointer, LVInteger);
-typedef LVInteger (*SQREADFUNC)(LVUserPointer, LVUserPointer, LVInteger);
-typedef LVInteger (*SQLEXREADFUNC)(LVUserPointer);
+typedef struct LVVM *VMHANDLE;
+typedef LVObject OBJHANDLE;
+typedef LVMemberHandle MEMBERHANDLE;
+typedef LVInteger (*LVFUNCTION)(VMHANDLE);
+typedef LVInteger (*LVRELEASEHOOK)(LVUserPointer, LVInteger size);
+typedef CALLBACK void (*LVCOMPILERERROR)(VMHANDLE, const LVChar * /*desc*/, const LVChar * /*source*/, LVInteger /*line*/, LVInteger /*column*/);
+typedef CALLBACK void (*LVPRINTFUNCTION)(VMHANDLE, const LVChar *, ...);
+typedef CALLBACK void (*LVDEBUGHOOK)(VMHANDLE /*v*/, LVInteger /*type*/, const LVChar * /*sourcename*/, LVInteger /*line*/, const LVChar * /*funcname*/);
+typedef LVInteger (*LVLOADUNIT)(VMHANDLE /*v*/, const LVChar * /*sourcename*/, LVBool /*printerr*/);
+typedef LVInteger (*LVWRITEFUNC)(LVUserPointer, LVUserPointer, LVInteger);
+typedef LVInteger (*LVREADFUNC)(LVUserPointer, LVUserPointer, LVInteger);
+typedef LVInteger (*LVLEXREADFUNC)(LVUserPointer);
 
 typedef struct {
 	const LVChar *name;
-	SQFUNCTION f;
+	LVFUNCTION f;
 	LVInteger nparamscheck;
 	const LVChar *typemask;
-} SQRegFunction;
+} LVRegFunction;
 
 typedef struct {
 	LVUserPointer funcid;
 	const LVChar *name;
 	const LVChar *source;
 	LVInteger line;
-} SQFunctionInfo;
+} LVFunctionInfo;
 
 typedef void *LVFILE;
 
@@ -215,25 +216,25 @@ LAVRIL_API void lv_setforeignptr(VMHANDLE v, LVUserPointer p);
 LAVRIL_API LVUserPointer lv_getforeignptr(VMHANDLE v);
 LAVRIL_API void lv_setsharedforeignptr(VMHANDLE v, LVUserPointer p);
 LAVRIL_API LVUserPointer lv_getsharedforeignptr(VMHANDLE v);
-LAVRIL_API void lv_setvmreleasehook(VMHANDLE v, SQRELEASEHOOK hook);
-LAVRIL_API SQRELEASEHOOK lv_getvmreleasehook(VMHANDLE v);
-LAVRIL_API void lv_setsharedreleasehook(VMHANDLE v, SQRELEASEHOOK hook);
-LAVRIL_API SQRELEASEHOOK lv_getsharedreleasehook(VMHANDLE v);
-LAVRIL_API void lv_setprintfunc(VMHANDLE v, SQPRINTFUNCTION printfunc, SQPRINTFUNCTION errfunc);
-LAVRIL_API SQPRINTFUNCTION lv_getprintfunc(VMHANDLE v);
-LAVRIL_API SQPRINTFUNCTION lv_geterrorfunc(VMHANDLE v);
+LAVRIL_API void lv_setvmreleasehook(VMHANDLE v, LVRELEASEHOOK hook);
+LAVRIL_API LVRELEASEHOOK lv_getvmreleasehook(VMHANDLE v);
+LAVRIL_API void lv_setsharedreleasehook(VMHANDLE v, LVRELEASEHOOK hook);
+LAVRIL_API LVRELEASEHOOK lv_getsharedreleasehook(VMHANDLE v);
+LAVRIL_API void lv_setprintfunc(VMHANDLE v, LVPRINTFUNCTION printfunc, LVPRINTFUNCTION errfunc);
+LAVRIL_API LVPRINTFUNCTION lv_getprintfunc(VMHANDLE v);
+LAVRIL_API LVPRINTFUNCTION lv_geterrorfunc(VMHANDLE v);
 LAVRIL_API LVRESULT lv_suspendvm(VMHANDLE v);
 LAVRIL_API LVRESULT lv_wakeupvm(VMHANDLE v, LVBool resumedret, LVBool retval, LVBool raiseerror, LVBool throwerror);
 LAVRIL_API LVInteger lv_getvmstate(VMHANDLE v);
 LAVRIL_API LVInteger lv_getversion();
 
 /* Compiler */
-LAVRIL_API LVRESULT lv_compile(VMHANDLE v, SQLEXREADFUNC read, LVUserPointer p, const LVChar *sourcename, LVBool raiseerror);
+LAVRIL_API LVRESULT lv_compile(VMHANDLE v, LVLEXREADFUNC read, LVUserPointer p, const LVChar *sourcename, LVBool raiseerror);
 LAVRIL_API LVRESULT lv_compilebuffer(VMHANDLE v, const LVChar *s, LVInteger size, const LVChar *sourcename, LVBool raiseerror);
 LAVRIL_API void lv_enabledebuginfo(VMHANDLE v, LVBool enable);
 LAVRIL_API void lv_notifyallexceptions(VMHANDLE v, LVBool enable);
-LAVRIL_API void lv_setcompilererrorhandler(VMHANDLE v, SQCOMPILERERROR f);
-LAVRIL_API void lv_setunitloader(VMHANDLE v, SQLOADUNIT f);
+LAVRIL_API void lv_setcompilererrorhandler(VMHANDLE v, LVCOMPILERERROR f);
+LAVRIL_API void lv_setunitloader(VMHANDLE v, LVLOADUNIT f);
 
 /* Stack operations */
 LAVRIL_API void lv_push(VMHANDLE v, LVInteger idx);
@@ -254,7 +255,7 @@ LAVRIL_API LVUserPointer lv_newuserdata(VMHANDLE v, LVUnsignedInteger size);
 LAVRIL_API void lv_newtable(VMHANDLE v);
 LAVRIL_API void lv_newtableex(VMHANDLE v, LVInteger initialcapacity);
 LAVRIL_API void lv_newarray(VMHANDLE v, LVInteger size);
-LAVRIL_API void lv_newclosure(VMHANDLE v, SQFUNCTION func, LVUnsignedInteger nfreevars);
+LAVRIL_API void lv_newclosure(VMHANDLE v, LVFUNCTION func, LVUnsignedInteger nfreevars);
 LAVRIL_API LVRESULT lv_setparamscheck(VMHANDLE v, LVInteger nparamscheck, const LVChar *typemask);
 LAVRIL_API LVRESULT lv_bindenv(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVRESULT lv_setclosureroot(VMHANDLE v, LVInteger idx);
@@ -266,7 +267,7 @@ LAVRIL_API void lv_pushbool(VMHANDLE v, LVBool b);
 LAVRIL_API void lv_pushuserpointer(VMHANDLE v, LVUserPointer p);
 LAVRIL_API void lv_pushnull(VMHANDLE v);
 LAVRIL_API void lv_pushthread(VMHANDLE v, VMHANDLE thread);
-LAVRIL_API SQObjectType lv_gettype(VMHANDLE v, LVInteger idx);
+LAVRIL_API LVObjectType lv_gettype(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVRESULT lv_typeof(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVInteger lv_getsize(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVHash lv_gethash(VMHANDLE v, LVInteger idx);
@@ -283,10 +284,10 @@ LAVRIL_API LVRESULT lv_getuserpointer(VMHANDLE v, LVInteger idx, LVUserPointer *
 LAVRIL_API LVRESULT lv_getuserdata(VMHANDLE v, LVInteger idx, LVUserPointer *p, LVUserPointer *typetag);
 LAVRIL_API LVRESULT lv_settypetag(VMHANDLE v, LVInteger idx, LVUserPointer typetag);
 LAVRIL_API LVRESULT lv_gettypetag(VMHANDLE v, LVInteger idx, LVUserPointer *typetag);
-LAVRIL_API void lv_setreleasehook(VMHANDLE v, LVInteger idx, SQRELEASEHOOK hook);
-LAVRIL_API SQRELEASEHOOK lv_getreleasehook(VMHANDLE v, LVInteger idx);
+LAVRIL_API void lv_setreleasehook(VMHANDLE v, LVInteger idx, LVRELEASEHOOK hook);
+LAVRIL_API LVRELEASEHOOK lv_getreleasehook(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVChar *lv_getscratchpad(VMHANDLE v, LVInteger minsize);
-LAVRIL_API LVRESULT lv_getfunctioninfo(VMHANDLE v, LVInteger level, SQFunctionInfo *fi);
+LAVRIL_API LVRESULT lv_getfunctioninfo(VMHANDLE v, LVInteger level, LVFunctionInfo *fi);
 LAVRIL_API LVRESULT lv_getclosureinfo(VMHANDLE v, LVInteger idx, LVUnsignedInteger *nparams, LVUnsignedInteger *nfreevars);
 LAVRIL_API LVRESULT lv_getclosurename(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVRESULT lv_setnativeclosurename(VMHANDLE v, LVInteger idx, const LVChar *name);
@@ -299,10 +300,10 @@ LAVRIL_API LVRESULT lv_setattributes(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVRESULT lv_getattributes(VMHANDLE v, LVInteger idx);
 LAVRIL_API LVRESULT lv_getclass(VMHANDLE v, LVInteger idx);
 LAVRIL_API void lv_weakref(VMHANDLE v, LVInteger idx);
-LAVRIL_API LVRESULT lv_getdefaultdelegate(VMHANDLE v, SQObjectType t);
-LAVRIL_API LVRESULT lv_getmemberhandle(VMHANDLE v, LVInteger idx, HSQMEMBERHANDLE *handle);
-LAVRIL_API LVRESULT lv_getbyhandle(VMHANDLE v, LVInteger idx, const HSQMEMBERHANDLE *handle);
-LAVRIL_API LVRESULT lv_setbyhandle(VMHANDLE v, LVInteger idx, const HSQMEMBERHANDLE *handle);
+LAVRIL_API LVRESULT lv_getdefaultdelegate(VMHANDLE v, LVObjectType t);
+LAVRIL_API LVRESULT lv_getmemberhandle(VMHANDLE v, LVInteger idx, MEMBERHANDLE *handle);
+LAVRIL_API LVRESULT lv_getbyhandle(VMHANDLE v, LVInteger idx, const MEMBERHANDLE *handle);
+LAVRIL_API LVRESULT lv_setbyhandle(VMHANDLE v, LVInteger idx, const MEMBERHANDLE *handle);
 
 /* Object manipulation */
 LAVRIL_API void lv_pushroottable(VMHANDLE v);
@@ -346,27 +347,27 @@ LAVRIL_API void lv_getlasterror(VMHANDLE v);
 LAVRIL_API void lv_registererrorhandlers(VMHANDLE v);
 
 /* Raw object handling */
-LAVRIL_API LVRESULT lv_getstackobj(VMHANDLE v, LVInteger idx, HSQOBJECT *po);
-LAVRIL_API void lv_pushobject(VMHANDLE v, HSQOBJECT obj);
-LAVRIL_API void lv_addref(VMHANDLE v, HSQOBJECT *po);
-LAVRIL_API LVBool lv_release(VMHANDLE v, HSQOBJECT *po);
-LAVRIL_API LVUnsignedInteger lv_getrefcount(VMHANDLE v, HSQOBJECT *po);
-LAVRIL_API void lv_resetobject(HSQOBJECT *po);
-LAVRIL_API const LVChar *lv_objtostring(const HSQOBJECT *o);
-LAVRIL_API LVBool lv_objtobool(const HSQOBJECT *o);
-LAVRIL_API LVInteger lv_objtointeger(const HSQOBJECT *o);
-LAVRIL_API LVFloat lv_objtofloat(const HSQOBJECT *o);
-LAVRIL_API LVUserPointer lv_objtouserpointer(const HSQOBJECT *o);
-LAVRIL_API LVRESULT lv_getobjtypetag(const HSQOBJECT *o, LVUserPointer *typetag);
-LAVRIL_API LVUnsignedInteger lv_getvmrefcount(VMHANDLE v, const HSQOBJECT *po);
+LAVRIL_API LVRESULT lv_getstackobj(VMHANDLE v, LVInteger idx, OBJHANDLE *po);
+LAVRIL_API void lv_pushobject(VMHANDLE v, OBJHANDLE obj);
+LAVRIL_API void lv_addref(VMHANDLE v, OBJHANDLE *po);
+LAVRIL_API LVBool lv_release(VMHANDLE v, OBJHANDLE *po);
+LAVRIL_API LVUnsignedInteger lv_getrefcount(VMHANDLE v, OBJHANDLE *po);
+LAVRIL_API void lv_resetobject(OBJHANDLE *po);
+LAVRIL_API const LVChar *lv_objtostring(const OBJHANDLE *o);
+LAVRIL_API LVBool lv_objtobool(const OBJHANDLE *o);
+LAVRIL_API LVInteger lv_objtointeger(const OBJHANDLE *o);
+LAVRIL_API LVFloat lv_objtofloat(const OBJHANDLE *o);
+LAVRIL_API LVUserPointer lv_objtouserpointer(const OBJHANDLE *o);
+LAVRIL_API LVRESULT lv_getobjtypetag(const OBJHANDLE *o, LVUserPointer *typetag);
+LAVRIL_API LVUnsignedInteger lv_getvmrefcount(VMHANDLE v, const OBJHANDLE *po);
 
 /* GC */
 LAVRIL_API LVInteger lv_collectgarbage(VMHANDLE v);
 LAVRIL_API LVRESULT lv_resurrectunreachable(VMHANDLE v);
 
 /* Serialization */
-LAVRIL_API LVRESULT lv_writeclosure(VMHANDLE vm, SQWRITEFUNC writef, LVUserPointer up);
-LAVRIL_API LVRESULT lv_readclosure(VMHANDLE vm, SQREADFUNC readf, LVUserPointer up);
+LAVRIL_API LVRESULT lv_writeclosure(VMHANDLE vm, LVWRITEFUNC writef, LVUserPointer up);
+LAVRIL_API LVRESULT lv_readclosure(VMHANDLE vm, LVREADFUNC readf, LVUserPointer up);
 
 /* Memory */
 LAVRIL_API void *lv_malloc(LVUnsignedInteger size);
@@ -374,9 +375,9 @@ LAVRIL_API void *lv_realloc(void *p, LVUnsignedInteger oldsize, LVUnsignedIntege
 LAVRIL_API void lv_free(void *p, LVUnsignedInteger size);
 
 /* Debug */
-LAVRIL_API LVRESULT lv_stackinfos(VMHANDLE v, LVInteger level, SQStackInfos *si);
+LAVRIL_API LVRESULT lv_stackinfos(VMHANDLE v, LVInteger level, LVStackInfos *si);
 LAVRIL_API void lv_setdebughook(VMHANDLE v);
-LAVRIL_API void lv_setnativedebughook(VMHANDLE v, SQDEBUGHOOK hook);
+LAVRIL_API void lv_setnativedebughook(VMHANDLE v, LVDEBUGHOOK hook);
 
 /* IO */
 LAVRIL_API LVFILE lv_fopen(const LVChar *, const LVChar *);
@@ -402,13 +403,13 @@ LAVRIL_API LVInteger lv_getblobsize(VMHANDLE v, LVInteger idx);
 
 /* String */
 #ifdef REGEX
-LAVRIL_API SQRex *sqstd_rex_compile(const LVChar *pattern, const LVChar **error);
-LAVRIL_API void sqstd_rex_free(SQRex *exp);
-LAVRIL_API LVBool sqstd_rex_match(SQRex *exp, const LVChar *text);
-LAVRIL_API LVBool sqstd_rex_search(SQRex *exp, const LVChar *text, const LVChar **out_begin, const LVChar **out_end);
-LAVRIL_API LVBool sqstd_rex_searchrange(SQRex *exp, const LVChar *text_begin, const LVChar *text_end, const LVChar **out_begin, const LVChar **out_end);
-LAVRIL_API LVInteger sqstd_rex_getsubexpcount(SQRex *exp);
-LAVRIL_API LVBool sqstd_rex_getsubexp(SQRex *exp, LVInteger n, SQRexMatch *subexp);
+LAVRIL_API LVRex *sqstd_rex_compile(const LVChar *pattern, const LVChar **error);
+LAVRIL_API void sqstd_rex_free(LVRex *exp);
+LAVRIL_API LVBool sqstd_rex_match(LVRex *exp, const LVChar *text);
+LAVRIL_API LVBool sqstd_rex_search(LVRex *exp, const LVChar *text, const LVChar **out_begin, const LVChar **out_end);
+LAVRIL_API LVBool sqstd_rex_searchrange(LVRex *exp, const LVChar *text_begin, const LVChar *text_end, const LVChar **out_begin, const LVChar **out_end);
+LAVRIL_API LVInteger sqstd_rex_getsubexpcount(LVRex *exp);
+LAVRIL_API LVBool sqstd_rex_getsubexp(LVRex *exp, LVInteger n, LVRexMatch *subexp);
 #endif
 LAVRIL_API LVRESULT sqstd_format(VMHANDLE v, LVInteger nformatstringidx, LVInteger *outlen, LVChar **output);
 

@@ -94,11 +94,11 @@ static LVInteger _sqlite__typeof(VMHANDLE v) {
 }
 
 #define _DECL_SQLITE_FUNC(name,nparams,tycheck) {_LC(#name),_sqlite_##name,nparams,tycheck}
-static const SQRegFunction sqlitelib_funcs[] = {
+static const LVRegFunction sqlitelib_funcs[] = {
 	_DECL_SQLITE_FUNC(constructor, 2, _LC(".s")),
 	_DECL_SQLITE_FUNC(exec, 2, _LC("xs")),
 	_DECL_SQLITE_FUNC(_typeof, 1, _LC("x")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_SQLITE_FUNC
 

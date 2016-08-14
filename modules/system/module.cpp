@@ -125,7 +125,7 @@ static LVInteger _system_date(VMHANDLE v) {
 }
 
 #define _DECL_FUNC(name,nparams,pmask) {_LC(#name),_system_##name,nparams,pmask}
-static const SQRegFunction systemlib_funcs[] = {
+static const LVRegFunction systemlib_funcs[] = {
 	_DECL_FUNC(getenv, 2, _LC(".s")),
 	_DECL_FUNC(system, 2, _LC(".s")),
 	_DECL_FUNC(user, 1, _LC(".")),
@@ -135,7 +135,7 @@ static const SQRegFunction systemlib_funcs[] = {
 	_DECL_FUNC(date, -1, _LC(".nn")),
 	_DECL_FUNC(remove, 2, _LC(".s")),
 	_DECL_FUNC(rename, 3, _LC(".ss")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC
 

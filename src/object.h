@@ -9,13 +9,9 @@
 #define UINT_MINUS_ONE (0xFFFFFFFF)
 #endif
 
-#define SQ_CLOSURESTREAM_HEAD (('S'<<24)|('Q'<<16)|('I'<<8)|('R'))
-#define SQ_CLOSURESTREAM_PART (('P'<<24)|('A'<<16)|('R'<<8)|('T'))
-#define SQ_CLOSURESTREAM_TAIL (('T'<<24)|('A'<<16)|('I'<<8)|('L'))
+struct LVSharedState;
 
-struct SQSharedState;
-
-enum SQMetaMethod {
+enum LVMetaMethod {
 	MT_ADD = 0,
 	MT_SUB = 1,
 	MT_MUL = 2,
@@ -75,7 +71,7 @@ enum SQMetaMethod {
     } \
 }
 
-#define _NULL_SQOBJECT_VECTOR(vec,size) { \
+#define _NULL_OBJECT_VECTOR(vec,size) { \
     for(LVInteger _n_ = 0; _n_ < ((LVInteger)size); _n_++) { \
         vec[_n_].Null(); \
     } \
@@ -83,29 +79,29 @@ enum SQMetaMethod {
 
 #define MINPOWER2 4
 
-struct SQRefCounted {
+struct LVRefCounted {
 	LVUnsignedInteger _uiRef;
-	struct SQWeakRef *_weakref;
+	struct LVWeakRef *_weakref;
 
-	SQRefCounted() {
+	LVRefCounted() {
 		_uiRef = 0;
 		_weakref = NULL;
 	}
 
-	virtual ~SQRefCounted();
-	SQWeakRef *GetWeakRef(SQObjectType type);
+	virtual ~LVRefCounted();
+	LVWeakRef *GetWeakRef(LVObjectType type);
 	virtual void Release() = 0;
 
 };
 
-struct SQWeakRef : SQRefCounted {
+struct LVWeakRef : LVRefCounted {
 	void Release();
-	SQObject _obj;
+	LVObject _obj;
 };
 
-#define _realval(o) (type((o)) != OT_WEAKREF ? (SQObject)o : _weakref(o)->_obj)
+#define _realval(o) (type((o)) != OT_WEAKREF ? (LVObject)o : _weakref(o)->_obj)
 
-struct SQObjectPtr;
+struct LVObjectPtr;
 
 #define __AddRef(type,unval) if(ISREFCOUNTED(type)) \
         { \
@@ -148,7 +144,7 @@ struct SQObjectPtr;
 #define _funcproto(obj) ((obj)._unVal.pFunctionProto)
 #define _class(obj) ((obj)._unVal.pClass)
 #define _instance(obj) ((obj)._unVal.pInstance)
-#define _delegable(obj) ((SQDelegable *)(obj)._unVal.pDelegable)
+#define _delegable(obj) ((LVDelegable *)(obj)._unVal.pDelegable)
 #define _weakref(obj) ((obj)._unVal.pWeakRef)
 #define _outer(obj) ((obj)._unVal.pOuter)
 #define _refcounted(obj) ((obj)._unVal.pRefCounted)
@@ -160,7 +156,7 @@ struct SQObjectPtr;
 #define tofloat(num) ((type(num)==OT_INTEGER)?(LVFloat)_integer(num):_float(num))
 #define tointeger(num) ((type(num)==OT_FLOAT)?(LVInteger)_float(num):_integer(num))
 
-#if defined(USEDOUBLE) && !defined(_SQ64) || !defined(USEDOUBLE) && defined(_LV64)
+#if defined(USEDOUBLE) && !defined(_LV64) || !defined(USEDOUBLE) && defined(_LV64)
 #define OBJECT_RAWINIT() { _unVal.raw = 0; }
 #define REFOBJECT_INIT() OBJECT_RAWINIT()
 #else
@@ -168,7 +164,7 @@ struct SQObjectPtr;
 #endif
 
 #define _REF_TYPE_DECL(type,_class,sym) \
-    SQObjectPtr(_class * x) \
+    LVObjectPtr(_class * x) \
     { \
         OBJECT_RAWINIT() \
         _type=type; \
@@ -176,10 +172,10 @@ struct SQObjectPtr;
         assert(_unVal.pTable); \
         _unVal.pRefCounted->_uiRef++; \
     } \
-    inline SQObjectPtr& operator=(_class *x) \
+    inline LVObjectPtr& operator=(_class *x) \
     {  \
-        SQObjectType tOldType; \
-        SQObjectValue unOldVal; \
+        LVObjectType tOldType; \
+        LVObjectValue unOldVal; \
         tOldType=_type; \
         unOldVal=_unVal; \
         _type = type; \
@@ -191,13 +187,13 @@ struct SQObjectPtr;
     }
 
 #define _SCALAR_TYPE_DECL(type,_class,sym) \
-    SQObjectPtr(_class x) \
+    LVObjectPtr(_class x) \
     { \
         OBJECT_RAWINIT() \
         _type=type; \
         _unVal.sym = x; \
     } \
-    inline SQObjectPtr& operator=(_class x) \
+    inline LVObjectPtr& operator=(_class x) \
     {  \
         __Release(_type,_unVal); \
         _type = type; \
@@ -206,50 +202,50 @@ struct SQObjectPtr;
         return *this; \
     }
 
-struct SQObjectPtr : public SQObject {
-	SQObjectPtr() {
+struct LVObjectPtr : public LVObject {
+	LVObjectPtr() {
 		OBJECT_RAWINIT()
 		_type = OT_NULL;
 		_unVal.pUserPointer = NULL;
 	}
 
-	SQObjectPtr(const SQObjectPtr& o) {
+	LVObjectPtr(const LVObjectPtr& o) {
 		_type = o._type;
 		_unVal = o._unVal;
 		__AddRef(_type, _unVal);
 	}
 
-	SQObjectPtr(const SQObject& o) {
+	LVObjectPtr(const LVObject& o) {
 		_type = o._type;
 		_unVal = o._unVal;
 		__AddRef(_type, _unVal);
 	}
 
-	_REF_TYPE_DECL(OT_TABLE, SQTable, pTable)
-	_REF_TYPE_DECL(OT_CLASS, SQClass, pClass)
-	_REF_TYPE_DECL(OT_INSTANCE, SQInstance, pInstance)
-	_REF_TYPE_DECL(OT_ARRAY, SQArray, pArray)
-	_REF_TYPE_DECL(OT_CLOSURE, SQClosure, pClosure)
-	_REF_TYPE_DECL(OT_NATIVECLOSURE, SQNativeClosure, pNativeClosure)
-	_REF_TYPE_DECL(OT_OUTER, SQOuter, pOuter)
-	_REF_TYPE_DECL(OT_GENERATOR, SQGenerator, pGenerator)
-	_REF_TYPE_DECL(OT_STRING, SQString, pString)
-	_REF_TYPE_DECL(OT_USERDATA, SQUserData, pUserData)
-	_REF_TYPE_DECL(OT_WEAKREF, SQWeakRef, pWeakRef)
-	_REF_TYPE_DECL(OT_THREAD, SQVM, pThread)
+	_REF_TYPE_DECL(OT_TABLE, LVTable, pTable)
+	_REF_TYPE_DECL(OT_CLASS, LVClass, pClass)
+	_REF_TYPE_DECL(OT_INSTANCE, LVInstance, pInstance)
+	_REF_TYPE_DECL(OT_ARRAY, LVArray, pArray)
+	_REF_TYPE_DECL(OT_CLOSURE, LVClosure, pClosure)
+	_REF_TYPE_DECL(OT_NATIVECLOSURE, LVNativeClosure, pNativeClosure)
+	_REF_TYPE_DECL(OT_OUTER, LVOuter, pOuter)
+	_REF_TYPE_DECL(OT_GENERATOR, LVGenerator, pGenerator)
+	_REF_TYPE_DECL(OT_STRING, LVString, pString)
+	_REF_TYPE_DECL(OT_USERDATA, LVUserData, pUserData)
+	_REF_TYPE_DECL(OT_WEAKREF, LVWeakRef, pWeakRef)
+	_REF_TYPE_DECL(OT_THREAD, LVVM, pThread)
 	_REF_TYPE_DECL(OT_FUNCPROTO, FunctionPrototype, pFunctionProto)
 
 	_SCALAR_TYPE_DECL(OT_INTEGER, LVInteger, nInteger)
 	_SCALAR_TYPE_DECL(OT_FLOAT, LVFloat, fFloat)
 	_SCALAR_TYPE_DECL(OT_USERPOINTER, LVUserPointer, pUserPointer)
 
-	SQObjectPtr(bool bBool) {
+	LVObjectPtr(bool bBool) {
 		OBJECT_RAWINIT()
 		_type = OT_BOOL;
 		_unVal.nInteger = bBool ? 1 : 0;
 	}
 
-	inline SQObjectPtr& operator=(bool b) {
+	inline LVObjectPtr& operator=(bool b) {
 		__Release(_type, _unVal);
 		OBJECT_RAWINIT()
 		_type = OT_BOOL;
@@ -257,13 +253,13 @@ struct SQObjectPtr : public SQObject {
 		return *this;
 	}
 
-	~SQObjectPtr() {
+	~LVObjectPtr() {
 		__Release(_type, _unVal);
 	}
 
-	inline SQObjectPtr& operator=(const SQObjectPtr& obj) {
-		SQObjectType tOldType;
-		SQObjectValue unOldVal;
+	inline LVObjectPtr& operator=(const LVObjectPtr& obj) {
+		LVObjectType tOldType;
+		LVObjectValue unOldVal;
 		tOldType = _type;
 		unOldVal = _unVal;
 		_unVal = obj._unVal;
@@ -273,9 +269,9 @@ struct SQObjectPtr : public SQObject {
 		return *this;
 	}
 
-	inline SQObjectPtr& operator=(const SQObject& obj) {
-		SQObjectType tOldType;
-		SQObjectValue unOldVal;
+	inline LVObjectPtr& operator=(const LVObject& obj) {
+		LVObjectType tOldType;
+		LVObjectValue unOldVal;
 		tOldType = _type;
 		unOldVal = _unVal;
 		_unVal = obj._unVal;
@@ -286,8 +282,8 @@ struct SQObjectPtr : public SQObject {
 	}
 
 	inline void Null() {
-		SQObjectType tOldType = _type;
-		SQObjectValue unOldVal = _unVal;
+		LVObjectType tOldType = _type;
+		LVObjectValue unOldVal = _unVal;
 		_type = OT_NULL;
 		_unVal.raw = (LVRawObjectVal)NULL;
 		__Release(tOldType , unOldVal);
@@ -298,12 +294,12 @@ struct SQObjectPtr : public SQObject {
 #endif
 
   private:
-	SQObjectPtr(const LVChar *) {} //safety
+	LVObjectPtr(const LVChar *) {} //safety
 };
 
-inline void _Swap(SQObject& a, SQObject& b) {
-	SQObjectType tOldType = a._type;
-	SQObjectValue unOldVal = a._unVal;
+inline void _Swap(LVObject& a, LVObject& b) {
+	LVObjectType tOldType = a._type;
+	LVObjectValue unOldVal = a._unVal;
 	a._type = b._type;
 	a._unVal = b._unVal;
 	b._type = tOldType;
@@ -313,41 +309,41 @@ inline void _Swap(SQObject& a, SQObject& b) {
 /////////////////////////////////////////////////////////////////////////////////////
 #ifndef NO_GARBAGE_COLLECTOR
 #define MARK_FLAG 0x80000000
-struct SQCollectable : public SQRefCounted {
-	SQCollectable *_next;
-	SQCollectable *_prev;
-	SQSharedState *_sharedstate;
-	virtual SQObjectType GetType() = 0;
+struct LVCollectable : public LVRefCounted {
+	LVCollectable *_next;
+	LVCollectable *_prev;
+	LVSharedState *_sharedstate;
+	virtual LVObjectType GetType() = 0;
 	virtual void Release() = 0;
-	virtual void Mark(SQCollectable **chain) = 0;
+	virtual void Mark(LVCollectable **chain) = 0;
 	void UnMark();
 	virtual void Finalize() = 0;
-	static void AddToChain(SQCollectable **chain, SQCollectable *c);
-	static void RemoveFromChain(SQCollectable **chain, SQCollectable *c);
+	static void AddToChain(LVCollectable **chain, LVCollectable *c);
+	static void RemoveFromChain(LVCollectable **chain, LVCollectable *c);
 };
 
 #define ADD_TO_CHAIN(chain,obj) AddToChain(chain,obj)
 #define REMOVE_FROM_CHAIN(chain,obj) {if(!(_uiRef&MARK_FLAG))RemoveFromChain(chain,obj);}
-#define CHAINABLE_OBJ SQCollectable
+#define CHAINABLE_OBJ LVCollectable
 #define INIT_CHAIN() {_next=NULL;_prev=NULL;_sharedstate=ss;}
 #else
 
 #define ADD_TO_CHAIN(chain,obj) ((void)0)
 #define REMOVE_FROM_CHAIN(chain,obj) ((void)0)
-#define CHAINABLE_OBJ SQRefCounted
+#define CHAINABLE_OBJ LVRefCounted
 #define INIT_CHAIN() ((void)0)
 #endif
 
-struct SQDelegable : public CHAINABLE_OBJ {
-	bool SetDelegate(SQTable *m);
-	virtual bool GetMetaMethod(SQVM *v, SQMetaMethod mm, SQObjectPtr& res);
-	SQTable *_delegate;
+struct LVDelegable : public CHAINABLE_OBJ {
+	bool SetDelegate(LVTable *m);
+	virtual bool GetMetaMethod(LVVM *v, LVMetaMethod mm, LVObjectPtr& res);
+	LVTable *_delegate;
 };
 
-LVUnsignedInteger TranslateIndex(const SQObjectPtr& idx);
-typedef sqvector<SQObjectPtr> SQObjectPtrVec;
-typedef sqvector<LVInteger> SQIntVec;
-const LVChar *GetTypeName(const SQObjectPtr& obj1);
-const LVChar *IdType2Name(SQObjectType type);
+LVUnsignedInteger TranslateIndex(const LVObjectPtr& idx);
+typedef lvvector<LVObjectPtr> LVObjectPtrVec;
+typedef lvvector<LVInteger> LVIntVector;
+const LVChar *GetTypeName(const LVObjectPtr& obj1);
+const LVChar *IdType2Name(LVObjectType type);
 
 #endif // _OBJECT_H_

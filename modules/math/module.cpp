@@ -59,7 +59,7 @@ SINGLE_ARG_FUNC(ceil)
 SINGLE_ARG_FUNC(exp)
 
 #define _DECL_FUNC(name,nparams,tycheck) {_LC(#name),math_##name,nparams,tycheck}
-static const SQRegFunction mathlib_funcs[] = {
+static const LVRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(sqrt, 2, _LC(".n")),
 	_DECL_FUNC(sin, 2, _LC(".n")),
 	_DECL_FUNC(cos, 2, _LC(".n")),
@@ -79,7 +79,7 @@ static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(fabs, 2, _LC(".n")),
 	_DECL_FUNC(abs, 2, _LC(".n")),
 	_DECL_FUNC(universe, 1, _LC(".n")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC
 

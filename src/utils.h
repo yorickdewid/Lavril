@@ -5,8 +5,8 @@ void *lv_vm_malloc(LVUnsignedInteger size);
 void *lv_vm_realloc(void *p, LVUnsignedInteger oldsize, LVUnsignedInteger size);
 void lv_vm_free(void *p, LVUnsignedInteger size);
 
-#define sq_new(__ptr,__type) {__ptr=(__type *)lv_vm_malloc(sizeof(__type));new (__ptr) __type;}
-#define sq_delete(__ptr,__type) {__ptr->~__type();lv_vm_free(__ptr,sizeof(__type));}
+#define lv_new(__ptr,__type) {__ptr=(__type *)lv_vm_malloc(sizeof(__type));new (__ptr) __type;}
+#define lv_delete(__ptr,__type) {__ptr->~__type();lv_vm_free(__ptr,sizeof(__type));}
 
 #define LV_MALLOC(__size) lv_vm_malloc((__size));
 #define LV_FREE(__ptr,__size) lv_vm_free((__ptr),(__size));
@@ -15,9 +15,9 @@ void lv_vm_free(void *p, LVUnsignedInteger size);
 #define LV_ALIGN(v) (((size_t)(v) + (LV_ALIGNMENT-1)) & (~(LV_ALIGNMENT-1)))
 
 template<typename T>
-class sqvector {
+class lvvector {
   public:
-	sqvector(LVUnsignedInteger size = 0) {
+	lvvector(LVUnsignedInteger size = 0) {
 		_vals = NULL;
 		_size = 0;
 		_allocated = 0;
@@ -26,11 +26,11 @@ class sqvector {
 			resize(size);
 	}
 
-	sqvector(const sqvector<T>& v) {
+	lvvector(const lvvector<T>& v) {
 		copy(v);
 	}
 
-	void copy(const sqvector<T>& v) {
+	void copy(const lvvector<T>& v) {
 		if (_size) {
 			resize(0); //destroys all previous stuff
 		}
@@ -44,7 +44,7 @@ class sqvector {
 		_size = v._size;
 	}
 
-	~sqvector() {
+	~lvvector() {
 		if (_allocated) {
 			for (LVUnsignedInteger i = 0; i < _size; i++)
 				_vals[i].~T();

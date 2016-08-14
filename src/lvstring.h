@@ -9,16 +9,16 @@ inline LVHash _hashstr (const LVChar *s, size_t l) {
 	return h;
 }
 
-struct SQString : public SQRefCounted {
-	SQString() {}
-	~SQString() {}
+struct LVString : public LVRefCounted {
+	LVString() {}
+	~LVString() {}
 
   public:
-	static SQString *Create(SQSharedState *ss, const LVChar *, LVInteger len = -1);
-	LVInteger Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval);
+	static LVString *Create(LVSharedState *ss, const LVChar *, LVInteger len = -1);
+	LVInteger Next(const LVObjectPtr& refpos, LVObjectPtr& outkey, LVObjectPtr& outval);
 	void Release();
-	SQSharedState *_sharedstate;
-	SQString *_next; //chain for the string table
+	LVSharedState *_sharedstate;
+	LVString *_next; //chain for the string table
 	LVInteger _len;
 	LVHash _hash;
 	LVChar _val[1];

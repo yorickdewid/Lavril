@@ -1,7 +1,7 @@
 #include "pcheader.h"
 #include "stream.h"
 
-#define SQ_FILE_TYPE_TAG (SQ_STREAM_TYPE_TAG | 0x00000001)
+#define FILE_TYPE_TAG (STREAM_TYPE_TAG | 0x00000001)
 
 LVFILE lv_fopen(const LVChar *filename , const LVChar *mode) {
 #ifndef LVUNICODE
@@ -55,16 +55,16 @@ LVInteger lv_feof(LVFILE file) {
 }
 
 //File
-struct SQFile : public SQStream {
-	SQFile() {
+struct LVFile : public LVStream {
+	LVFile() {
 		_handle = NULL;
 		_owns = false;
 	}
-	SQFile(LVFILE file, bool owns) {
+	LVFile(LVFILE file, bool owns) {
 		_handle = file;
 		_owns = owns;
 	}
-	virtual ~SQFile() {
+	virtual ~LVFile() {
 		Close();
 	}
 	bool Open(const LVChar *filename , const LVChar *mode) {
@@ -124,16 +124,16 @@ static LVInteger _file__typeof(VMHANDLE v) {
 }
 
 static LVInteger _file_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
-	SQFile *self = (SQFile *)p;
-	self->~SQFile();
-	lv_free(self, sizeof(SQFile));
+	LVFile *self = (LVFile *)p;
+	self->~LVFile();
+	lv_free(self, sizeof(LVFile));
 	return 1;
 }
 
 static LVInteger _file_constructor(VMHANDLE v) {
 	const LVChar *filename, *mode;
 	bool owns = true;
-	SQFile *f;
+	LVFile *f;
 	LVFILE newf;
 	if (lv_gettype(v, 2) == OT_STRING && lv_gettype(v, 3) == OT_STRING) {
 		lv_getstring(v, 2, &filename);
@@ -147,10 +147,10 @@ static LVInteger _file_constructor(VMHANDLE v) {
 		return lv_throwerror(v, _LC("wrong parameter"));
 	}
 
-	f = new(lv_malloc(sizeof(SQFile))) SQFile(newf, owns);
+	f = new(lv_malloc(sizeof(LVFile))) LVFile(newf, owns);
 	if (LV_FAILED(lv_setinstanceup(v, 1, f))) {
-		f->~SQFile();
-		lv_free(f, sizeof(SQFile));
+		f->~LVFile();
+		lv_free(f, sizeof(LVFile));
 		return lv_throwerror(v, _LC("cannot create blob with negative size"));
 	}
 	lv_setreleasehook(v, 1, _file_releasehook);
@@ -158,8 +158,8 @@ static LVInteger _file_constructor(VMHANDLE v) {
 }
 
 static LVInteger _file_close(VMHANDLE v) {
-	SQFile *self = NULL;
-	if (LV_SUCCEEDED(lv_getinstanceup(v, 1, (LVUserPointer *)&self, (LVUserPointer)SQ_FILE_TYPE_TAG))
+	LVFile *self = NULL;
+	if (LV_SUCCEEDED(lv_getinstanceup(v, 1, (LVUserPointer *)&self, (LVUserPointer)FILE_TYPE_TAG))
 	        && self != NULL) {
 		self->Close();
 	}
@@ -168,11 +168,11 @@ static LVInteger _file_close(VMHANDLE v) {
 
 //bindings
 #define _DECL_FILE_FUNC(name,nparams,typecheck) {_LC(#name),_file_##name,nparams,typecheck}
-static const SQRegFunction _file_methods[] = {
+static const LVRegFunction _file_methods[] = {
 	_DECL_FILE_FUNC(constructor, 3, _LC("x")),
 	_DECL_FILE_FUNC(_typeof, 1, _LC("x")),
 	_DECL_FILE_FUNC(close, 1, _LC("x")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 
 LVRESULT lv_createfile(VMHANDLE v, LVFILE file, LVBool own) {
@@ -198,8 +198,8 @@ LVRESULT lv_createfile(VMHANDLE v, LVFILE file, LVBool own) {
 }
 
 LVRESULT lv_getfile(VMHANDLE v, LVInteger idx, LVFILE *file) {
-	SQFile *fileobj = NULL;
-	if (LV_SUCCEEDED(lv_getinstanceup(v, idx, (LVUserPointer *)&fileobj, (LVUserPointer)SQ_FILE_TYPE_TAG))) {
+	LVFile *fileobj = NULL;
+	if (LV_SUCCEEDED(lv_getinstanceup(v, idx, (LVUserPointer *)&fileobj, (LVUserPointer)FILE_TYPE_TAG))) {
 		*file = fileobj->GetHandle();
 		return LV_OK;
 	}
@@ -327,7 +327,7 @@ LVRESULT lv_loadfile(VMHANDLE v, const LVChar *filename, LVBool printerror) {
 	LVInteger ret;
 	unsigned short us;
 	unsigned char uc;
-	SQLEXREADFUNC func = _io_file_lexfeed_PLAIN;
+	LVLEXREADFUNC func = _io_file_lexfeed_PLAIN;
 	if (file) {
 		ret = lv_fread(&us, 1, 2, file);
 		if (ret != 2) {
@@ -450,17 +450,17 @@ CALLBACK LVInteger callback_loadunit(VMHANDLE v, const LVChar *sSource, LVBool p
 }
 
 #define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_LC(#name),_g_io_##name,nparams,typecheck}
-static const SQRegFunction iolib_funcs[] = {
+static const LVRegFunction iolib_funcs[] = {
 	_DECL_GLOBALIO_FUNC(loadfile, -2, _LC(".sb")),
 	_DECL_GLOBALIO_FUNC(execfile, -2, _LC(".sb")),
 	_DECL_GLOBALIO_FUNC(writeclosuretofile, 3, _LC(".sc")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 
 LVRESULT mod_init_io(VMHANDLE v) {
 	LVInteger top = lv_gettop(v);
 	//create delegate
-	declare_stream(v, _LC("file"), (LVUserPointer)SQ_FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
+	declare_stream(v, _LC("file"), (LVUserPointer)FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
 	lv_pushstring(v, _LC("stdout"), -1);
 	lv_createfile(v, stdout, LVFalse);
 	lv_newslot(v, -3, LVFalse);

@@ -1,7 +1,7 @@
 #ifndef _COMPILER_H_
 #define _COMPILER_H_
 
-struct SQVM;
+struct LVVM;
 
 #define TK_IDENTIFIER   258
 #define TK_STRING_LITERAL   259
@@ -72,5 +72,5 @@ struct SQVM;
 #define TK_INCLUDE 325
 
 typedef void(*CompilerErrorFunc)(void *ud, const LVChar *s);
-bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo);
+bool RunCompiler(LVVM *vm, LVLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, LVObjectPtr& out, bool raiseerror, bool lineinfo);
 #endif // _COMPILER_H_

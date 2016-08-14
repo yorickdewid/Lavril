@@ -16,11 +16,6 @@ clean:
 	$(MAKE) -C $(CLI) clean
 	$(MAKE) -C $(UTIL) clean
 
-sqprof: folders
-	cd squirrel; $(MAKE) sqprof
-	cd sqstdlib; $(MAKE) sqprof
-	cd sq; $(MAKE) sqprof
-
 test: la64
 	$(MAKE) -C $(TEST)
 

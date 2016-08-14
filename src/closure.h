@@ -1,13 +1,13 @@
 #ifndef _CLOSURE_H_
 #define _CLOSURE_H_
 
-#define _CALC_CLOSURE_SIZE(func) (sizeof(SQClosure) + (func->_noutervalues*sizeof(SQObjectPtr)) + (func->_ndefaultparams*sizeof(SQObjectPtr)))
+#define _CALC_CLOSURE_SIZE(func) (sizeof(LVClosure) + (func->_noutervalues*sizeof(LVObjectPtr)) + (func->_ndefaultparams*sizeof(LVObjectPtr)))
 
 struct FunctionPrototype;
-struct SQClass;
-struct SQClosure : public CHAINABLE_OBJ {
+struct LVClass;
+struct LVClosure : public CHAINABLE_OBJ {
   private:
-	SQClosure(SQSharedState *ss, FunctionPrototype *func) {
+	LVClosure(LVSharedState *ss, FunctionPrototype *func) {
 		_function = func;
 		__ObjAddRef(_function);
 		_base = NULL;
@@ -18,38 +18,38 @@ struct SQClosure : public CHAINABLE_OBJ {
 	}
 
   public:
-	static SQClosure *Create(SQSharedState *ss, FunctionPrototype *func, SQWeakRef *root) {
+	static LVClosure *Create(LVSharedState *ss, FunctionPrototype *func, LVWeakRef *root) {
 		LVInteger size = _CALC_CLOSURE_SIZE(func);
-		SQClosure *nc = (SQClosure *)LV_MALLOC(size);
-		new (nc) SQClosure(ss, func);
-		nc->_outervalues = (SQObjectPtr *)(nc + 1);
+		LVClosure *nc = (LVClosure *)LV_MALLOC(size);
+		new (nc) LVClosure(ss, func);
+		nc->_outervalues = (LVObjectPtr *)(nc + 1);
 		nc->_defaultparams = &nc->_outervalues[func->_noutervalues];
 		nc->_root = root;
 		__ObjAddRef(nc->_root);
-		_CONSTRUCT_VECTOR(SQObjectPtr, func->_noutervalues, nc->_outervalues);
-		_CONSTRUCT_VECTOR(SQObjectPtr, func->_ndefaultparams, nc->_defaultparams);
+		_CONSTRUCT_VECTOR(LVObjectPtr, func->_noutervalues, nc->_outervalues);
+		_CONSTRUCT_VECTOR(LVObjectPtr, func->_ndefaultparams, nc->_defaultparams);
 		return nc;
 	}
 
 	void Release() {
 		FunctionPrototype *f = _function;
 		LVInteger size = _CALC_CLOSURE_SIZE(f);
-		_DESTRUCT_VECTOR(SQObjectPtr, f->_noutervalues, _outervalues);
-		_DESTRUCT_VECTOR(SQObjectPtr, f->_ndefaultparams, _defaultparams);
+		_DESTRUCT_VECTOR(LVObjectPtr, f->_noutervalues, _outervalues);
+		_DESTRUCT_VECTOR(LVObjectPtr, f->_ndefaultparams, _defaultparams);
 		__ObjRelease(_function);
-		this->~SQClosure();
+		this->~LVClosure();
 		lv_vm_free(this, size);
 	}
 
-	void SetRoot(SQWeakRef *r) {
+	void SetRoot(LVWeakRef *r) {
 		__ObjRelease(_root);
 		_root = r;
 		__ObjAddRef(_root);
 	}
 
-	SQClosure *Clone() {
+	LVClosure *Clone() {
 		FunctionPrototype *f = _function;
-		SQClosure *ret = SQClosure::Create(_opt_ss(this), f, _root);
+		LVClosure *ret = LVClosure::Create(_opt_ss(this), f, _root);
 		ret->_env = _env;
 		if (ret->_env) __ObjAddRef(ret->_env);
 		_COPY_VECTOR(ret->_outervalues, _outervalues, f->_noutervalues);
@@ -57,36 +57,36 @@ struct SQClosure : public CHAINABLE_OBJ {
 		return ret;
 	}
 
-	~SQClosure();
+	~LVClosure();
 
-	bool Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write);
-	static bool Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& ret);
+	bool Save(LVVM *v, LVUserPointer up, LVWRITEFUNC write);
+	static bool Load(LVVM *v, LVUserPointer up, LVREADFUNC read, LVObjectPtr& ret);
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
+	void Mark(LVCollectable **chain);
 
 	void Finalize() {
 		FunctionPrototype *f = _function;
-		_NULL_SQOBJECT_VECTOR(_outervalues, f->_noutervalues);
-		_NULL_SQOBJECT_VECTOR(_defaultparams, f->_ndefaultparams);
+		_NULL_OBJECT_VECTOR(_outervalues, f->_noutervalues);
+		_NULL_OBJECT_VECTOR(_defaultparams, f->_ndefaultparams);
 	}
 
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_CLOSURE;
 	}
 #endif
 
-	SQWeakRef *_env;
-	SQWeakRef *_root;
-	SQClass *_base;
+	LVWeakRef *_env;
+	LVWeakRef *_root;
+	LVClass *_base;
 	FunctionPrototype *_function;
-	SQObjectPtr *_outervalues;
-	SQObjectPtr *_defaultparams;
+	LVObjectPtr *_outervalues;
+	LVObjectPtr *_defaultparams;
 };
 
-struct SQOuter : public CHAINABLE_OBJ {
+struct LVOuter : public CHAINABLE_OBJ {
   private:
-	SQOuter(SQSharedState *ss, SQObjectPtr *outer) {
+	LVOuter(LVSharedState *ss, LVObjectPtr *outer) {
 		_valptr = outer;
 		_next = NULL;
 		INIT_CHAIN();
@@ -94,48 +94,48 @@ struct SQOuter : public CHAINABLE_OBJ {
 	}
 
   public:
-	static SQOuter *Create(SQSharedState *ss, SQObjectPtr *outer) {
-		SQOuter *nc  = (SQOuter *)LV_MALLOC(sizeof(SQOuter));
-		new (nc) SQOuter(ss, outer);
+	static LVOuter *Create(LVSharedState *ss, LVObjectPtr *outer) {
+		LVOuter *nc  = (LVOuter *)LV_MALLOC(sizeof(LVOuter));
+		new (nc) LVOuter(ss, outer);
 		return nc;
 	}
 
-	~SQOuter() {
+	~LVOuter() {
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
 
 	void Release() {
-		this->~SQOuter();
-		lv_vm_free(this, sizeof(SQOuter));
+		this->~LVOuter();
+		lv_vm_free(this, sizeof(LVOuter));
 	}
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
+	void Mark(LVCollectable **chain);
 
 	void Finalize() {
 		_value.Null();
 	}
 
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_OUTER;
 	}
 #endif
 
-	SQObjectPtr *_valptr;  /* pointer to value on stack, or _value below */
+	LVObjectPtr *_valptr;  /* pointer to value on stack, or _value below */
 	LVInteger    _idx;     /* idx in stack array, for relocation */
-	SQObjectPtr  _value;   /* value of outer after stack frame is closed */
-	SQOuter     *_next;    /* pointer to next outer when frame is open   */
+	LVObjectPtr  _value;   /* value of outer after stack frame is closed */
+	LVOuter     *_next;    /* pointer to next outer when frame is open   */
 };
 
-struct SQGenerator : public CHAINABLE_OBJ {
-	enum SQGeneratorState {
+struct LVGenerator : public CHAINABLE_OBJ {
+	enum LVGeneratorState {
 		eRunning,
 		eSuspended,
 		eDead
 	};
 
   private:
-	SQGenerator(SQSharedState *ss, SQClosure *closure) {
+	LVGenerator(LVSharedState *ss, LVClosure *closure) {
 		_closure = closure;
 		_state = eRunning;
 		_ci._generator = NULL;
@@ -144,13 +144,13 @@ struct SQGenerator : public CHAINABLE_OBJ {
 	}
 
   public:
-	static SQGenerator *Create(SQSharedState *ss, SQClosure *closure) {
-		SQGenerator *nc = (SQGenerator *)LV_MALLOC(sizeof(SQGenerator));
-		new (nc) SQGenerator(ss, closure);
+	static LVGenerator *Create(LVSharedState *ss, LVClosure *closure) {
+		LVGenerator *nc = (LVGenerator *)LV_MALLOC(sizeof(LVGenerator));
+		new (nc) LVGenerator(ss, closure);
 		return nc;
 	}
 
-	~SQGenerator() {
+	~LVGenerator() {
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
 
@@ -161,36 +161,36 @@ struct SQGenerator : public CHAINABLE_OBJ {
 	}
 
 	void Release() {
-		sq_delete(this, SQGenerator);
+		lv_delete(this, LVGenerator);
 	}
 
-	bool Yield(SQVM *v, LVInteger target);
-	bool Resume(SQVM *v, SQObjectPtr& dest);
+	bool Yield(LVVM *v, LVInteger target);
+	bool Resume(LVVM *v, LVObjectPtr& dest);
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
+	void Mark(LVCollectable **chain);
 
 	void Finalize() {
 		_stack.resize(0);
 		_closure.Null();
 	}
 
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_GENERATOR;
 	}
 #endif
 
-	SQObjectPtr _closure;
-	SQObjectPtrVec _stack;
-	SQVM::CallInfo _ci;
+	LVObjectPtr _closure;
+	LVObjectPtrVec _stack;
+	LVVM::CallInfo _ci;
 	ExceptionsTraps _etraps;
-	SQGeneratorState _state;
+	LVGeneratorState _state;
 };
 
-#define _CALC_NATVIVECLOSURE_SIZE(noutervalues) (sizeof(SQNativeClosure) + (noutervalues*sizeof(SQObjectPtr)))
+#define _CALC_NATVIVECLOSURE_SIZE(noutervalues) (sizeof(LVNativeClosure) + (noutervalues*sizeof(LVObjectPtr)))
 
-struct SQNativeClosure : public CHAINABLE_OBJ {
+struct LVNativeClosure : public CHAINABLE_OBJ {
   private:
-	SQNativeClosure(SQSharedState *ss, SQFUNCTION func) {
+	LVNativeClosure(LVSharedState *ss, LVFUNCTION func) {
 		_function = func;
 		INIT_CHAIN();
 		ADD_TO_CHAIN(&_ss(this)->_gc_chain, this);
@@ -198,18 +198,18 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 	}
 
   public:
-	static SQNativeClosure *Create(SQSharedState *ss, SQFUNCTION func, LVInteger nouters) {
+	static LVNativeClosure *Create(LVSharedState *ss, LVFUNCTION func, LVInteger nouters) {
 		LVInteger size = _CALC_NATVIVECLOSURE_SIZE(nouters);
-		SQNativeClosure *nc = (SQNativeClosure *)LV_MALLOC(size);
-		new (nc) SQNativeClosure(ss, func);
-		nc->_outervalues = (SQObjectPtr *)(nc + 1);
+		LVNativeClosure *nc = (LVNativeClosure *)LV_MALLOC(size);
+		new (nc) LVNativeClosure(ss, func);
+		nc->_outervalues = (LVObjectPtr *)(nc + 1);
 		nc->_noutervalues = nouters;
-		_CONSTRUCT_VECTOR(SQObjectPtr, nc->_noutervalues, nc->_outervalues);
+		_CONSTRUCT_VECTOR(LVObjectPtr, nc->_noutervalues, nc->_outervalues);
 		return nc;
 	}
 
-	SQNativeClosure *Clone() {
-		SQNativeClosure *ret = SQNativeClosure::Create(_opt_ss(this), _function, _noutervalues);
+	LVNativeClosure *Clone() {
+		LVNativeClosure *ret = LVNativeClosure::Create(_opt_ss(this), _function, _noutervalues);
 		ret->_env = _env;
 		if (ret->_env) __ObjAddRef(ret->_env);
 		ret->_name = _name;
@@ -219,37 +219,37 @@ struct SQNativeClosure : public CHAINABLE_OBJ {
 		return ret;
 	}
 
-	~SQNativeClosure() {
+	~LVNativeClosure() {
 		__ObjRelease(_env);
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 	}
 
 	void Release() {
 		LVInteger size = _CALC_NATVIVECLOSURE_SIZE(_noutervalues);
-		_DESTRUCT_VECTOR(SQObjectPtr, _noutervalues, _outervalues);
-		this->~SQNativeClosure();
+		_DESTRUCT_VECTOR(LVObjectPtr, _noutervalues, _outervalues);
+		this->~LVNativeClosure();
 		lv_free(this, size);
 	}
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
+	void Mark(LVCollectable **chain);
 
 	void Finalize() {
-		_NULL_SQOBJECT_VECTOR(_outervalues, _noutervalues);
+		_NULL_OBJECT_VECTOR(_outervalues, _noutervalues);
 	}
 
-	SQObjectType GetType() {
+	LVObjectType GetType() {
 		return OT_NATIVECLOSURE;
 	}
 #endif
 
 	LVInteger _nparamscheck;
-	SQIntVec _typecheck;
-	SQObjectPtr *_outervalues;
+	LVIntVector _typecheck;
+	LVObjectPtr *_outervalues;
 	LVUnsignedInteger _noutervalues;
-	SQWeakRef *_env;
-	SQFUNCTION _function;
-	SQObjectPtr _name;
+	LVWeakRef *_env;
+	LVFUNCTION _function;
+	LVObjectPtr _name;
 };
 
 #endif // _LVCLOSURE_H_

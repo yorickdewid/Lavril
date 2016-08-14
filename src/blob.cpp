@@ -1,10 +1,10 @@
 #include "pcheader.h"
 #include "stream.h"
 
-#define SQ_BLOB_TYPE_TAG (SQ_STREAM_TYPE_TAG | 0x00000002)
+#define BLOB_TYPE_TAG (STREAM_TYPE_TAG | 0x00000002)
 
-struct SQBlob : public SQStream {
-	SQBlob(LVInteger size) {
+struct LVBlob : public LVStream {
+	LVBlob(LVInteger size) {
 		_size = size;
 		_allocated = size;
 		_buf = (unsigned char *)lv_malloc(size);
@@ -12,7 +12,7 @@ struct SQBlob : public SQStream {
 		_ptr = 0;
 		_owns = true;
 	}
-	virtual ~SQBlob() {
+	virtual ~LVBlob() {
 		lv_free(_buf, _allocated);
 	}
 	LVInteger Write(void *buffer, LVInteger size) {
@@ -118,8 +118,8 @@ struct SQBlob : public SQStream {
 };
 
 #define SETUP_BLOB(v) \
-	SQBlob *self = NULL; \
-	{ if(LV_FAILED(lv_getinstanceup(v,1,(LVUserPointer*)&self,(LVUserPointer)SQ_BLOB_TYPE_TAG))) \
+	LVBlob *self = NULL; \
+	{ if(LV_FAILED(lv_getinstanceup(v,1,(LVUserPointer*)&self,(LVUserPointer)BLOB_TYPE_TAG))) \
 		return lv_throwerror(v,_LC("invalid type tag"));  } \
 	if(!self || !self->IsValid())  \
 		return lv_throwerror(v,_LC("the blob is invalid"));
@@ -211,9 +211,9 @@ static LVInteger _blob__typeof(VMHANDLE v) {
 }
 
 static LVInteger _blob_releasehook(LVUserPointer p, LVInteger LV_UNUSED_ARG(size)) {
-	SQBlob *self = (SQBlob *)p;
-	self->~SQBlob();
-	lv_free(self, sizeof(SQBlob));
+	LVBlob *self = (LVBlob *)p;
+	self->~LVBlob();
+	lv_free(self, sizeof(LVBlob));
 	return 1;
 }
 
@@ -224,12 +224,12 @@ static LVInteger _blob_constructor(VMHANDLE v) {
 		lv_getinteger(v, 2, &size);
 	}
 	if (size < 0) return lv_throwerror(v, _LC("cannot create blob with negative size"));
-	//SQBlob *b = new SQBlob(size);
+	//LVBlob *b = new LVBlob(size);
 
-	SQBlob *b = new(lv_malloc(sizeof(SQBlob))) SQBlob(size);
+	LVBlob *b = new(lv_malloc(sizeof(LVBlob))) LVBlob(size);
 	if (LV_FAILED(lv_setinstanceup(v, 1, b))) {
-		b->~SQBlob();
-		lv_free(b, sizeof(SQBlob));
+		b->~LVBlob();
+		lv_free(b, sizeof(LVBlob));
 		return lv_throwerror(v, _LC("cannot create blob"));
 	}
 	lv_setreleasehook(v, 1, _blob_releasehook);
@@ -237,17 +237,17 @@ static LVInteger _blob_constructor(VMHANDLE v) {
 }
 
 static LVInteger _blob__cloned(VMHANDLE v) {
-	SQBlob *other = NULL;
+	LVBlob *other = NULL;
 	{
-		if (LV_FAILED(lv_getinstanceup(v, 2, (LVUserPointer *)&other, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
+		if (LV_FAILED(lv_getinstanceup(v, 2, (LVUserPointer *)&other, (LVUserPointer)BLOB_TYPE_TAG)))
 			return LV_ERROR;
 	}
-	//SQBlob *thisone = new SQBlob(other->Len());
-	SQBlob *thisone = new(lv_malloc(sizeof(SQBlob))) SQBlob(other->Len());
+	//LVBlob *thisone = new LVBlob(other->Len());
+	LVBlob *thisone = new(lv_malloc(sizeof(LVBlob))) LVBlob(other->Len());
 	memcpy(thisone->GetBuf(), other->GetBuf(), thisone->Len());
 	if (LV_FAILED(lv_setinstanceup(v, 1, thisone))) {
-		thisone->~SQBlob();
-		lv_free(thisone, sizeof(SQBlob));
+		thisone->~LVBlob();
+		lv_free(thisone, sizeof(LVBlob));
 		return lv_throwerror(v, _LC("cannot clone blob"));
 	}
 	lv_setreleasehook(v, 1, _blob_releasehook);
@@ -255,7 +255,7 @@ static LVInteger _blob__cloned(VMHANDLE v) {
 }
 
 #define _DECL_BLOB_FUNC(name,nparams,typecheck) {_LC(#name),_blob_##name,nparams,typecheck}
-static const SQRegFunction _blob_methods[] = {
+static const LVRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(constructor, -1, _LC("xn")),
 	_DECL_BLOB_FUNC(resize, 2, _LC("xn")),
 	_DECL_BLOB_FUNC(swap2, 1, _LC("x")),
@@ -265,7 +265,7 @@ static const SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(_typeof, 1, _LC("x")),
 	_DECL_BLOB_FUNC(_nexti, 2, _LC("x")),
 	_DECL_BLOB_FUNC(_cloned, 2, _LC("xx")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 
 //GLOBAL FUNCTIONS
@@ -310,26 +310,26 @@ static LVInteger _g_blob_swapfloat(VMHANDLE v) {
 }
 
 #define _DECL_GLOBALBLOB_FUNC(name,nparams,typecheck) {_LC(#name),_g_blob_##name,nparams,typecheck}
-static const SQRegFunction bloblib_funcs[] = {
+static const LVRegFunction bloblib_funcs[] = {
 	_DECL_GLOBALBLOB_FUNC(casti2f, 2, _LC(".n")),
 	_DECL_GLOBALBLOB_FUNC(castf2i, 2, _LC(".n")),
 	_DECL_GLOBALBLOB_FUNC(swap2, 2, _LC(".n")),
 	_DECL_GLOBALBLOB_FUNC(swap4, 2, _LC(".n")),
 	_DECL_GLOBALBLOB_FUNC(swapfloat, 2, _LC(".n")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 
 LVRESULT lv_getblob(VMHANDLE v, LVInteger idx, LVUserPointer *ptr) {
-	SQBlob *blob;
-	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
+	LVBlob *blob;
+	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)BLOB_TYPE_TAG)))
 		return -1;
 	*ptr = blob->GetBuf();
 	return LV_OK;
 }
 
 LVInteger lv_getblobsize(VMHANDLE v, LVInteger idx) {
-	SQBlob *blob;
-	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG)))
+	LVBlob *blob;
+	if (LV_FAILED(lv_getinstanceup(v, idx, (LVUserPointer *)&blob, (LVUserPointer)BLOB_TYPE_TAG)))
 		return -1;
 	return blob->Len();
 }
@@ -342,9 +342,9 @@ LVUserPointer lv_createblob(VMHANDLE v, LVInteger size) {
 		lv_remove(v, -2); //removes the registry
 		lv_push(v, 1); // push the this
 		lv_pushinteger(v, size); //size
-		SQBlob *blob = NULL;
+		LVBlob *blob = NULL;
 		if (LV_SUCCEEDED(lv_call(v, 2, LVTrue, LVFalse))
-		        && LV_SUCCEEDED(lv_getinstanceup(v, -1, (LVUserPointer *)&blob, (LVUserPointer)SQ_BLOB_TYPE_TAG))) {
+		        && LV_SUCCEEDED(lv_getinstanceup(v, -1, (LVUserPointer *)&blob, (LVUserPointer)BLOB_TYPE_TAG))) {
 			lv_remove(v, -2);
 			return blob->GetBuf();
 		}
@@ -354,5 +354,5 @@ LVUserPointer lv_createblob(VMHANDLE v, LVInteger size) {
 }
 
 LVRESULT mod_init_blob(VMHANDLE v) {
-	return declare_stream(v, _LC("blob"), (LVUserPointer)SQ_BLOB_TYPE_TAG, _LC("std_blob"), _blob_methods, bloblib_funcs);
+	return declare_stream(v, _LC("blob"), (LVUserPointer)BLOB_TYPE_TAG, _LC("std_blob"), _blob_methods, bloblib_funcs);
 }

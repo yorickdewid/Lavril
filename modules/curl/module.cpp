@@ -202,13 +202,13 @@ static LVInteger _curl__typeof(VMHANDLE v) {
 }
 
 #define _DECL_CURL_FUNC(name,nparams,pmask) {_LC(#name),_curl_##name,nparams,pmask}
-static const SQRegFunction curlobj_funcs[] = {
+static const LVRegFunction curlobj_funcs[] = {
 	_DECL_CURL_FUNC(constructor, 2, _LC(".s")),
 	_DECL_CURL_FUNC(exec, 1, _LC("x")),
 	// _DECL_CURL_FUNC(setopt, 3, _LC("xns")),
 	_DECL_CURL_FUNC(setheader, 3, _LC("xss")),
 	_DECL_CURL_FUNC(_typeof, 1, _LC("x")),
-	{NULL, (SQFUNCTION)0, 0, NULL}
+	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_CURL_FUNC
 
@@ -218,7 +218,7 @@ LVInteger mod_init_curl(VMHANDLE v) {
 	lv_pushstring(v, _LC("curl"), -1);
 	lv_newclass(v, LVFalse);
 	while (curlobj_funcs[i].name != 0) {
-		const SQRegFunction& f = curlobj_funcs[i];
+		const LVRegFunction& f = curlobj_funcs[i];
 		lv_pushstring(v, f.name, -1);
 		lv_newclosure(v, f.f, 0);
 		lv_setparamscheck(v, f.nparamscheck, f.typemask);

@@ -7,7 +7,7 @@
 #define MAX_NATIVE_CALLS 100
 #define MIN_STACK_OVERHEAD 15
 
-#define SQ_SUSPEND_FLAG -666
+#define SUSPEND_FLAG -666
 #define DONT_FALL_BACK 666
 //#define EXISTS_FALL_BACK -1
 
@@ -16,20 +16,20 @@
 
 void lv_base_register(VMHANDLE v);
 
-struct SQExceptionTrap {
-	SQExceptionTrap() {}
-	SQExceptionTrap(LVInteger ss, LVInteger stackbase, SQInstruction *ip, LVInteger ex_target) {
+struct LVExceptionTrap {
+	LVExceptionTrap() {}
+	LVExceptionTrap(LVInteger ss, LVInteger stackbase, LVInstruction *ip, LVInteger ex_target) {
 		_stacksize = ss;
 		_stackbase = stackbase;
 		_ip = ip;
 		_extarget = ex_target;
 	}
-	SQExceptionTrap(const SQExceptionTrap& et) {
+	LVExceptionTrap(const LVExceptionTrap& et) {
 		(*this) = et;
 	}
 	LVInteger _stackbase;
 	LVInteger _stacksize;
-	SQInstruction *_ip;
+	LVInstruction *_ip;
 	LVInteger _extarget;
 };
 
@@ -38,15 +38,15 @@ struct SQExceptionTrap {
 #define STK(a) _stack._vals[_stackbase+(a)]
 #define TARGET _stack._vals[_stackbase+arg0]
 
-typedef sqvector<SQExceptionTrap> ExceptionsTraps;
+typedef lvvector<LVExceptionTrap> ExceptionsTraps;
 
-struct SQVM : public CHAINABLE_OBJ {
+struct LVVM : public CHAINABLE_OBJ {
 	struct CallInfo {
 		//CallInfo() { _generator = NULL;}
-		SQInstruction *_ip;
-		SQObjectPtr *_literals;
-		SQObjectPtr _closure;
-		SQGenerator *_generator;
+		LVInstruction *_ip;
+		LVObjectPtr *_literals;
+		LVObjectPtr _closure;
+		LVGenerator *_generator;
 		LVInt32 _etraps;
 		LVInt32 _prevstkbase;
 		LVInt32 _prevtop;
@@ -55,76 +55,73 @@ struct SQVM : public CHAINABLE_OBJ {
 		LVBool _root;
 	};
 
-	typedef sqvector<CallInfo> CallInfoVec;
+	typedef lvvector<CallInfo> CallInfoVec;
   public:
 	void DebugHookProxy(LVInteger type, const LVChar *sourcename, LVInteger line, const LVChar *funcname);
 	static void _DebugHookProxy(VMHANDLE v, LVInteger type, const LVChar *sourcename, LVInteger line, const LVChar *funcname);
 	enum ExecutionType { ET_CALL, ET_RESUME_GENERATOR, ET_RESUME_VM, ET_RESUME_THROW_VM };
-	SQVM(SQSharedState *ss);
-	~SQVM();
-	bool Init(SQVM *friendvm, LVInteger stacksize);
-	bool Execute(SQObjectPtr& func, LVInteger nargs, LVInteger stackbase, SQObjectPtr& outres, LVBool raiseerror, ExecutionType et = ET_CALL);
-	//starts a native call return when the NATIVE closure returns
-	bool CallNative(SQNativeClosure *nclosure, LVInteger nargs, LVInteger newbase, SQObjectPtr& retval, bool& suspend);
-	//starts a SQUIRREL call in the same "Execution loop"
-	bool StartCall(SQClosure *closure, LVInteger target, LVInteger nargs, LVInteger stackbase, bool tailcall);
-	bool CreateClassInstance(SQClass *theclass, SQObjectPtr& inst, SQObjectPtr& constructor);
-	//call a generic closure pure SQUIRREL or NATIVE
-	bool Call(SQObjectPtr& closure, LVInteger nparams, LVInteger stackbase, SQObjectPtr& outres, LVBool raiseerror);
+	LVVM(LVSharedState *ss);
+	~LVVM();
+	bool Init(LVVM *friendvm, LVInteger stacksize);
+	bool Execute(LVObjectPtr& func, LVInteger nargs, LVInteger stackbase, LVObjectPtr& outres, LVBool raiseerror, ExecutionType et = ET_CALL);
+	bool CallNative(LVNativeClosure *nclosure, LVInteger nargs, LVInteger newbase, LVObjectPtr& retval, bool& suspend);
+	bool StartCall(LVClosure *closure, LVInteger target, LVInteger nargs, LVInteger stackbase, bool tailcall);
+	bool CreateClassInstance(LVClass *theclass, LVObjectPtr& inst, LVObjectPtr& constructor);
+	bool Call(LVObjectPtr& closure, LVInteger nparams, LVInteger stackbase, LVObjectPtr& outres, LVBool raiseerror);
 	LVRESULT Suspend();
 
 	void CallDebugHook(LVInteger type, LVInteger forcedline = 0);
-	void CallErrorHandler(SQObjectPtr& e);
-	bool Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest, LVUnsignedInteger getflags, LVInteger selfidx);
-	LVInteger FallBackGet(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest);
-	bool InvokeDefaultDelegate(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest);
-	bool Set(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, LVInteger selfidx);
-	LVInteger FallBackSet(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val);
-	bool NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, bool bstatic);
-	bool NewSlotA(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, const SQObjectPtr& attrs, bool bstatic, bool raw);
-	bool DeleteSlot(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& res);
-	bool Clone(const SQObjectPtr& self, SQObjectPtr& target);
-	bool ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, LVInteger& res);
-	bool StringCat(const SQObjectPtr& str, const SQObjectPtr& obj, SQObjectPtr& dest);
-	static bool IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res);
-	bool ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident = 0);
-	SQString *PrintObjVal(const SQObjectPtr& o);
+	void CallErrorHandler(LVObjectPtr& e);
+	bool Get(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& dest, LVUnsignedInteger getflags, LVInteger selfidx);
+	LVInteger FallBackGet(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& dest);
+	bool InvokeDefaultDelegate(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& dest);
+	bool Set(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val, LVInteger selfidx);
+	LVInteger FallBackSet(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val);
+	bool NewSlot(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val, bool bstatic);
+	bool NewSlotA(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val, const LVObjectPtr& attrs, bool bstatic, bool raw);
+	bool DeleteSlot(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& res);
+	bool Clone(const LVObjectPtr& self, LVObjectPtr& target);
+	bool ObjCmp(const LVObjectPtr& o1, const LVObjectPtr& o2, LVInteger& res);
+	bool StringCat(const LVObjectPtr& str, const LVObjectPtr& obj, LVObjectPtr& dest);
+	static bool IsEqual(const LVObjectPtr& o1, const LVObjectPtr& o2, bool& res);
+	bool ToString(const LVObjectPtr& o, LVObjectPtr& res, LVInteger ident = 0);
+	LVString *PrintObjVal(const LVObjectPtr& o);
 
 	/* Exception handeling */
 	void Raise_Error(const LVChar *s, ...);
-	void Raise_Error(const SQObjectPtr& desc);
-	void Raise_IdxError(const SQObjectPtr& o);
-	void Raise_CompareError(const SQObject& o1, const SQObject& o2);
+	void Raise_Error(const LVObjectPtr& desc);
+	void Raise_IdxError(const LVObjectPtr& o);
+	void Raise_CompareError(const LVObject& o1, const LVObject& o2);
 	void Raise_ParamTypeError(LVInteger nparam, LVInteger typemask, LVInteger type);
 
-	void FindOuter(SQObjectPtr& target, SQObjectPtr *stackindex);
+	void FindOuter(LVObjectPtr& target, LVObjectPtr *stackindex);
 	void RelocateOuters();
-	void CloseOuters(SQObjectPtr *stackindex);
+	void CloseOuters(LVObjectPtr *stackindex);
 
-	bool TypeOf(const SQObjectPtr& obj1, SQObjectPtr& dest);
-	bool CallMetaMethod(SQObjectPtr& closure, SQMetaMethod mm, LVInteger nparams, SQObjectPtr& outres);
-	bool ArithMetaMethod(LVInteger op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& dest);
-	bool Return(LVInteger _arg0, LVInteger _arg1, SQObjectPtr& retval);
+	bool TypeOf(const LVObjectPtr& obj1, LVObjectPtr& dest);
+	bool CallMetaMethod(LVObjectPtr& closure, LVMetaMethod mm, LVInteger nparams, LVObjectPtr& outres);
+	bool ArithMetaMethod(LVInteger op, const LVObjectPtr& o1, const LVObjectPtr& o2, LVObjectPtr& dest);
+	bool Return(LVInteger _arg0, LVInteger _arg1, LVObjectPtr& retval);
 
 	//new stuff
-	_INLINE bool ARITH_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);
-	_INLINE bool BW_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2);
-	_INLINE bool NEG_OP(SQObjectPtr& trg, const SQObjectPtr& o1);
-	_INLINE bool CMP_OP(CmpOP op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& res);
-	bool CLOSURE_OP(SQObjectPtr& target, FunctionPrototype *func);
-	bool CLASS_OP(SQObjectPtr& target, LVInteger base, LVInteger attrs);
+	_INLINE bool ARITH_OP(LVUnsignedInteger op, LVObjectPtr& trg, const LVObjectPtr& o1, const LVObjectPtr& o2);
+	_INLINE bool BW_OP(LVUnsignedInteger op, LVObjectPtr& trg, const LVObjectPtr& o1, const LVObjectPtr& o2);
+	_INLINE bool NEG_OP(LVObjectPtr& trg, const LVObjectPtr& o1);
+	_INLINE bool CMP_OP(CmpOP op, const LVObjectPtr& o1, const LVObjectPtr& o2, LVObjectPtr& res);
+	bool CLOSURE_OP(LVObjectPtr& target, FunctionPrototype *func);
+	bool CLASS_OP(LVObjectPtr& target, LVInteger base, LVInteger attrs);
 	//return true if the loop is finished
-	bool FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr& o3, SQObjectPtr& o4, LVInteger arg_2, int exitpos, int& jump);
-	//_INLINE bool LOCAL_INC(LVInteger op,SQObjectPtr &target, SQObjectPtr &a, SQObjectPtr &incr);
-	_INLINE bool PLOCAL_INC(LVInteger op, SQObjectPtr& target, SQObjectPtr& a, SQObjectPtr& incr);
-	_INLINE bool DerefInc(LVInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObjectPtr& key, SQObjectPtr& incr, bool postfix, LVInteger arg0);
+	bool FOREACH_OP(LVObjectPtr& o1, LVObjectPtr& o2, LVObjectPtr& o3, LVObjectPtr& o4, LVInteger arg_2, int exitpos, int& jump);
+	//_INLINE bool LOCAL_INC(LVInteger op,LVObjectPtr &target, LVObjectPtr &a, LVObjectPtr &incr);
+	_INLINE bool PLOCAL_INC(LVInteger op, LVObjectPtr& target, LVObjectPtr& a, LVObjectPtr& incr);
+	_INLINE bool DerefInc(LVInteger op, LVObjectPtr& target, LVObjectPtr& self, LVObjectPtr& key, LVObjectPtr& incr, bool postfix, LVInteger arg0);
 	// #ifdef _DEBUG_DUMP
 	void dumpstack(LVInteger stackbase = -1, bool dumpall = false);
 	// #endif
 
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
-	SQObjectType GetType() {
+	void Mark(LVCollectable **chain);
+	LVObjectType GetType() {
 		return OT_THREAD;
 	}
 #endif
@@ -138,53 +135,53 @@ struct SQVM : public CHAINABLE_OBJ {
 	bool EnterFrame(LVInteger newbase, LVInteger newtop, bool tailcall);
 	void LeaveFrame();
 	void Release() {
-		sq_delete(this, SQVM);
+		lv_delete(this, LVVM);
 	}
 	////////////////////////////////////////////////////////////////////////////
 	//stack functions for the api
 	void Remove(LVInteger n);
 
-	static bool IsFalse(SQObjectPtr& o);
+	static bool IsFalse(LVObjectPtr& o);
 
 	void Pop();
 	void Pop(LVInteger n);
-	void Push(const SQObjectPtr& o);
+	void Push(const LVObjectPtr& o);
 	void PushNull();
-	SQObjectPtr& Top();
-	SQObjectPtr& PopGet();
-	SQObjectPtr& GetUp(LVInteger n);
-	SQObjectPtr& GetAt(LVInteger n);
+	LVObjectPtr& Top();
+	LVObjectPtr& PopGet();
+	LVObjectPtr& GetUp(LVInteger n);
+	LVObjectPtr& GetAt(LVInteger n);
 
-	SQObjectPtrVec _stack;
+	LVObjectPtrVec _stack;
 
 	LVInteger _top;
 	LVInteger _stackbase;
-	SQOuter *_openouters;
-	SQObjectPtr _roottable;
-	SQObjectPtr _lasterror;
-	SQObjectPtr _errorhandler;
+	LVOuter *_openouters;
+	LVObjectPtr _roottable;
+	LVObjectPtr _lasterror;
+	LVObjectPtr _errorhandler;
 
 	bool _debughook;
-	SQDEBUGHOOK _debughook_native;
-	SQObjectPtr _debughook_closure;
+	LVDEBUGHOOK _debughook_native;
+	LVObjectPtr _debughook_closure;
 
-	SQObjectPtr temp_reg;
+	LVObjectPtr temp_reg;
 
 	/* Stacks */
 	CallInfo *_callsstack;
 	LVInteger _callsstacksize;
 	LVInteger _alloccallsstacksize;
-	sqvector<CallInfo> _callstackdata;
+	lvvector<CallInfo> _callstackdata;
 
 	ExceptionsTraps _etraps;
 	CallInfo *ci;
 	LVUserPointer _foreignptr;
 
 	/* VMs sharing the same state */
-	SQSharedState *_sharedstate;
+	LVSharedState *_sharedstate;
 	LVInteger _nnativecalls;
 	LVInteger _nmetamethodscall;
-	SQRELEASEHOOK _releasehook;
+	LVRELEASEHOOK _releasehook;
 
 	/* Suspend infos */
 	LVBool _suspended;
@@ -203,7 +200,7 @@ struct AutoDec {
 	LVInteger *_n;
 };
 
-inline SQObjectPtr& stack_get(VMHANDLE v, LVInteger idx) {
+inline LVObjectPtr& stack_get(VMHANDLE v, LVInteger idx) {
 	return ((idx >= 0) ? (v->GetAt(idx + v->_stackbase - 1)) : (v->GetUp(idx)));
 }
 

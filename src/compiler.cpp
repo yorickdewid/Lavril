@@ -26,12 +26,12 @@ struct ExpState {
 
 #define MAX_COMPILER_ERROR_LEN 256
 
-struct SQScope {
+struct Scope {
 	LVInteger outers;
 	LVInteger stacksize;
 };
 
-#define BEGIN_SCOPE() SQScope __oldscope__ = _scope; \
+#define BEGIN_SCOPE() Scope __oldscope__ = _scope; \
 					 _scope.outers = _fs->_outers; \
 					 _scope.stacksize = _fs->GetStackSize();
 
@@ -69,10 +69,10 @@ struct SQScope {
 
 class LVCompiler {
   public:
-	LVCompiler(SQVM *v, SQLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, bool raiseerror, bool lineinfo) {
+	LVCompiler(LVVM *v, LVLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, bool raiseerror, bool lineinfo) {
 		_vm = v;
 		_lex.Init(_ss(v), rg, up, ThrowError, this);
-		_sourcename = SQString::Create(_ss(v), sourcename);
+		_sourcename = LVString::Create(_ss(v), sourcename);
 		_lineinfo = lineinfo;
 		_raiseerror = raiseerror;
 		_scope.outers = 0;
@@ -97,7 +97,7 @@ class LVCompiler {
 		_token = _lex.Lex();
 	}
 
-	SQObject Expect(LVInteger tok) {
+	LVObject Expect(LVInteger tok) {
 		if (_token != tok) {
 			if (_token == TK_CONSTRUCTOR && tok == TK_IDENTIFIER) {
 				//do nothing
@@ -126,7 +126,7 @@ class LVCompiler {
 			}
 		}
 
-		SQObjectPtr ret;
+		LVObjectPtr ret;
 		switch (tok) {
 			case TK_IDENTIFIER:
 				ret = _fs->CreateString(_lex._svalue);
@@ -135,10 +135,10 @@ class LVCompiler {
 				ret = _fs->CreateString(_lex._svalue, _lex._longstr.size() - 1);
 				break;
 			case TK_INTEGER:
-				ret = SQObjectPtr(_lex._nvalue);
+				ret = LVObjectPtr(_lex._nvalue);
 				break;
 			case TK_FLOAT:
-				ret = SQObjectPtr(_lex._fvalue);
+				ret = LVObjectPtr(_lex._fvalue);
 				break;
 		}
 
@@ -167,12 +167,12 @@ class LVCompiler {
 		}
 	}
 
-	bool StartCompiler(SQObjectPtr& o) {
+	bool StartCompiler(LVObjectPtr& o) {
 		_debugline = 1;
 		_debugop = 0;
 
 		FunctionState funcstate(_ss(_vm), NULL, ThrowError, this);
-		funcstate._name = SQString::Create(_ss(_vm), _LC("main"));
+		funcstate._name = LVString::Create(_ss(_vm), _LC("main"));
 		_fs = &funcstate;
 		_fs->AddParameter(_fs->CreateString(_LC("this")));
 		_fs->AddParameter(_fs->CreateString(_LC("vargv")));
@@ -205,7 +205,7 @@ class LVCompiler {
 				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, type(_sourcename) == OT_STRING ? _stringval(_sourcename) : _LC("unknown"),
 				                                _lex._currentline, _lex._currentcolumn);
 			}
-			_vm->_lasterror = SQString::Create(_ss(_vm), _compilererror, -1);
+			_vm->_lasterror = LVString::Create(_ss(_vm), _compilererror, -1);
 			return false;
 		}
 
@@ -253,7 +253,7 @@ class LVCompiler {
 				break;
 			case TK_RETURN:
 			case TK_YIELD: {
-				SQOpcode op;
+				Opcode op;
 				if (_token == TK_RETURN) {
 					op = _OP_RETURN;
 				} else {
@@ -329,13 +329,13 @@ class LVCompiler {
 				break;
 			case TK_CONST: {
 				Lex();
-				SQObject id = Expect(TK_IDENTIFIER);
+				LVObject id = Expect(TK_IDENTIFIER);
 				Expect('=');
-				SQObject val = ExpectScalar();
+				LVObject val = ExpectScalar();
 				OptionalSemicolon();
-				SQTable *enums = _table(_ss(_vm)->_consts);
-				SQObjectPtr strongid = id;
-				enums->NewSlot(strongid, SQObjectPtr(val));
+				LVTable *enums = _table(_ss(_vm)->_consts);
+				LVObjectPtr strongid = id;
+				enums->NewSlot(strongid, LVObjectPtr(val));
 				strongid.Null();
 			}
 			break;
@@ -348,14 +348,14 @@ class LVCompiler {
 		_fs->SnoozeOpt();
 	}
 
-	void EmitDerefOp(SQOpcode op) {
+	void EmitDerefOp(Opcode op) {
 		LVInteger val = _fs->PopTarget();
 		LVInteger key = _fs->PopTarget();
 		LVInteger src = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), src, key, val);
 	}
 
-	void Emit2ArgsOP(SQOpcode op, LVInteger p3 = 0) {
+	void Emit2ArgsOP(Opcode op, LVInteger p3 = 0) {
 		LVInteger p2 = _fs->PopTarget(); //src in OP_GET
 		LVInteger p1 = _fs->PopTarget(); //key in OP_GET
 		_fs->AddInstruction(op, _fs->PushTarget(), p1, p2, p3);
@@ -497,7 +497,7 @@ class LVCompiler {
 	}
 
 	template<typename T>
-	void BIN_EXP(SQOpcode op, T f, LVInteger op3 = 0) {
+	void BIN_EXP(Opcode op, T f, LVInteger op3 = 0) {
 		Lex();
 		INVOKE_EXP(f);
 		LVInteger op1 = _fs->PopTarget();
@@ -644,7 +644,7 @@ class LVCompiler {
 			}
 	}
 
-	SQOpcode ChooseArithOpByToken(LVInteger tok) {
+	Opcode ChooseArithOpByToken(LVInteger tok) {
 		switch (tok) {
 			case TK_PLUSEQ:
 			case '+':
@@ -860,8 +860,8 @@ class LVCompiler {
 			case TK_IDENTIFIER:
 			case TK_CONSTRUCTOR:
 			case TK_THIS: {
-				SQObject id;
-				SQObject constant;
+				LVObject id;
+				LVObject constant;
 
 				switch (_token) {
 					case TK_IDENTIFIER:
@@ -894,8 +894,8 @@ class LVCompiler {
 					}
 				} else if (_fs->IsConstant(id, constant)) {
 					/* Handle named constant */
-					SQObjectPtr constval;
-					SQObject    constid;
+					LVObjectPtr constval;
+					LVObject    constid;
 					if (type(constant) == OT_TABLE) {
 						Expect('.');
 						constid = Expect(TK_IDENTIFIER);
@@ -909,7 +909,7 @@ class LVCompiler {
 					_es.epos = _fs->PushTarget();
 
 					/* generate direct or literal function depending on size */
-					SQObjectType ctype = type(constval);
+					LVObjectType ctype = type(constval);
 					switch (ctype) {
 						case OT_INTEGER:
 							EmitLoadConstInt(_integer(constval), _es.epos);
@@ -1087,7 +1087,7 @@ class LVCompiler {
 		}
 	}
 
-	void UnaryOP(SQOpcode op) {
+	void UnaryOP(Opcode op) {
 		PrefixedExpr();
 		LVInteger src = _fs->PopTarget();
 		_fs->AddInstruction(op, _fs->PushTarget(), src);
@@ -1157,7 +1157,7 @@ class LVCompiler {
 				case TK_CONSTRUCTOR: {
 					LVInteger tk = _token;
 					Lex();
-					SQObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) : _fs->CreateString(_LC("constructor"));
+					LVObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) : _fs->CreateString(_LC("constructor"));
 					Expect(_LC('('));
 					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 					CreateFunction(id);
@@ -1207,7 +1207,7 @@ class LVCompiler {
 	}
 
 	void LocalDeclStatement() {
-		SQObject varname;
+		LVObject varname;
 
 		Lex();
 		if ( _token == TK_FUNCTION) {
@@ -1248,7 +1248,7 @@ class LVCompiler {
 	}
 
 	void IncludeStatement() {
-		SQObject unitname;
+		LVObject unitname;
 
 		Lex();
 		Expect(_LC('('));
@@ -1379,7 +1379,7 @@ class LVCompiler {
 		_fs->SnoozeOpt();
 		LVInteger expend = _fs->GetCurrentPos();
 		LVInteger expsize = (expend - expstart) + 1;
-		SQInstructionVec exp;
+		LVInstructionVec exp;
 		if (expsize > 0) {
 			for (LVInteger i = 0; i < expsize; i++)
 				exp.push_back(_fs->GetInstruction(expstart + i));
@@ -1401,7 +1401,7 @@ class LVCompiler {
 	}
 
 	void ForEachStatement() {
-		SQObject idxname, valname;
+		LVObject idxname, valname;
 		Lex();
 		Expect(_LC('('));
 		valname = Expect(TK_IDENTIFIER);
@@ -1506,7 +1506,7 @@ class LVCompiler {
 	}
 
 	void FunctionStatement() {
-		SQObject id;
+		LVObject id;
 		Lex();
 		id = Expect(TK_IDENTIFIER);
 		_fs->PushTarget(0);
@@ -1546,8 +1546,8 @@ class LVCompiler {
 		_es = es;
 	}
 
-	SQObject ExpectScalar() {
-		SQObject val;
+	LVObject ExpectScalar() {
+		LVObject val;
 		val._type = OT_NULL;
 		val._unVal.nInteger = 0; //shut up GCC 4.x
 		switch (_token) {
@@ -1591,14 +1591,14 @@ class LVCompiler {
 
 	void EnumStatement() {
 		Lex();
-		SQObject id = Expect(TK_IDENTIFIER);
+		LVObject id = Expect(TK_IDENTIFIER);
 		Expect(_LC('{'));
 
-		SQObject table = _fs->CreateTable();
+		LVObject table = _fs->CreateTable();
 		LVInteger nval = 0;
 		while (_token != _LC('}')) {
-			SQObject key = Expect(TK_IDENTIFIER);
-			SQObject val;
+			LVObject key = Expect(TK_IDENTIFIER);
+			LVObject val;
 			if (_token == _LC('=')) {
 				Lex();
 				val = ExpectScalar();
@@ -1606,18 +1606,18 @@ class LVCompiler {
 				val._type = OT_INTEGER;
 				val._unVal.nInteger = nval++;
 			}
-			_table(table)->NewSlot(SQObjectPtr(key), SQObjectPtr(val));
+			_table(table)->NewSlot(LVObjectPtr(key), LVObjectPtr(val));
 			if (_token == ',') Lex();
 		}
-		SQTable *enums = _table(_ss(_vm)->_consts);
-		SQObjectPtr strongid = id;
-		enums->NewSlot(SQObjectPtr(strongid), SQObjectPtr(table));
+		LVTable *enums = _table(_ss(_vm)->_consts);
+		LVObjectPtr strongid = id;
+		enums->NewSlot(LVObjectPtr(strongid), LVObjectPtr(table));
 		strongid.Null();
 		Lex();
 	}
 
 	void TryCatchStatement() {
-		SQObject exid;
+		LVObject exid;
 		Lex();
 		_fs->AddInstruction(_OP_PUSHTRAP, 0, 0);
 		_fs->_traps++;
@@ -1653,7 +1653,7 @@ class LVCompiler {
 	void FunctionExp(LVInteger ftype, bool lambda = false) {
 		Lex();
 		Expect(_LC('('));
-		SQObjectPtr dummy;
+		LVObjectPtr dummy;
 		CreateFunction(dummy, lambda);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION ? 0 : 1);
 	}
@@ -1721,10 +1721,10 @@ class LVCompiler {
 		_es = es;
 	}
 
-	void CreateFunction(SQObject& name, bool lambda = false) {
+	void CreateFunction(LVObject& name, bool lambda = false) {
 		FunctionState *funcstate = _fs->PushChildState(_ss(_vm));
 		funcstate->_name = name;
-		SQObject paramname;
+		LVObject paramname;
 		funcstate->AddParameter(_fs->CreateString(_LC("this")));
 		funcstate->_sourcename = _sourcename;
 		LVInteger defparams = 0;
@@ -1800,20 +1800,20 @@ class LVCompiler {
   private:
 	LVInteger _token;
 	FunctionState *_fs;
-	SQObjectPtr _sourcename;
+	LVObjectPtr _sourcename;
 	LVLexer _lex;
 	bool _lineinfo;
 	bool _raiseerror;
 	LVInteger _debugline;
 	LVInteger _debugop;
 	ExpState _es;
-	SQScope _scope;
+	Scope _scope;
 	LVChar _compilererror[MAX_COMPILER_ERROR_LEN];
 	jmp_buf _errorjmp;
-	SQVM *_vm;
+	LVVM *_vm;
 };
 
-bool RunCompiler(SQVM *vm, SQLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, SQObjectPtr& out, bool raiseerror, bool lineinfo) {
+bool RunCompiler(LVVM *vm, LVLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, LVObjectPtr& out, bool raiseerror, bool lineinfo) {
 	LVCompiler compiler(vm, rg, up, sourcename, raiseerror, lineinfo);
 	return compiler.StartCompiler(out);
 }

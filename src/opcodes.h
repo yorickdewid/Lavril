@@ -35,7 +35,7 @@ enum AppendArrayType {
 	AAT_BOOL = 4
 };
 
-enum SQOpcode {
+enum Opcode {
 	_OP_LINE =               0x00,
 	_OP_LOAD =               0x01,
 	_OP_LOADINT =            0x02,
@@ -100,13 +100,13 @@ enum SQOpcode {
 	_OP_CLOSE =              0x3C
 };
 
-struct SQInstructionDesc {
+struct LVInstructionDesc {
 	const LVChar *name;
 };
 
-struct SQInstruction {
-	SQInstruction() {};
-	SQInstruction(SQOpcode _op, LVInteger a0 = 0, LVInteger a1 = 0, LVInteger a2 = 0, LVInteger a3 = 0) {
+struct LVInstruction {
+	LVInstruction() {};
+	LVInstruction(Opcode _op, LVInteger a0 = 0, LVInteger a1 = 0, LVInteger a2 = 0, LVInteger a3 = 0) {
 		op = (unsigned char)_op;
 		_arg0 = (unsigned char)a0;
 		_arg1 = (LVInt32)a1;
@@ -122,7 +122,7 @@ struct SQInstruction {
 };
 
 #include "utils.h"
-typedef sqvector<SQInstruction> SQInstructionVec;
+typedef lvvector<LVInstruction> LVInstructionVec;
 
 #define NEW_SLOT_ATTRIBUTES_FLAG    0x01
 #define NEW_SLOT_STATIC_FLAG        0x02

@@ -13,7 +13,7 @@
 
 #define TOP() (_stack._vals[_top-1])
 
-bool SQVM::BW_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2) {
+bool LVVM::BW_OP(LVUnsignedInteger op, LVObjectPtr& trg, const LVObjectPtr& o1, const LVObjectPtr& o2) {
 	LVInteger res;
 	if ((type(o1) | type(o2)) == OT_INTEGER) {
 		LVInteger i1 = _integer(o1), i2 = _integer(o2);
@@ -64,14 +64,14 @@ bool SQVM::BW_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, 
 { \
 	LVInteger tmask = type(o1)|type(o2); \
 	switch(tmask) { \
-		case OT_INTEGER: { LVInteger i2 = _integer(o2); if(i2 == 0) { Raise_Error(err); SQ_THROW(); } trg = _integer(o1) op i2; } break;\
+		case OT_INTEGER: { LVInteger i2 = _integer(o2); if(i2 == 0) { Raise_Error(err); THROW(); } trg = _integer(o1) op i2; } break;\
 		case (OT_FLOAT|OT_INTEGER): \
 		case (OT_FLOAT): trg = tofloat(o1) op tofloat(o2); break;\
 		default: _GUARD(ARITH_OP((#op)[0],trg,o1,o2)); break;\
 	} \
 }
 
-bool SQVM::ARITH_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o1, const SQObjectPtr& o2) {
+bool LVVM::ARITH_OP(LVUnsignedInteger op, LVObjectPtr& trg, const LVObjectPtr& o1, const LVObjectPtr& o2) {
 	LVInteger tmask = type(o1) | type(o2);
 	switch (tmask) {
 		case OT_INTEGER: {
@@ -147,7 +147,7 @@ bool SQVM::ARITH_OP(LVUnsignedInteger op, SQObjectPtr& trg, const SQObjectPtr& o
 	return true;
 }
 
-SQVM::SQVM(SQSharedState *ss) {
+LVVM::LVVM(LVSharedState *ss) {
 	_sharedstate = ss;
 	_suspended = LVFalse;
 	_suspended_target = -1;
@@ -168,7 +168,7 @@ SQVM::SQVM(SQSharedState *ss) {
 	ADD_TO_CHAIN(&_ss(this)->_gc_chain, this);
 }
 
-void SQVM::Finalize() {
+void LVVM::Finalize() {
 	if (_releasehook) {
 		_releasehook(_foreignptr, 0);
 		_releasehook = NULL;
@@ -188,13 +188,13 @@ void SQVM::Finalize() {
 		_stack[i].Null();
 }
 
-SQVM::~SQVM() {
+LVVM::~LVVM() {
 	Finalize();
 	REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 }
 
-bool SQVM::ArithMetaMethod(LVInteger op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& dest) {
-	SQMetaMethod mm;
+bool LVVM::ArithMetaMethod(LVInteger op, const LVObjectPtr& o1, const LVObjectPtr& o2, LVObjectPtr& dest) {
+	LVMetaMethod mm;
 	switch (op) {
 		case _LC('+'):
 			mm = MT_ADD;
@@ -217,7 +217,7 @@ bool SQVM::ArithMetaMethod(LVInteger op, const SQObjectPtr& o1, const SQObjectPt
 			break; //shutup compiler
 	}
 	if (is_delegable(o1) && _delegable(o1)->_delegate) {
-		SQObjectPtr closure;
+		LVObjectPtr closure;
 		if (_delegable(o1)->GetMetaMethod(this, mm, closure)) {
 			Push(o1);
 			Push(o2);
@@ -229,7 +229,7 @@ bool SQVM::ArithMetaMethod(LVInteger op, const SQObjectPtr& o1, const SQObjectPt
 	return false;
 }
 
-bool SQVM::NEG_OP(SQObjectPtr& trg, const SQObjectPtr& o) {
+bool LVVM::NEG_OP(LVObjectPtr& trg, const LVObjectPtr& o) {
 	switch (type(o)) {
 		case OT_INTEGER:
 			trg = -_integer(o);
@@ -241,7 +241,7 @@ bool SQVM::NEG_OP(SQObjectPtr& trg, const SQObjectPtr& o) {
 		case OT_USERDATA:
 		case OT_INSTANCE:
 			if (_delegable(o)->_delegate) {
-				SQObjectPtr closure;
+				LVObjectPtr closure;
 				if (_delegable(o)->GetMetaMethod(this, MT_UNM, closure)) {
 					Push(o);
 					if (!CallMetaMethod(closure, MT_UNM, 1, temp_reg)) return false;
@@ -258,11 +258,11 @@ bool SQVM::NEG_OP(SQObjectPtr& trg, const SQObjectPtr& o) {
 }
 
 #define _RET_SUCCEED(exp) { result = (exp); return true; }
-bool SQVM::ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, LVInteger& result) {
-	SQObjectType t1 = type(o1), t2 = type(o2);
+bool LVVM::ObjCmp(const LVObjectPtr& o1, const LVObjectPtr& o2, LVInteger& result) {
+	LVObjectType t1 = type(o1), t2 = type(o2);
 	if (t1 == t2) {
 		if (_rawval(o1) == _rawval(o2))_RET_SUCCEED(0);
-		SQObjectPtr res;
+		LVObjectPtr res;
 		switch (t1) {
 			case OT_STRING:
 				_RET_SUCCEED(scstrcmp(_stringval(o1), _stringval(o2)));
@@ -274,7 +274,7 @@ bool SQVM::ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, LVInteger& resul
 			case OT_USERDATA:
 			case OT_INSTANCE:
 				if (_delegable(o1)->_delegate) {
-					SQObjectPtr closure;
+					LVObjectPtr closure;
 					if (_delegable(o1)->GetMetaMethod(this, MT_CMP, closure)) {
 						Push(o1);
 						Push(o2);
@@ -327,7 +327,7 @@ bool SQVM::ObjCmp(const SQObjectPtr& o1, const SQObjectPtr& o2, LVInteger& resul
 	_RET_SUCCEED(0); //cannot happen
 }
 
-bool SQVM::CMP_OP(CmpOP op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObjectPtr& res) {
+bool LVVM::CMP_OP(CmpOP op, const LVObjectPtr& o1, const LVObjectPtr& o2, LVObjectPtr& res) {
 	LVInteger r;
 	if (ObjCmp(o1, o2, r)) {
 		switch (op) {
@@ -352,7 +352,7 @@ bool SQVM::CMP_OP(CmpOP op, const SQObjectPtr& o1, const SQObjectPtr& o2, SQObje
 	return false;
 }
 
-bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident) {
+bool LVVM::ToString(const LVObjectPtr& o, LVObjectPtr& res, LVInteger ident) {
 	switch (type(o)) {
 		case OT_STRING:
 			res = o;
@@ -367,7 +367,7 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident) {
 			scsprintf(_sp(lv_rsl(6)), lv_rsl(6), _integer(o) ? _LC("true") : _LC("false"));
 			break;
 		case OT_TABLE: {
-			SQObjectPtr refidx, key, val, rs, str = SQString::Create(_ss(this), _LC("(table) {\n"));
+			LVObjectPtr refidx, key, val, rs, str = LVString::Create(_ss(this), _LC("(table) {\n"));
 			LVInteger idx;
 
 			/* TODO: optimize */
@@ -375,30 +375,30 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident) {
 				refidx = idx;
 				this->ToString(val, rs, ident + 1);
 				for (int i = 0; i < ident + 1; ++i) {
-					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+					this->StringCat(str, LVString::Create(_ss(this), _LC("  ")), str);
 				}
 				this->StringCat(str, key, str);
-				this->StringCat(str, SQString::Create(_ss(this), _LC(" = ")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC(" = ")), str);
 				this->StringCat(str, rs, str);
-				this->StringCat(str, SQString::Create(_ss(this), _LC(",\n")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC(",\n")), str);
 			}
 
 			if (!_table(o)->CountUsed()) {
 				for (int i = 0; i < ident + 1; ++i) {
-					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+					this->StringCat(str, LVString::Create(_ss(this), _LC("  ")), str);
 				}
-				this->StringCat(str, SQString::Create(_ss(this), _LC("(empty)\n")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC("(empty)\n")), str);
 			}
 
 			for (int i = 0; i < ident; ++i) {
-				this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC("  ")), str);
 			}
-			this->StringCat(str, SQString::Create(_ss(this), _LC("}")), str);
+			this->StringCat(str, LVString::Create(_ss(this), _LC("}")), str);
 			res = str;
 			return true;
 		}
 		case OT_ARRAY: {
-			SQObjectPtr refidx, key, val, rs, str = SQString::Create(_ss(this), _LC("(array) [\n"));
+			LVObjectPtr refidx, key, val, rs, str = LVString::Create(_ss(this), _LC("(array) [\n"));
 			LVInteger idx;
 
 			/* TODO: optimize */
@@ -406,32 +406,32 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident) {
 				refidx = idx;
 				this->ToString(val, rs, ident + 1);
 				for (int i = 0; i < ident + 1; ++i) {
-					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+					this->StringCat(str, LVString::Create(_ss(this), _LC("  ")), str);
 				}
-				this->StringCat(str, SQString::Create(_ss(this), _LC("[")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC("[")), str);
 				this->StringCat(str, key, str);
-				this->StringCat(str, SQString::Create(_ss(this), _LC("] = ")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC("] = ")), str);
 				this->StringCat(str, rs, str);
-				this->StringCat(str, SQString::Create(_ss(this), _LC(",\n")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC(",\n")), str);
 			}
 
 			if (!_array(o)->Size()) {
 				for (int i = 0; i < ident + 1; ++i) {
-					this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+					this->StringCat(str, LVString::Create(_ss(this), _LC("  ")), str);
 				}
-				this->StringCat(str, SQString::Create(_ss(this), _LC("(empty)\n")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC("(empty)\n")), str);
 			}
 
 			for (int i = 0; i < ident; ++i) {
-				this->StringCat(str, SQString::Create(_ss(this), _LC("  ")), str);
+				this->StringCat(str, LVString::Create(_ss(this), _LC("  ")), str);
 			}
-			this->StringCat(str, SQString::Create(_ss(this), _LC("]")), str);
+			this->StringCat(str, LVString::Create(_ss(this), _LC("]")), str);
 			res = str;
 			return true;
 		}
 		case OT_WEAKREF: {
-			SQObjectPtr rs, str;
-			str = SQString::Create(_ss(this), _LC("(weak reference) -> "));
+			LVObjectPtr rs, str;
+			str = LVString::Create(_ss(this), _LC("(weak reference) -> "));
 			this->ToString(_weakref(o)->_obj, rs);
 			this->StringCat(str, rs, str);
 			res = str;
@@ -440,7 +440,7 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident) {
 		case OT_USERDATA:
 		case OT_INSTANCE:
 			if (_delegable(o)->_delegate) {
-				SQObjectPtr closure;
+				LVObjectPtr closure;
 				if (_delegable(o)->GetMetaMethod(this, MT_TOSTRING, closure)) {
 					Push(o);
 					if (CallMetaMethod(closure, MT_TOSTRING, 1, res)) {
@@ -454,12 +454,12 @@ bool SQVM::ToString(const SQObjectPtr& o, SQObjectPtr& res, LVInteger ident) {
 		default:
 			scsprintf(_sp(lv_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR)), lv_rsl((sizeof(void *) * 2) + NUMBER_MAX_CHAR), _LC("(%s)"), GetTypeName(o));
 	}
-	res = SQString::Create(_ss(this), _spval);
+	res = LVString::Create(_ss(this), _spval);
 	return true;
 }
 
-bool SQVM::StringCat(const SQObjectPtr& str, const SQObjectPtr& obj, SQObjectPtr& dest) {
-	SQObjectPtr a, b;
+bool LVVM::StringCat(const LVObjectPtr& str, const LVObjectPtr& obj, LVObjectPtr& dest) {
+	LVObjectPtr a, b;
 	if (!ToString(str, a))
 		return false;
 	if (!ToString(obj, b))
@@ -469,23 +469,23 @@ bool SQVM::StringCat(const SQObjectPtr& str, const SQObjectPtr& obj, SQObjectPtr
 	LVChar *s = _sp(lv_rsl(l + ol + 1));
 	memcpy(s, _stringval(a), lv_rsl(l));
 	memcpy(s + l, _stringval(b), lv_rsl(ol));
-	dest = SQString::Create(_ss(this), _spval, l + ol);
+	dest = LVString::Create(_ss(this), _spval, l + ol);
 	return true;
 }
 
-bool SQVM::TypeOf(const SQObjectPtr& obj1, SQObjectPtr& dest) {
+bool LVVM::TypeOf(const LVObjectPtr& obj1, LVObjectPtr& dest) {
 	if (is_delegable(obj1) && _delegable(obj1)->_delegate) {
-		SQObjectPtr closure;
+		LVObjectPtr closure;
 		if (_delegable(obj1)->GetMetaMethod(this, MT_TYPEOF, closure)) {
 			Push(obj1);
 			return CallMetaMethod(closure, MT_TYPEOF, 1, dest);
 		}
 	}
-	dest = SQString::Create(_ss(this), GetTypeName(obj1));
+	dest = LVString::Create(_ss(this), GetTypeName(obj1));
 	return true;
 }
 
-bool SQVM::Init(SQVM *friendvm, LVInteger stacksize) {
+bool LVVM::Init(LVVM *friendvm, LVInteger stacksize) {
 	_stack.resize(stacksize);
 	_alloccallsstacksize = 4;
 	_callstackdata.resize(_alloccallsstacksize);
@@ -494,7 +494,7 @@ bool SQVM::Init(SQVM *friendvm, LVInteger stacksize) {
 	_stackbase = 0;
 	_top = 0;
 	if (!friendvm) {
-		_roottable = SQTable::Create(_ss(this), 0);
+		_roottable = LVTable::Create(_ss(this), 0);
 		lv_base_register(this);
 	} else {
 		_roottable = friendvm->_roottable;
@@ -507,7 +507,8 @@ bool SQVM::Init(SQVM *friendvm, LVInteger stacksize) {
 	return true;
 }
 
-bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInteger stackbase, bool tailcall) {
+/* Starts a call in the same "Execution loop" */
+bool LVVM::StartCall(LVClosure *closure, LVInteger target, LVInteger args, LVInteger stackbase, bool tailcall) {
 	FunctionPrototype *func = closure->_function;
 	LVInteger paramssize = func->_nparameters;
 	const LVInteger newtop = stackbase + func->_stacksize;
@@ -522,7 +523,7 @@ bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInt
 
 		// dumpstack(stackbase);
 		LVInteger nvargs = nargs - paramssize;
-		SQArray *arr = SQArray::Create(_ss(this), nvargs);
+		LVArray *arr = LVArray::Create(_ss(this), nvargs);
 		LVInteger pbase = stackbase + paramssize;
 		for (LVInteger n = 0; n < nvargs; n++) {
 			arr->_values[n] = _stack._vals[pbase];
@@ -563,10 +564,10 @@ bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInt
 
 	if (closure->_function->_bgenerator) {
 		FunctionPrototype *f = closure->_function;
-		SQGenerator *gen = SQGenerator::Create(_ss(this), closure);
+		LVGenerator *gen = LVGenerator::Create(_ss(this), closure);
 		if (!gen->Yield(this, f->_stacksize))
 			return false;
-		SQObjectPtr temp;
+		LVObjectPtr temp;
 		Return(1, target, temp);
 		STK(target) = gen;
 	}
@@ -574,7 +575,7 @@ bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInt
 	return true;
 }
 
-bool SQVM::Return(LVInteger _arg0, LVInteger _arg1, SQObjectPtr& retval) {
+bool LVVM::Return(LVInteger _arg0, LVInteger _arg1, LVObjectPtr& retval) {
 	LVBool    _isroot      = ci->_root;
 	LVInteger callerbase   = _stackbase - ci->_prevstkbase;
 
@@ -584,7 +585,7 @@ bool SQVM::Return(LVInteger _arg0, LVInteger _arg1, SQObjectPtr& retval) {
 		}
 	}
 
-	SQObjectPtr *dest;
+	LVObjectPtr *dest;
 	if (_isroot) {
 		dest = &(retval);
 	} else if (ci->_target == -1) {
@@ -606,16 +607,16 @@ bool SQVM::Return(LVInteger _arg0, LVInteger _arg1, SQObjectPtr& retval) {
 
 #define _RET_ON_FAIL(exp) { if(!exp) return false; }
 
-bool SQVM::PLOCAL_INC(LVInteger op, SQObjectPtr& target, SQObjectPtr& a, SQObjectPtr& incr) {
-	SQObjectPtr trg;
+bool LVVM::PLOCAL_INC(LVInteger op, LVObjectPtr& target, LVObjectPtr& a, LVObjectPtr& incr) {
+	LVObjectPtr trg;
 	_RET_ON_FAIL(ARITH_OP( op , trg, a, incr));
 	target = a;
 	a = trg;
 	return true;
 }
 
-bool SQVM::DerefInc(LVInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObjectPtr& key, SQObjectPtr& incr, bool postfix, LVInteger selfidx) {
-	SQObjectPtr tmp, tself = self, tkey = key;
+bool LVVM::DerefInc(LVInteger op, LVObjectPtr& target, LVObjectPtr& self, LVObjectPtr& key, LVObjectPtr& incr, bool postfix, LVInteger selfidx) {
+	LVObjectPtr tmp, tself = self, tkey = key;
 	if (!Get(tself, tkey, tmp, 0, selfidx)) {
 		return false;
 	}
@@ -635,18 +636,18 @@ bool SQVM::DerefInc(LVInteger op, SQObjectPtr& target, SQObjectPtr& self, SQObje
 #define arg3 (_i_._arg3)
 #define sarg3 ((LVInteger)*((const signed char *)&_i_._arg3))
 
-LVRESULT SQVM::Suspend() {
+LVRESULT LVVM::Suspend() {
 	if (_suspended)
 		return lv_throwerror(this, _LC("cannot suspend an already suspended vm"));
 	if (_nnativecalls != 2)
 		return lv_throwerror(this, _LC("cannot suspend through native calls/metamethods"));
-	return SQ_SUSPEND_FLAG;
+	return SUSPEND_FLAG;
 }
 
 
 #define _FINISH(howmuchtojump) {jump = howmuchtojump; return true; }
-bool SQVM::FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr
-                      &o3, SQObjectPtr& o4, LVInteger LV_UNUSED_ARG(arg_2), int exitpos, int& jump) {
+bool LVVM::FOREACH_OP(LVObjectPtr& o1, LVObjectPtr& o2, LVObjectPtr
+                      &o3, LVObjectPtr& o4, LVInteger LV_UNUSED_ARG(arg_2), int exitpos, int& jump) {
 	LVInteger nrefidx;
 	switch (type(o1)) {
 		case OT_TABLE:
@@ -668,8 +669,8 @@ bool SQVM::FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr
 		case OT_USERDATA:
 		case OT_INSTANCE:
 			if (_delegable(o1)->_delegate) {
-				SQObjectPtr itr;
-				SQObjectPtr closure;
+				LVObjectPtr itr;
+				LVObjectPtr closure;
 				if (_delegable(o1)->GetMetaMethod(this, MT_NEXTI, closure)) {
 					Push(o1);
 					Push(o4);
@@ -690,8 +691,8 @@ bool SQVM::FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr
 			}
 			break;
 		case OT_GENERATOR:
-			if (_generator(o1)->_state == SQGenerator::eDead) _FINISH(exitpos);
-			if (_generator(o1)->_state == SQGenerator::eSuspended) {
+			if (_generator(o1)->_state == LVGenerator::eDead) _FINISH(exitpos);
+			if (_generator(o1)->_state == LVGenerator::eSuspended) {
 				LVInteger idx = 0;
 				if (type(o4) == OT_INTEGER) {
 					idx = _integer(o4) + 1;
@@ -709,16 +710,16 @@ bool SQVM::FOREACH_OP(SQObjectPtr& o1, SQObjectPtr& o2, SQObjectPtr
 
 #define COND_LITERAL (arg3!=0?ci->_literals[arg1]:STK(arg1))
 
-#define SQ_THROW() { goto exception_trap; }
+#define THROW() { goto exception_trap; }
 
-#define _GUARD(exp) { if(!exp) { SQ_THROW();} }
+#define _GUARD(exp) { if(!exp) { THROW();} }
 
-bool SQVM::CLOSURE_OP(SQObjectPtr& target, FunctionPrototype *func) {
+bool LVVM::CLOSURE_OP(LVObjectPtr& target, FunctionPrototype *func) {
 	LVInteger nouters;
-	SQClosure *closure = SQClosure::Create(_ss(this), func, _table(_roottable)->GetWeakRef(OT_TABLE));
+	LVClosure *closure = LVClosure::Create(_ss(this), func, _table(_roottable)->GetWeakRef(OT_TABLE));
 	if ((nouters = func->_noutervalues)) {
 		for (LVInteger i = 0; i < nouters; i++) {
-			SQOuterVar& v = func->_outervalues[i];
+			LVOuterVar& v = func->_outervalues[i];
 			switch (v._type) {
 				case otLOCAL:
 					FindOuter(closure->_outervalues[i], &STK(_integer(v._src)));
@@ -741,9 +742,9 @@ bool SQVM::CLOSURE_OP(SQObjectPtr& target, FunctionPrototype *func) {
 
 }
 
-bool SQVM::CLASS_OP(SQObjectPtr& target, LVInteger baseclass, LVInteger attributes) {
-	SQClass *base = NULL;
-	SQObjectPtr attrs;
+bool LVVM::CLASS_OP(LVObjectPtr& target, LVInteger baseclass, LVInteger attributes) {
+	LVClass *base = NULL;
+	LVObjectPtr attrs;
 	if (baseclass != -1) {
 		if (type(_stack._vals[_stackbase + baseclass]) != OT_CLASS) {
 			Raise_Error(_LC("trying to inherit from a %s"), GetTypeName(_stack._vals[_stackbase + baseclass]));
@@ -754,10 +755,10 @@ bool SQVM::CLASS_OP(SQObjectPtr& target, LVInteger baseclass, LVInteger attribut
 	if (attributes != MAX_FUNC_STACKSIZE) {
 		attrs = _stack._vals[_stackbase + attributes];
 	}
-	target = SQClass::Create(_ss(this), base);
+	target = LVClass::Create(_ss(this), base);
 	if (type(_class(target)->_metamethods[MT_INHERITED]) != OT_NULL) {
 		int nparams = 2;
-		SQObjectPtr ret;
+		LVObjectPtr ret;
 		Push(target);
 		Push(attrs);
 		if (!Call(_class(target)->_metamethods[MT_INHERITED], nparams, _top - nparams, ret, false)) {
@@ -770,7 +771,7 @@ bool SQVM::CLASS_OP(SQObjectPtr& target, LVInteger baseclass, LVInteger attribut
 	return true;
 }
 
-bool SQVM::IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res) {
+bool LVVM::IsEqual(const LVObjectPtr& o1, const LVObjectPtr& o2, bool& res) {
 	if (type(o1) == type(o2)) {
 		res = (_rawval(o1) == _rawval(o2));
 	} else {
@@ -783,7 +784,7 @@ bool SQVM::IsEqual(const SQObjectPtr& o1, const SQObjectPtr& o2, bool& res) {
 	return true;
 }
 
-bool SQVM::IsFalse(SQObjectPtr& o) {
+bool LVVM::IsFalse(LVObjectPtr& o) {
 	if (((type(o) & OBJECT_CANBEFALSE)
 	        && ( ((type(o) == OT_FLOAT) && (_float(o) == LVFloat(0.0))) ))
 #if !defined(USEDOUBLE) || (defined(USEDOUBLE) && defined(_LV64))
@@ -797,8 +798,8 @@ bool SQVM::IsFalse(SQObjectPtr& o) {
 	return false;
 }
 
-extern SQInstructionDesc instruction_desc[];
-bool SQVM::Execute(SQObjectPtr& closure, LVInteger nargs, LVInteger stackbase, SQObjectPtr& outres, LVBool raiseerror, ExecutionType et) {
+extern LVInstructionDesc instruction_desc[];
+bool LVVM::Execute(LVObjectPtr& closure, LVInteger nargs, LVInteger stackbase, LVObjectPtr& outres, LVBool raiseerror, ExecutionType et) {
 	if ((_nnativecalls + 1) > MAX_NATIVE_CALLS) {
 		Raise_Error(_LC("Native stack overflow"));
 		return false;
@@ -838,7 +839,7 @@ bool SQVM::Execute(SQObjectPtr& closure, LVInteger nargs, LVInteger stackbase, S
 			ci->_root = _suspended_root;
 			_suspended = LVFalse;
 			if (et  == ET_RESUME_THROW_VM) {
-				SQ_THROW();
+				THROW();
 			}
 			break;
 	}
@@ -847,9 +848,9 @@ exception_restore:
 	//
 	{
 		for (;;) {
-			const SQInstruction& _i_ = *ci->_ip++;
-			dumpstack(_stackbase);
-			scprintf("\n[%d] %s %d %d %d %d\n", ci->_ip - _closure(ci->_closure)->_function->_instructions, instruction_desc[_i_.op].name, arg0, arg1, arg2, arg3);
+			const LVInstruction& _i_ = *ci->_ip++;
+			// dumpstack(_stackbase);
+			// scprintf("\n[%d] %s %d %d %d %d\n", ci->_ip - _closure(ci->_closure)->_function->_instructions, instruction_desc[_i_.op].name, arg0, arg1, arg2, arg3);
 			switch (_i_.op) {
 				case _OP_LINE:
 					if (_debughook)
@@ -874,10 +875,10 @@ exception_restore:
 					STK(arg2) = ci->_literals[arg3];
 					continue;
 				case _OP_TAILCALL: {
-					SQObjectPtr& t = STK(arg1);
+					LVObjectPtr& t = STK(arg1);
 					if (type(t) == OT_CLOSURE
 					        && (!_closure(t)->_function->_bgenerator)) {
-						SQObjectPtr clo = t;
+						LVObjectPtr clo = t;
 						if (_openouters) CloseOuters(&(_stack._vals[_stackbase]));
 						for (LVInteger i = 0; i < arg3; i++) STK(i) = STK(arg2 + i);
 						_GUARD(StartCall(_closure(clo), ci->_target, arg3, _stackbase, true));
@@ -885,7 +886,7 @@ exception_restore:
 					}
 				}
 				case _OP_CALL: {
-					SQObjectPtr clo = STK(arg1);
+					LVObjectPtr clo = STK(arg1);
 					switch (type(clo)) {
 						case OT_CLOSURE:
 							_GUARD(StartCall(_closure(clo), sarg0, arg3, _stackbase + arg2, false));
@@ -907,7 +908,7 @@ exception_restore:
 						}
 						continue;
 						case OT_CLASS: {
-							SQObjectPtr inst;
+							LVObjectPtr inst;
 							_GUARD(CreateClassInstance(_class(clo), inst, clo));
 							if (sarg0 != -1) {
 								STK(arg0) = inst;
@@ -933,11 +934,11 @@ exception_restore:
 						case OT_TABLE:
 						case OT_USERDATA:
 						case OT_INSTANCE: {
-							SQObjectPtr closure;
+							LVObjectPtr closure;
 							if (_delegable(clo)->_delegate && _delegable(clo)->GetMetaMethod(this, MT_CALL, closure)) {
 								Push(clo);
 								for (LVInteger i = 0; i < arg3; i++) Push(STK(arg2 + i));
-								if (!CallMetaMethod(closure, MT_CALL, arg3 + 1, clo)) SQ_THROW();
+								if (!CallMetaMethod(closure, MT_CALL, arg3 + 1, clo)) THROW();
 								if (sarg0 != -1) {
 									STK(arg0) = clo;
 								}
@@ -945,20 +946,20 @@ exception_restore:
 							}
 
 							//Raise_Error(_LC("attempt to call '%s'"), GetTypeName(clo));
-							//SQ_THROW();
+							//THROW();
 						}
 						default:
 							Raise_Error(_LC("attempt to call '%s'"), GetTypeName(clo));
-							SQ_THROW();
+							THROW();
 					}
 				}
 				continue;
 				case _OP_PREPCALL:
 				case _OP_PREPCALLK: {
-					SQObjectPtr& key = _i_.op == _OP_PREPCALLK ? (ci->_literals)[arg1] : STK(arg1);
-					SQObjectPtr& o = STK(arg2);
+					LVObjectPtr& key = _i_.op == _OP_PREPCALLK ? (ci->_literals)[arg1] : STK(arg1);
+					LVObjectPtr& o = STK(arg2);
 					if (!Get(o, key, temp_reg, 0, arg2)) {
-						SQ_THROW();
+						THROW();
 					}
 					STK(arg3) = o;
 					_Swap(TARGET, temp_reg); //TARGET = temp_reg;
@@ -966,7 +967,7 @@ exception_restore:
 				continue;
 				case _OP_GETK:
 					if (!Get(STK(arg2), ci->_literals[arg1], temp_reg, 0, arg2)) {
-						SQ_THROW();
+						THROW();
 					}
 					_Swap(TARGET, temp_reg); //TARGET = temp_reg;
 					continue;
@@ -982,20 +983,20 @@ exception_restore:
 					continue;
 				case _OP_SET:
 					if (!Set(STK(arg1), STK(arg2), STK(arg3), arg1)) {
-						SQ_THROW();
+						THROW();
 					}
 					if (arg0 != 0xFF) TARGET = STK(arg3);
 					continue;
 				case _OP_GET:
 					if (!Get(STK(arg1), STK(arg2), temp_reg, 0, arg1)) {
-						SQ_THROW();
+						THROW();
 					}
 					_Swap(TARGET, temp_reg); //TARGET = temp_reg;
 					continue;
 				case _OP_EQ: {
 					bool res;
 					if (!IsEqual(STK(arg2), COND_LITERAL, res)) {
-						SQ_THROW();
+						THROW();
 					}
 					TARGET = res ? true : false;
 				}
@@ -1003,7 +1004,7 @@ exception_restore:
 				case _OP_NE: {
 					bool res;
 					if (!IsEqual(STK(arg2), COND_LITERAL, res)) {
-						SQ_THROW();
+						THROW();
 					}
 					TARGET = (!res) ? true : false;
 				}
@@ -1042,7 +1043,7 @@ exception_restore:
 				}
 				continue;
 				case _OP_LOADROOT:  {
-					SQWeakRef *w = _closure(ci->_closure)->_root;
+					LVWeakRef *w = _closure(ci->_closure)->_root;
 					if (type(w->_obj) != OT_NULL) {
 						TARGET = w->_obj;
 					} else {
@@ -1069,14 +1070,14 @@ exception_restore:
 					if (IsFalse(STK(arg0))) ci->_ip += (sarg1);
 					continue;
 				case _OP_GETOUTER: {
-					SQClosure *cur_cls = _closure(ci->_closure);
-					SQOuter *otr = _outer(cur_cls->_outervalues[arg1]);
+					LVClosure *cur_cls = _closure(ci->_closure);
+					LVOuter *otr = _outer(cur_cls->_outervalues[arg1]);
 					TARGET = *(otr->_valptr);
 				}
 				continue;
 				case _OP_SETOUTER: {
-					SQClosure *cur_cls = _closure(ci->_closure);
-					SQOuter   *otr = _outer(cur_cls->_outervalues[arg1]);
+					LVClosure *cur_cls = _closure(ci->_closure);
+					LVOuter   *otr = _outer(cur_cls->_outervalues[arg1]);
 					*(otr->_valptr) = STK(arg2);
 					if (arg0 != 0xFF) {
 						TARGET = STK(arg2);
@@ -1086,10 +1087,10 @@ exception_restore:
 				case _OP_NEWOBJ:
 					switch (arg3) {
 						case NOT_TABLE:
-							TARGET = SQTable::Create(_ss(this), arg1);
+							TARGET = LVTable::Create(_ss(this), arg1);
 							continue;
 						case NOT_ARRAY:
-							TARGET = SQArray::Create(_ss(this), 0);
+							TARGET = LVArray::Create(_ss(this), 0);
 							_array(TARGET)->Reserve(arg1);
 							continue;
 						case NOT_CLASS:
@@ -1100,7 +1101,7 @@ exception_restore:
 							continue;
 					}
 				case _OP_APPENDARRAY: {
-					SQObject val;
+					LVObject val;
 					val._unVal.raw = 0;
 					switch (arg2) {
 						case AAT_STACK:
@@ -1140,32 +1141,32 @@ exception_restore:
 				}
 				continue;
 				case _OP_INC: {
-					SQObjectPtr o(sarg3);
+					LVObjectPtr o(sarg3);
 					_GUARD(DerefInc('+', TARGET, STK(arg1), STK(arg2), o, false, arg1));
 				}
 				continue;
 				case _OP_INCL: {
-					SQObjectPtr& a = STK(arg1);
+					LVObjectPtr& a = STK(arg1);
 					if (type(a) == OT_INTEGER) {
 						a._unVal.nInteger = _integer(a) + sarg3;
 					} else {
-						SQObjectPtr o(sarg3); //_GUARD(LOCAL_INC('+',TARGET, STK(arg1), o));
+						LVObjectPtr o(sarg3); //_GUARD(LOCAL_INC('+',TARGET, STK(arg1), o));
 						_ARITH_(+, a, a, o);
 					}
 				}
 				continue;
 				case _OP_PINC: {
-					SQObjectPtr o(sarg3);
+					LVObjectPtr o(sarg3);
 					_GUARD(DerefInc('+', TARGET, STK(arg1), STK(arg2), o, true, arg1));
 				}
 				continue;
 				case _OP_PINCL: {
-					SQObjectPtr& a = STK(arg1);
+					LVObjectPtr& a = STK(arg1);
 					if (type(a) == OT_INTEGER) {
 						TARGET = a;
 						a._unVal.nInteger = _integer(a) + sarg3;
 					} else {
-						SQObjectPtr o(sarg3);
+						LVObjectPtr o(sarg3);
 						_GUARD(PLOCAL_INC('+', TARGET, STK(arg1), o));
 					}
 
@@ -1179,7 +1180,7 @@ exception_restore:
 				case _OP_INSTANCEOF:
 					if (type(STK(arg1)) != OT_CLASS) {
 						Raise_Error(_LC("cannot apply instanceof between a %s and a %s"), GetTypeName(STK(arg1)), GetTypeName(STK(arg2)));
-						SQ_THROW();
+						THROW();
 					}
 					TARGET = (type(STK(arg2)) == OT_INSTANCE) ? (_instance(STK(arg2))->InstanceOf(_class(STK(arg1))) ? true : false) : false;
 					continue;
@@ -1208,12 +1209,12 @@ exception_restore:
 						continue;
 					}
 					Raise_Error(_LC("attempt to perform a bitwise op on a %s"), GetTypeName(STK(arg1)));
-					SQ_THROW();
+					THROW();
 				case _OP_CLOSURE: {
-					SQClosure *c = ci->_closure._unVal.pClosure;
+					LVClosure *c = ci->_closure._unVal.pClosure;
 					FunctionPrototype *fp = c->_function;
 					if (!CLOSURE_OP(TARGET, fp->_functions[arg1]._unVal.pFunctionProto)) {
-						SQ_THROW();
+						THROW();
 					}
 					continue;
 				}
@@ -1225,7 +1226,7 @@ exception_restore:
 						if (sarg1 != MAX_FUNC_STACKSIZE) _Swap(STK(arg1), temp_reg); //STK(arg1) = temp_reg;
 					} else {
 						Raise_Error(_LC("trying to yield a '%s',only genenerator can be yielded"), GetTypeName(ci->_generator));
-						SQ_THROW();
+						THROW();
 					}
 					if (Return(arg0, arg1, temp_reg)) {
 						assert(traps == 0);
@@ -1238,7 +1239,7 @@ exception_restore:
 				case _OP_RESUME:
 					if (type(STK(arg1)) != OT_GENERATOR) {
 						Raise_Error(_LC("trying to resume a '%s',only genenerator can be resumed"), GetTypeName(STK(arg1)));
-						SQ_THROW();
+						THROW();
 					}
 					_GUARD(_generator(STK(arg1))->Resume(this, TARGET));
 					traps += ci->_etraps;
@@ -1251,7 +1252,7 @@ exception_restore:
 				continue;
 				case _OP_POSTFOREACH:
 					assert(type(STK(arg0)) == OT_GENERATOR);
-					if (_generator(STK(arg0))->_state == SQGenerator::eDead)
+					if (_generator(STK(arg0))->_state == LVGenerator::eDead)
 						ci->_ip += (sarg1 - 1);
 					continue;
 				case _OP_CLONE:
@@ -1260,8 +1261,8 @@ exception_restore:
 				case _OP_TYPEOF:
 					_GUARD(TypeOf(STK(arg1), TARGET)) continue;
 				case _OP_PUSHTRAP: {
-					SQInstruction *_iv = _closure(ci->_closure)->_function->_instructions;
-					_etraps.push_back(SQExceptionTrap(_top, _stackbase, &_iv[(ci->_ip - _iv) + arg1], arg0));
+					LVInstruction *_iv = _closure(ci->_closure)->_function->_instructions;
+					_etraps.push_back(LVExceptionTrap(_top, _stackbase, &_iv[(ci->_ip - _iv) + arg1], arg0));
 					traps++;
 					ci->_etraps++;
 				}
@@ -1276,13 +1277,13 @@ exception_restore:
 				continue;
 				case _OP_THROW:
 					Raise_Error(TARGET);
-					SQ_THROW();
+					THROW();
 					continue;
 				case _OP_NEWSLOTA:
-					_GUARD(NewSlotA(STK(arg1), STK(arg2), STK(arg3), (arg0 & NEW_SLOT_ATTRIBUTES_FLAG) ? STK(arg2 - 1) : SQObjectPtr(), (arg0 & NEW_SLOT_STATIC_FLAG) ? true : false, false));
+					_GUARD(NewSlotA(STK(arg1), STK(arg2), STK(arg3), (arg0 & NEW_SLOT_ATTRIBUTES_FLAG) ? STK(arg2 - 1) : LVObjectPtr(), (arg0 & NEW_SLOT_STATIC_FLAG) ? true : false, false));
 					continue;
 				case _OP_GETBASE: {
-					SQClosure *clo = _closure(ci->_closure);
+					LVClosure *clo = _closure(ci->_closure);
 					if (clo->_base) {
 						TARGET = clo->_base;
 					} else {
@@ -1298,7 +1299,7 @@ exception_restore:
 		}
 	}
 exception_trap: {
-		SQObjectPtr currerror = _lasterror;
+		LVObjectPtr currerror = _lasterror;
 		//      dumpstack(_stackbase);
 		//      LVInteger n = 0;
 		LVInteger last_top = _top;
@@ -1308,7 +1309,7 @@ exception_trap: {
 
 		while ( ci ) {
 			if (ci->_etraps > 0) {
-				SQExceptionTrap& et = _etraps.top();
+				LVExceptionTrap& et = _etraps.top();
 				ci->_ip = et._ip;
 				_top = et._stacksize;
 				_stackbase = et._stackbase;
@@ -1339,7 +1340,7 @@ exception_trap: {
 	assert(0);
 }
 
-bool SQVM::CreateClassInstance(SQClass *theclass, SQObjectPtr& inst, SQObjectPtr& constructor) {
+bool LVVM::CreateClassInstance(LVClass *theclass, LVObjectPtr& inst, LVObjectPtr& constructor) {
 	inst = theclass->CreateInstance();
 	if (!theclass->GetConstructor(constructor)) {
 		constructor.Null();
@@ -1347,9 +1348,9 @@ bool SQVM::CreateClassInstance(SQClass *theclass, SQObjectPtr& inst, SQObjectPtr
 	return true;
 }
 
-void SQVM::CallErrorHandler(SQObjectPtr& error) {
+void LVVM::CallErrorHandler(LVObjectPtr& error) {
 	if (type(_errorhandler) != OT_NULL) {
-		SQObjectPtr out;
+		LVObjectPtr out;
 		Push(_roottable);
 		Push(error);
 		Call(_errorhandler, 2, _top - 2, out, LVFalse);
@@ -1357,7 +1358,7 @@ void SQVM::CallErrorHandler(SQObjectPtr& error) {
 	}
 }
 
-void SQVM::CallDebugHook(LVInteger type, LVInteger forcedline) {
+void LVVM::CallDebugHook(LVInteger type, LVInteger forcedline) {
 	_debughook = false;
 	FunctionPrototype *func = _closure(ci->_closure)->_function;
 	if (_debughook_native) {
@@ -1366,7 +1367,7 @@ void SQVM::CallDebugHook(LVInteger type, LVInteger forcedline) {
 		LVInteger line = forcedline ? forcedline : func->GetLine(ci->_ip);
 		_debughook_native(this, type, src, line, fname);
 	} else {
-		SQObjectPtr temp_reg;
+		LVObjectPtr temp_reg;
 		LVInteger nparams = 5;
 		Push(_roottable);
 		Push(type);
@@ -1379,7 +1380,8 @@ void SQVM::CallDebugHook(LVInteger type, LVInteger forcedline) {
 	_debughook = true;
 }
 
-bool SQVM::CallNative(SQNativeClosure *nclosure, LVInteger nargs, LVInteger newbase, SQObjectPtr& retval, bool& suspend) {
+/* Starts a native call return when the NATIVE closure returns */
+bool LVVM::CallNative(LVNativeClosure *nclosure, LVInteger nargs, LVInteger newbase, LVObjectPtr& retval, bool& suspend) {
 	LVInteger nparamscheck = nclosure->_nparamscheck;
 	LVInteger newtop = newbase + nargs + nclosure->_noutervalues;
 
@@ -1395,7 +1397,7 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, LVInteger nargs, LVInteger newb
 	}
 
 	LVInteger tcs;
-	SQIntVec& tc = nclosure->_typecheck;
+	LVIntVector& tc = nclosure->_typecheck;
 	if ((tcs = tc.size())) {
 		for (LVInteger i = 0; i < nargs && i < tcs; i++) {
 			if ((tc._vals[i] != -1) && !(type(_stack._vals[newbase + i]) & tc._vals[i])) {
@@ -1422,7 +1424,7 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, LVInteger nargs, LVInteger newb
 	_nnativecalls--;
 
 	suspend = false;
-	if (ret == SQ_SUSPEND_FLAG) {
+	if (ret == SUSPEND_FLAG) {
 		suspend = true;
 	} else if (ret < 0) {
 		LeaveFrame();
@@ -1443,7 +1445,7 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, LVInteger nargs, LVInteger newb
 #define FALLBACK_NO_MATCH   1
 #define FALLBACK_ERROR      2
 
-bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest, LVUnsignedInteger getflags, LVInteger selfidx) {
+bool LVVM::Get(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& dest, LVUnsignedInteger getflags, LVInteger selfidx) {
 	switch (type(self)) {
 		case OT_TABLE:
 			if (_table(self)->Get(key, dest))
@@ -1500,9 +1502,9 @@ bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& des
 	}
 	//#ifdef ROOT_FALLBACK
 	if (selfidx == 0) {
-		SQWeakRef *w = _closure(ci->_closure)->_root;
+		LVWeakRef *w = _closure(ci->_closure)->_root;
 		if (type(w->_obj) != OT_NULL) {
-			if (Get(*((const SQObjectPtr *)&w->_obj), key, dest, 0, DONT_FALL_BACK)) return true;
+			if (Get(*((const LVObjectPtr *)&w->_obj), key, dest, 0, DONT_FALL_BACK)) return true;
 		}
 
 	}
@@ -1512,8 +1514,8 @@ bool SQVM::Get(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& des
 	return false;
 }
 
-bool SQVM::InvokeDefaultDelegate(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest) {
-	SQTable *ddel = NULL;
+bool LVVM::InvokeDefaultDelegate(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& dest) {
+	LVTable *ddel = NULL;
 	switch (type(self)) {
 		case OT_CLASS:
 			ddel = _class_ddel;
@@ -1554,19 +1556,19 @@ bool SQVM::InvokeDefaultDelegate(const SQObjectPtr& self, const SQObjectPtr& key
 	return  ddel->Get(key, dest);
 }
 
-LVInteger SQVM::FallBackGet(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& dest) {
+LVInteger LVVM::FallBackGet(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& dest) {
 	switch (type(self)) {
 		case OT_TABLE:
 		case OT_USERDATA:
 			//delegation
 			if (_delegable(self)->_delegate) {
-				if (Get(SQObjectPtr(_delegable(self)->_delegate), key, dest, 0, DONT_FALL_BACK)) return FALLBACK_OK;
+				if (Get(LVObjectPtr(_delegable(self)->_delegate), key, dest, 0, DONT_FALL_BACK)) return FALLBACK_OK;
 			} else {
 				return FALLBACK_NO_MATCH;
 			}
 		//go through
 		case OT_INSTANCE: {
-			SQObjectPtr closure;
+			LVObjectPtr closure;
 			if (_delegable(self)->GetMetaMethod(this, MT_GET, closure)) {
 				Push(self);
 				Push(key);
@@ -1591,7 +1593,7 @@ LVInteger SQVM::FallBackGet(const SQObjectPtr& self, const SQObjectPtr& key, SQO
 	return FALLBACK_NO_MATCH;
 }
 
-bool SQVM::Set(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, LVInteger selfidx) {
+bool LVVM::Set(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val, LVInteger selfidx) {
 	switch (type(self)) {
 		case OT_TABLE:
 			if (_table(self)->Set(key, val)) return true;
@@ -1630,7 +1632,7 @@ bool SQVM::Set(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPt
 	return false;
 }
 
-LVInteger SQVM::FallBackSet(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val) {
+LVInteger LVVM::FallBackSet(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val) {
 	switch (type(self)) {
 		case OT_TABLE:
 			if (_table(self)->_delegate) {
@@ -1639,8 +1641,8 @@ LVInteger SQVM::FallBackSet(const SQObjectPtr& self, const SQObjectPtr& key, con
 		//keps on going
 		case OT_INSTANCE:
 		case OT_USERDATA: {
-			SQObjectPtr closure;
-			SQObjectPtr t;
+			LVObjectPtr closure;
+			LVObjectPtr t;
 			if (_delegable(self)->GetMetaMethod(this, MT_SET, closure)) {
 				Push(self);
 				Push(key);
@@ -1667,9 +1669,9 @@ LVInteger SQVM::FallBackSet(const SQObjectPtr& self, const SQObjectPtr& key, con
 	return FALLBACK_NO_MATCH;
 }
 
-bool SQVM::Clone(const SQObjectPtr& self, SQObjectPtr& target) {
-	SQObjectPtr temp_reg;
-	SQObjectPtr newobj;
+bool LVVM::Clone(const LVObjectPtr& self, LVObjectPtr& target) {
+	LVObjectPtr temp_reg;
+	LVObjectPtr newobj;
 	switch (type(self)) {
 		case OT_TABLE:
 			newobj = _table(self)->Clone();
@@ -1677,7 +1679,7 @@ bool SQVM::Clone(const SQObjectPtr& self, SQObjectPtr& target) {
 		case OT_INSTANCE: {
 			newobj = _instance(self)->Clone(_ss(this));
 cloned_mt:
-			SQObjectPtr closure;
+			LVObjectPtr closure;
 			if (_delegable(newobj)->_delegate && _delegable(newobj)->GetMetaMethod(this, MT_CLONED, closure)) {
 				Push(newobj);
 				Push(self);
@@ -1696,14 +1698,14 @@ cloned_mt:
 	}
 }
 
-bool SQVM::NewSlotA(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, const SQObjectPtr& attrs, bool bstatic, bool raw) {
+bool LVVM::NewSlotA(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val, const LVObjectPtr& attrs, bool bstatic, bool raw) {
 	if (type(self) != OT_CLASS) {
 		Raise_Error(_LC("object must be a class"));
 		return false;
 	}
-	SQClass *c = _class(self);
+	LVClass *c = _class(self);
 	if (!raw) {
-		SQObjectPtr& mm = c->_metamethods[MT_NEWMEMBER];
+		LVObjectPtr& mm = c->_metamethods[MT_NEWMEMBER];
 		if (type(mm) != OT_NULL ) {
 			Push(self);
 			Push(key);
@@ -1721,7 +1723,7 @@ bool SQVM::NewSlotA(const SQObjectPtr& self, const SQObjectPtr& key, const SQObj
 	return true;
 }
 
-bool SQVM::NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObjectPtr& val, bool bstatic) {
+bool LVVM::NewSlot(const LVObjectPtr& self, const LVObjectPtr& key, const LVObjectPtr& val, bool bstatic) {
 	if (type(key) == OT_NULL) {
 		Raise_Error(_LC("null cannot be used as index"));
 		return false;
@@ -1730,9 +1732,9 @@ bool SQVM::NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObje
 		case OT_TABLE: {
 			bool rawcall = true;
 			if (_table(self)->_delegate) {
-				SQObjectPtr res;
+				LVObjectPtr res;
 				if (!_table(self)->Get(key, res)) {
-					SQObjectPtr closure;
+					LVObjectPtr closure;
 					if (_delegable(self)->_delegate && _delegable(self)->GetMetaMethod(this, MT_NEWSLOT, closure)) {
 						Push(self);
 						Push(key);
@@ -1752,8 +1754,8 @@ bool SQVM::NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObje
 			break;
 		}
 		case OT_INSTANCE: {
-			SQObjectPtr res;
-			SQObjectPtr closure;
+			LVObjectPtr res;
+			LVObjectPtr closure;
 			if (_delegable(self)->_delegate && _delegable(self)->GetMetaMethod(this, MT_NEWSLOT, closure)) {
 				Push(self);
 				Push(key);
@@ -1773,7 +1775,7 @@ bool SQVM::NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObje
 					Raise_Error(_LC("trying to modify a class that has already been instantiated"));
 					return false;
 				} else {
-					SQObjectPtr oval = PrintObjVal(key);
+					LVObjectPtr oval = PrintObjVal(key);
 					Raise_Error(_LC("the property '%s' already exists"), _stringval(oval));
 					return false;
 				}
@@ -1787,14 +1789,14 @@ bool SQVM::NewSlot(const SQObjectPtr& self, const SQObjectPtr& key, const SQObje
 	return true;
 }
 
-bool SQVM::DeleteSlot(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectPtr& res) {
+bool LVVM::DeleteSlot(const LVObjectPtr& self, const LVObjectPtr& key, LVObjectPtr& res) {
 	switch (type(self)) {
 		case OT_TABLE:
 		case OT_INSTANCE:
 		case OT_USERDATA: {
-			SQObjectPtr t;
+			LVObjectPtr t;
 			//bool handled = false;
-			SQObjectPtr closure;
+			LVObjectPtr closure;
 			if (_delegable(self)->_delegate && _delegable(self)->GetMetaMethod(this, MT_DELSLOT, closure)) {
 				Push(self);
 				Push(key);
@@ -1804,7 +1806,7 @@ bool SQVM::DeleteSlot(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectP
 					if (_table(self)->Get(key, t)) {
 						_table(self)->Remove(key);
 					} else {
-						Raise_IdxError((const SQObject&)key);
+						Raise_IdxError((const LVObject&)key);
 						return false;
 					}
 				} else {
@@ -1822,7 +1824,8 @@ bool SQVM::DeleteSlot(const SQObjectPtr& self, const SQObjectPtr& key, SQObjectP
 	return true;
 }
 
-bool SQVM::Call(SQObjectPtr& closure, LVInteger nparams, LVInteger stackbase, SQObjectPtr& outres, LVBool raiseerror) {
+/* Call a generic closure user defined or NATIVE */
+bool LVVM::Call(LVObjectPtr& closure, LVInteger nparams, LVInteger stackbase, LVObjectPtr& outres, LVBool raiseerror) {
 #ifdef _DEBUG
 	LVInteger prevstackbase = _stackbase;
 #endif
@@ -1835,10 +1838,10 @@ bool SQVM::Call(SQObjectPtr& closure, LVInteger nparams, LVInteger stackbase, SQ
 			return CallNative(_nativeclosure(closure), nparams, stackbase, outres, suspend);
 		}
 		case OT_CLASS: {
-			SQObjectPtr constr;
-			SQObjectPtr temp;
+			LVObjectPtr constr;
+			LVObjectPtr temp;
 			CreateClassInstance(_class(closure), outres, constr);
-			SQObjectType ctype = type(constr);
+			LVObjectType ctype = type(constr);
 			if (ctype == OT_NATIVECLOSURE || ctype == OT_CLOSURE) {
 				_stack[stackbase] = outres;
 				return Call(constr, nparams, stackbase, temp, raiseerror);
@@ -1858,8 +1861,8 @@ bool SQVM::Call(SQObjectPtr& closure, LVInteger nparams, LVInteger stackbase, SQ
 	return true;
 }
 
-bool SQVM::CallMetaMethod(SQObjectPtr& closure, SQMetaMethod LV_UNUSED_ARG(mm), LVInteger nparams, SQObjectPtr& outres) {
-	//SQObjectPtr closure;
+bool LVVM::CallMetaMethod(LVObjectPtr& closure, LVMetaMethod LV_UNUSED_ARG(mm), LVInteger nparams, LVObjectPtr& outres) {
+	//LVObjectPtr closure;
 
 	_nmetamethodscall++;
 	if (Call(closure, nparams, _top - nparams, outres, LVFalse)) {
@@ -1873,27 +1876,27 @@ bool SQVM::CallMetaMethod(SQObjectPtr& closure, SQMetaMethod LV_UNUSED_ARG(mm), 
 	return false;
 }
 
-void SQVM::FindOuter(SQObjectPtr& target, SQObjectPtr *stackindex) {
-	SQOuter **pp = &_openouters;
-	SQOuter *p;
-	SQOuter *otr;
+void LVVM::FindOuter(LVObjectPtr& target, LVObjectPtr *stackindex) {
+	LVOuter **pp = &_openouters;
+	LVOuter *p;
+	LVOuter *otr;
 
 	while ((p = *pp) != NULL && p->_valptr >= stackindex) {
 		if (p->_valptr == stackindex) {
-			target = SQObjectPtr(p);
+			target = LVObjectPtr(p);
 			return;
 		}
 		pp = &p->_next;
 	}
-	otr = SQOuter::Create(_ss(this), stackindex);
+	otr = LVOuter::Create(_ss(this), stackindex);
 	otr->_next = *pp;
 	otr->_idx  = (stackindex - _stack._vals);
 	__ObjAddRef(otr);
 	*pp = otr;
-	target = SQObjectPtr(otr);
+	target = LVObjectPtr(otr);
 }
 
-bool SQVM::EnterFrame(LVInteger newbase, LVInteger newtop, bool tailcall) {
+bool LVVM::EnterFrame(LVInteger newbase, LVInteger newtop, bool tailcall) {
 	if ( !tailcall ) {
 		if ( _callsstacksize == _alloccallsstacksize ) {
 			GrowCallStack();
@@ -1922,7 +1925,7 @@ bool SQVM::EnterFrame(LVInteger newbase, LVInteger newtop, bool tailcall) {
 	return true;
 }
 
-void SQVM::LeaveFrame() {
+void LVVM::LeaveFrame() {
 	LVInteger last_top = _top;
 	LVInteger last_stackbase = _stackbase;
 	LVInteger css = --_callsstacksize;
@@ -1940,16 +1943,16 @@ void SQVM::LeaveFrame() {
 	}
 }
 
-void SQVM::RelocateOuters() {
-	SQOuter *p = _openouters;
+void LVVM::RelocateOuters() {
+	LVOuter *p = _openouters;
 	while (p) {
 		p->_valptr = _stack._vals + p->_idx;
 		p = p->_next;
 	}
 }
 
-void SQVM::CloseOuters(SQObjectPtr *stackindex) {
-	SQOuter *p;
+void LVVM::CloseOuters(LVObjectPtr *stackindex) {
+	LVOuter *p;
 	while ((p = _openouters) != NULL && p->_valptr >= stackindex) {
 		p->_value = *(p->_valptr);
 		p->_valptr = &p->_value;
@@ -1958,7 +1961,7 @@ void SQVM::CloseOuters(SQObjectPtr *stackindex) {
 	}
 }
 
-void SQVM::Remove(LVInteger n) {
+void LVVM::Remove(LVInteger n) {
 	n = (n >= 0) ? n + _stackbase - 1 : _top + n;
 	for (LVInteger i = n; i < _top; i++) {
 		_stack[i] = _stack[i + 1];
@@ -1967,48 +1970,48 @@ void SQVM::Remove(LVInteger n) {
 	_top--;
 }
 
-void SQVM::Pop() {
+void LVVM::Pop() {
 	_stack[--_top].Null();
 }
 
-void SQVM::Pop(LVInteger n) {
+void LVVM::Pop(LVInteger n) {
 	for (LVInteger i = 0; i < n; i++) {
 		_stack[--_top].Null();
 	}
 }
 
-void SQVM::PushNull() {
+void LVVM::PushNull() {
 	_stack[_top++].Null();
 }
 
-void SQVM::Push(const SQObjectPtr& o) {
+void LVVM::Push(const LVObjectPtr& o) {
 	_stack[_top++] = o;
 }
 
-SQObjectPtr& SQVM::Top() {
+LVObjectPtr& LVVM::Top() {
 	return _stack[_top - 1];
 }
 
-SQObjectPtr& SQVM::PopGet() {
+LVObjectPtr& LVVM::PopGet() {
 	return _stack[--_top];
 }
 
-SQObjectPtr& SQVM::GetUp(LVInteger n) {
+LVObjectPtr& LVVM::GetUp(LVInteger n) {
 	return _stack[_top + n];
 }
 
-SQObjectPtr& SQVM::GetAt(LVInteger n) {
+LVObjectPtr& LVVM::GetAt(LVInteger n) {
 	return _stack[n];
 }
 
 #ifdef _DEBUG
-void SQVM::dumpstack(LVInteger stackbase, bool dumpall) {
+void LVVM::dumpstack(LVInteger stackbase, bool dumpall) {
 	if (stackbase == -1)
 		stackbase = _stackbase;
 	LVInteger size = dumpall ? _stack.size() : _top;
 	LVInteger n = 0, r = 1;
 	typedef lvpair<LVInteger, LVRawObjectVal> respair;
-	sqvector<respair> resources(_top + 1);
+	lvvector<respair> resources(_top + 1);
 	scprintf(_LC("\n>>>>stack dump<<<<\n"));
 	scprintf(_LC("stack exhaustion: %lld/%lld\n"), _top, _stack.size());
 
@@ -2022,7 +2025,7 @@ void SQVM::dumpstack(LVInteger stackbase, bool dumpall) {
 	}
 
 	for (LVInteger i = 0; i < size; ++i) {
-		SQObjectPtr& obj = _stack[i];
+		LVObjectPtr& obj = _stack[i];
 		if (stackbase == i)
 			scprintf(_LC(">"));
 		else if (prevbase == i)

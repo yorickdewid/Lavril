@@ -5,7 +5,7 @@
 
 #define hashptr(p)  ((LVHash)(((LVInteger)p) >> 3))
 
-inline LVHash HashObj(const SQObjectPtr& key) {
+inline LVHash HashObj(const LVObjectPtr& key) {
 	switch (type(key)) {
 		case OT_STRING:
 			return _string(key)->_hash;
@@ -19,14 +19,14 @@ inline LVHash HashObj(const SQObjectPtr& key) {
 	}
 }
 
-struct SQTable : public SQDelegable {
+struct LVTable : public LVDelegable {
   private:
 	struct _HashNode {
 		_HashNode() {
 			next = NULL;
 		}
-		SQObjectPtr val;
-		SQObjectPtr key;
+		LVObjectPtr val;
+		LVObjectPtr key;
 		_HashNode *next;
 	};
 
@@ -38,19 +38,19 @@ struct SQTable : public SQDelegable {
 	///////////////////////////
 	void AllocNodes(LVInteger nSize);
 	void Rehash(bool force);
-	SQTable(SQSharedState *ss, LVInteger nInitialSize);
+	LVTable(LVSharedState *ss, LVInteger nInitialSize);
 	void _ClearNodes();
 
   public:
-	static SQTable *Create(SQSharedState *ss, LVInteger nInitialSize) {
-		SQTable *newtable = (SQTable *)LV_MALLOC(sizeof(SQTable));
-		new (newtable) SQTable(ss, nInitialSize);
+	static LVTable *Create(LVSharedState *ss, LVInteger nInitialSize) {
+		LVTable *newtable = (LVTable *)LV_MALLOC(sizeof(LVTable));
+		new (newtable) LVTable(ss, nInitialSize);
 		newtable->_delegate = NULL;
 		return newtable;
 	}
 	void Finalize();
-	SQTable *Clone();
-	~SQTable() {
+	LVTable *Clone();
+	~LVTable() {
 		SetDelegate(NULL);
 		REMOVE_FROM_CHAIN(&_sharedstate->_gc_chain, this);
 		for (LVInteger i = 0; i < _numofnodes; i++)
@@ -58,12 +58,12 @@ struct SQTable : public SQDelegable {
 		LV_FREE(_nodes, _numofnodes * sizeof(_HashNode));
 	}
 #ifndef NO_GARBAGE_COLLECTOR
-	void Mark(SQCollectable **chain);
-	SQObjectType GetType() {
+	void Mark(LVCollectable **chain);
+	LVObjectType GetType() {
 		return OT_TABLE;
 	}
 #endif
-	inline _HashNode *_Get(const SQObjectPtr& key, LVHash hash) {
+	inline _HashNode *_Get(const LVObjectPtr& key, LVHash hash) {
 		_HashNode *n = &_nodes[hash];
 		do {
 			if (_rawval(n->key) == _rawval(key) && type(n->key) == type(key)) {
@@ -73,7 +73,7 @@ struct SQTable : public SQDelegable {
 		return NULL;
 	}
 	//for compiler use
-	inline bool GetStr(const LVChar *key, LVInteger keylen, SQObjectPtr& val) {
+	inline bool GetStr(const LVChar *key, LVInteger keylen, LVObjectPtr& val) {
 		LVHash hash = _hashstr(key, keylen);
 		_HashNode *n = &_nodes[hash & (_numofnodes - 1)];
 		_HashNode *res = NULL;
@@ -89,19 +89,19 @@ struct SQTable : public SQDelegable {
 		}
 		return false;
 	}
-	bool Get(const SQObjectPtr& key, SQObjectPtr& val);
-	void Remove(const SQObjectPtr& key);
-	bool Set(const SQObjectPtr& key, const SQObjectPtr& val);
+	bool Get(const LVObjectPtr& key, LVObjectPtr& val);
+	void Remove(const LVObjectPtr& key);
+	bool Set(const LVObjectPtr& key, const LVObjectPtr& val);
 	//returns true if a new slot has been created false if it was already present
-	bool NewSlot(const SQObjectPtr& key, const SQObjectPtr& val);
-	LVInteger Next(bool getweakrefs, const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval);
+	bool NewSlot(const LVObjectPtr& key, const LVObjectPtr& val);
+	LVInteger Next(bool getweakrefs, const LVObjectPtr& refpos, LVObjectPtr& outkey, LVObjectPtr& outval);
 
 	LVInteger CountUsed() {
 		return _usednodes;
 	}
 	void Clear();
 	void Release() {
-		sq_delete(this, SQTable);
+		lv_delete(this, LVTable);
 	}
 
 };

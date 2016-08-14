@@ -8,7 +8,11 @@
 #include "class.h"
 #include "closure.h"
 
-const LVChar *IdType2Name(SQObjectType type) {
+#define CLOSURESTREAM_HEAD (('S'<<24)|('Q'<<16)|('I'<<8)|('R'))
+#define CLOSURESTREAM_PART (('P'<<24)|('A'<<16)|('R'<<8)|('T'))
+#define CLOSURESTREAM_TAIL (('T'<<24)|('A'<<16)|('I'<<8)|('L'))
+
+const LVChar *IdType2Name(LVObjectType type) {
 	switch (_RAW_TYPE(type)) {
 		case _RT_NULL:
 			return _LC("null");
@@ -49,19 +53,19 @@ const LVChar *IdType2Name(SQObjectType type) {
 	}
 }
 
-const LVChar *GetTypeName(const SQObjectPtr& obj1) {
+const LVChar *GetTypeName(const LVObjectPtr& obj1) {
 	return IdType2Name(type(obj1));
 }
 
-SQString *SQString::Create(SQSharedState *ss, const LVChar *s, LVInteger len) {
+LVString *LVString::Create(LVSharedState *ss, const LVChar *s, LVInteger len) {
 	return ADD_STRING(ss, s, len);
 }
 
-void SQString::Release() {
+void LVString::Release() {
 	REMOVE_STRING(_sharedstate, this);
 }
 
-LVInteger SQString::Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjectPtr& outval) {
+LVInteger LVString::Next(const LVObjectPtr& refpos, LVObjectPtr& outkey, LVObjectPtr& outval) {
 	LVInteger idx = (LVInteger)TranslateIndex(refpos);
 	while (idx < _len) {
 		outkey = (LVInteger)idx;
@@ -73,7 +77,7 @@ LVInteger SQString::Next(const SQObjectPtr& refpos, SQObjectPtr& outkey, SQObjec
 	return -1;
 }
 
-LVUnsignedInteger TranslateIndex(const SQObjectPtr& idx) {
+LVUnsignedInteger TranslateIndex(const LVObjectPtr& idx) {
 	switch (type(idx)) {
 		case OT_NULL:
 			return 0;
@@ -86,9 +90,9 @@ LVUnsignedInteger TranslateIndex(const SQObjectPtr& idx) {
 	return 0;
 }
 
-SQWeakRef *SQRefCounted::GetWeakRef(SQObjectType type) {
+LVWeakRef *LVRefCounted::GetWeakRef(LVObjectType type) {
 	if (!_weakref) {
-		sq_new(_weakref, SQWeakRef);
+		lv_new(_weakref, LVWeakRef);
 #if defined(USEDOUBLE) && !defined(_LV64)
 		_weakref->_obj._unVal.raw = 0; //clean the whole union on 32 bits with double
 #endif
@@ -98,29 +102,29 @@ SQWeakRef *SQRefCounted::GetWeakRef(SQObjectType type) {
 	return _weakref;
 }
 
-SQRefCounted::~SQRefCounted() {
+LVRefCounted::~LVRefCounted() {
 	if (_weakref) {
 		_weakref->_obj._type = OT_NULL;
 		_weakref->_obj._unVal.pRefCounted = NULL;
 	}
 }
 
-void SQWeakRef::Release() {
+void LVWeakRef::Release() {
 	if (ISREFCOUNTED(_obj._type)) {
 		_obj._unVal.pRefCounted->_weakref = NULL;
 	}
-	sq_delete(this, SQWeakRef);
+	lv_delete(this, LVWeakRef);
 }
 
-bool SQDelegable::GetMetaMethod(SQVM *v, SQMetaMethod mm, SQObjectPtr& res) {
+bool LVDelegable::GetMetaMethod(LVVM *v, LVMetaMethod mm, LVObjectPtr& res) {
 	if (_delegate) {
 		return _delegate->Get((*_ss(v)->_metamethods)[mm], res);
 	}
 	return false;
 }
 
-bool SQDelegable::SetDelegate(SQTable *mt) {
-	SQTable *temp = mt;
+bool LVDelegable::SetDelegate(LVTable *mt) {
+	LVTable *temp = mt;
 	if (temp == this) return false;
 	while (temp) {
 		if (temp->_delegate == this) return false; //cycle detected
@@ -132,7 +136,7 @@ bool SQDelegable::SetDelegate(SQTable *mt) {
 	return true;
 }
 
-bool SQGenerator::Yield(SQVM *v, LVInteger target) {
+bool LVGenerator::Yield(LVVM *v, LVInteger target) {
 	if (_state == eSuspended) {
 		v->Raise_Error(_LC("internal vm error, yielding dead generator"));
 		return false;
@@ -144,8 +148,8 @@ bool SQGenerator::Yield(SQVM *v, LVInteger target) {
 	LVInteger size = v->_top - v->_stackbase;
 
 	_stack.resize(size);
-	SQObject _this = v->_stack[v->_stackbase];
-	_stack._vals[0] = ISREFCOUNTED(type(_this)) ? SQObjectPtr(_refcounted(_this)->GetWeakRef(type(_this))) : _this;
+	LVObject _this = v->_stack[v->_stackbase];
+	_stack._vals[0] = ISREFCOUNTED(type(_this)) ? LVObjectPtr(_refcounted(_this)->GetWeakRef(type(_this))) : _this;
 	for (LVInteger n = 1; n < target; n++) {
 		_stack._vals[n] = v->_stack[v->_stackbase + n];
 	}
@@ -159,7 +163,7 @@ bool SQGenerator::Yield(SQVM *v, LVInteger target) {
 		_etraps.push_back(v->_etraps.top());
 		v->_etraps.pop_back();
 		// store relative stack base and size in case of resume to other _top
-		SQExceptionTrap& et = _etraps.back();
+		LVExceptionTrap& et = _etraps.back();
 		et._stackbase -= v->_stackbase;
 		et._stacksize -= v->_stackbase;
 	}
@@ -167,7 +171,7 @@ bool SQGenerator::Yield(SQVM *v, LVInteger target) {
 	return true;
 }
 
-bool SQGenerator::Resume(SQVM *v, SQObjectPtr& dest) {
+bool LVGenerator::Resume(LVVM *v, LVObjectPtr& dest) {
 	if (_state == eDead) {
 		v->Raise_Error(_LC("resuming dead generator"));
 		return false;
@@ -195,12 +199,12 @@ bool SQGenerator::Resume(SQVM *v, SQObjectPtr& dest) {
 	for (LVInteger i = 0; i < _ci._etraps; i++) {
 		v->_etraps.push_back(_etraps.top());
 		_etraps.pop_back();
-		SQExceptionTrap& et = v->_etraps.back();
+		LVExceptionTrap& et = v->_etraps.back();
 		// restore absolute stack base and size
 		et._stackbase += newbase;
 		et._stacksize += newbase;
 	}
-	SQObject _this = _stack._vals[0];
+	LVObject _this = _stack._vals[0];
 	v->_stack[v->_stackbase] = type(_this) == OT_WEAKREF ? _weakref(_this)->_obj : _this;
 
 	for (LVInteger n = 1; n < size; n++) {
@@ -215,14 +219,14 @@ bool SQGenerator::Resume(SQVM *v, SQObjectPtr& dest) {
 	return true;
 }
 
-void SQArray::Extend(const SQArray *a) {
+void LVArray::Extend(const LVArray *a) {
 	LVInteger xlen;
 	if ((xlen = a->Size()))
 		for (LVInteger i = 0; i < xlen; i++)
 			Append(a->_values[i]);
 }
 
-const LVChar *FunctionPrototype::GetLocal(SQVM *vm, LVUnsignedInteger stackbase, LVUnsignedInteger nseq, LVUnsignedInteger nop) {
+const LVChar *FunctionPrototype::GetLocal(LVVM *vm, LVUnsignedInteger stackbase, LVUnsignedInteger nseq, LVUnsignedInteger nop) {
 	LVUnsignedInteger nvars = _nlocalvarinfos;
 	const LVChar *res = NULL;
 	if (nvars >= nseq) {
@@ -241,7 +245,7 @@ const LVChar *FunctionPrototype::GetLocal(SQVM *vm, LVUnsignedInteger stackbase,
 }
 
 
-LVInteger FunctionPrototype::GetLine(SQInstruction *curr) {
+LVInteger FunctionPrototype::GetLine(LVInstruction *curr) {
 	LVInteger op = (LVInteger)(curr - _instructions);
 	LVInteger line = _lineinfos[0]._line;
 	LVInteger low = 0;
@@ -270,7 +274,7 @@ LVInteger FunctionPrototype::GetLine(SQInstruction *curr) {
 	return line;
 }
 
-SQClosure::~SQClosure() {
+LVClosure::~LVClosure() {
 	__ObjRelease(_root);
 	__ObjRelease(_env);
 	__ObjRelease(_base);
@@ -282,7 +286,7 @@ SQClosure::~SQClosure() {
 		return false; \
 }
 
-bool SafeWrite(VMHANDLE v, SQWRITEFUNC write, LVUserPointer up, LVUserPointer dest, LVInteger size) {
+bool SafeWrite(VMHANDLE v, LVWRITEFUNC write, LVUserPointer up, LVUserPointer dest, LVInteger size) {
 	if (write(up, dest, size) != size) {
 		v->Raise_Error(_LC("io error (write function failure)"));
 		return false;
@@ -290,7 +294,7 @@ bool SafeWrite(VMHANDLE v, SQWRITEFUNC write, LVUserPointer up, LVUserPointer de
 	return true;
 }
 
-bool SafeRead(VMHANDLE v, SQWRITEFUNC read, LVUserPointer up, LVUserPointer dest, LVInteger size) {
+bool SafeRead(VMHANDLE v, LVWRITEFUNC read, LVUserPointer up, LVUserPointer dest, LVInteger size) {
 	if (size && read(up, dest, size) != size) {
 		v->Raise_Error(_LC("io error, read function failure, the origin stream could be corrupted/trucated"));
 		return false;
@@ -298,11 +302,11 @@ bool SafeRead(VMHANDLE v, SQWRITEFUNC read, LVUserPointer up, LVUserPointer dest
 	return true;
 }
 
-bool WriteTag(VMHANDLE v, SQWRITEFUNC write, LVUserPointer up, LVUnsignedInteger32 tag) {
+bool WriteTag(VMHANDLE v, LVWRITEFUNC write, LVUserPointer up, LVUnsignedInteger32 tag) {
 	return SafeWrite(v, write, up, &tag, sizeof(tag));
 }
 
-bool CheckTag(VMHANDLE v, SQWRITEFUNC read, LVUserPointer up, LVUnsignedInteger32 tag) {
+bool CheckTag(VMHANDLE v, LVWRITEFUNC read, LVUserPointer up, LVUnsignedInteger32 tag) {
 	LVUnsignedInteger32 t;
 	_CHECK_IO(SafeRead(v, read, up, &t, sizeof(t)));
 	if (t != tag) {
@@ -312,7 +316,7 @@ bool CheckTag(VMHANDLE v, SQWRITEFUNC read, LVUserPointer up, LVUnsignedInteger3
 	return true;
 }
 
-bool WriteObject(VMHANDLE v, LVUserPointer up, SQWRITEFUNC write, SQObjectPtr& o) {
+bool WriteObject(VMHANDLE v, LVUserPointer up, LVWRITEFUNC write, LVObjectPtr& o) {
 	LVUnsignedInteger32 _type = (LVUnsignedInteger32)type(o);
 	_CHECK_IO(SafeWrite(v, write, up, &_type, sizeof(_type)));
 	switch (type(o)) {
@@ -336,16 +340,16 @@ bool WriteObject(VMHANDLE v, LVUserPointer up, SQWRITEFUNC write, SQObjectPtr& o
 	return true;
 }
 
-bool ReadObject(VMHANDLE v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& o) {
+bool ReadObject(VMHANDLE v, LVUserPointer up, LVREADFUNC read, LVObjectPtr& o) {
 	LVUnsignedInteger32 _type;
 	_CHECK_IO(SafeRead(v, read, up, &_type, sizeof(_type)));
-	SQObjectType t = (SQObjectType)_type;
+	LVObjectType t = (LVObjectType)_type;
 	switch (t) {
 		case OT_STRING: {
 			LVInteger len;
 			_CHECK_IO(SafeRead(v, read, up, &len, sizeof(LVInteger)));
 			_CHECK_IO(SafeRead(v, read, up, _ss(v)->GetScratchPad(lv_rsl(len)), lv_rsl(len)));
-			o = SQString::Create(_ss(v), _ss(v)->GetScratchPad(-1), len);
+			o = LVString::Create(_ss(v), _ss(v)->GetScratchPad(-1), len);
 		}
 		break;
 		case OT_INTEGER: {
@@ -377,30 +381,30 @@ bool ReadObject(VMHANDLE v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& o) {
 	return true;
 }
 
-bool SQClosure::Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write) {
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_HEAD));
+bool LVClosure::Save(LVVM *v, LVUserPointer up, LVWRITEFUNC write) {
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_HEAD));
 	_CHECK_IO(WriteTag(v, write, up, sizeof(LVChar)));
 	_CHECK_IO(WriteTag(v, write, up, sizeof(LVInteger)));
 	_CHECK_IO(WriteTag(v, write, up, sizeof(LVFloat)));
 	_CHECK_IO(_function->Save(v, up, write));
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_TAIL));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_TAIL));
 	return true;
 }
 
-bool SQClosure::Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& ret) {
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_HEAD));
+bool LVClosure::Load(LVVM *v, LVUserPointer up, LVREADFUNC read, LVObjectPtr& ret) {
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_HEAD));
 	_CHECK_IO(CheckTag(v, read, up, sizeof(LVChar)));
 	_CHECK_IO(CheckTag(v, read, up, sizeof(LVInteger)));
 	_CHECK_IO(CheckTag(v, read, up, sizeof(LVFloat)));
-	SQObjectPtr func;
+	LVObjectPtr func;
 	_CHECK_IO(FunctionPrototype::Load(v, up, read, func));
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_TAIL));
-	ret = SQClosure::Create(_ss(v), _funcproto(func), _table(v->_roottable)->GetWeakRef(OT_TABLE));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_TAIL));
+	ret = LVClosure::Create(_ss(v), _funcproto(func), _table(v->_roottable)->GetWeakRef(OT_TABLE));
 	//FIXME: load an root for this closure
 	return true;
 }
 
-FunctionPrototype::FunctionPrototype(SQSharedState *ss) {
+FunctionPrototype::FunctionPrototype(LVSharedState *ss) {
 	_stacksize = 0;
 	_bgenerator = false;
 	INIT_CHAIN();
@@ -411,15 +415,15 @@ FunctionPrototype::~FunctionPrototype() {
 	REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain, this);
 }
 
-bool FunctionPrototype::Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write) {
+bool FunctionPrototype::Save(LVVM *v, LVUserPointer up, LVWRITEFUNC write) {
 	LVInteger i, nliterals = _nliterals, nparameters = _nparameters;
 	LVInteger noutervalues = _noutervalues, nlocalvarinfos = _nlocalvarinfos;
 	LVInteger nlineinfos = _nlineinfos, ninstructions = _ninstructions, nfunctions = _nfunctions;
 	LVInteger ndefaultparams = _ndefaultparams;
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	_CHECK_IO(WriteObject(v, up, write, _sourcename));
 	_CHECK_IO(WriteObject(v, up, write, _name));
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	_CHECK_IO(SafeWrite(v, write, up, &nliterals, sizeof(nliterals)));
 	_CHECK_IO(SafeWrite(v, write, up, &nparameters, sizeof(nparameters)));
 	_CHECK_IO(SafeWrite(v, write, up, &noutervalues, sizeof(noutervalues)));
@@ -428,42 +432,42 @@ bool FunctionPrototype::Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write) {
 	_CHECK_IO(SafeWrite(v, write, up, &ndefaultparams, sizeof(ndefaultparams)));
 	_CHECK_IO(SafeWrite(v, write, up, &ninstructions, sizeof(ninstructions)));
 	_CHECK_IO(SafeWrite(v, write, up, &nfunctions, sizeof(nfunctions)));
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	for (i = 0; i < nliterals; i++) {
 		_CHECK_IO(WriteObject(v, up, write, _literals[i]));
 	}
 
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	for (i = 0; i < nparameters; i++) {
 		_CHECK_IO(WriteObject(v, up, write, _parameters[i]));
 	}
 
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	for (i = 0; i < noutervalues; i++) {
 		_CHECK_IO(SafeWrite(v, write, up, &_outervalues[i]._type, sizeof(LVUnsignedInteger)));
 		_CHECK_IO(WriteObject(v, up, write, _outervalues[i]._src));
 		_CHECK_IO(WriteObject(v, up, write, _outervalues[i]._name));
 	}
 
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	for (i = 0; i < nlocalvarinfos; i++) {
-		SQLocalVarInfo& lvi = _localvarinfos[i];
+		LVLocalVarInfo& lvi = _localvarinfos[i];
 		_CHECK_IO(WriteObject(v, up, write, lvi._name));
 		_CHECK_IO(SafeWrite(v, write, up, &lvi._pos, sizeof(LVUnsignedInteger)));
 		_CHECK_IO(SafeWrite(v, write, up, &lvi._start_op, sizeof(LVUnsignedInteger)));
 		_CHECK_IO(SafeWrite(v, write, up, &lvi._end_op, sizeof(LVUnsignedInteger)));
 	}
 
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
-	_CHECK_IO(SafeWrite(v, write, up, _lineinfos, sizeof(SQLineInfo)*nlineinfos));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
+	_CHECK_IO(SafeWrite(v, write, up, _lineinfos, sizeof(LVLineInfo)*nlineinfos));
 
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	_CHECK_IO(SafeWrite(v, write, up, _defaultparams, sizeof(LVInteger)*ndefaultparams));
 
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
-	_CHECK_IO(SafeWrite(v, write, up, _instructions, sizeof(SQInstruction)*ninstructions));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
+	_CHECK_IO(SafeWrite(v, write, up, _instructions, sizeof(LVInstruction)*ninstructions));
 
-	_CHECK_IO(WriteTag(v, write, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(WriteTag(v, write, up, CLOSURESTREAM_PART));
 	for (i = 0; i < nfunctions; i++) {
 		_CHECK_IO(_funcproto(_functions[i])->Save(v, up, write));
 	}
@@ -473,17 +477,17 @@ bool FunctionPrototype::Save(SQVM *v, LVUserPointer up, SQWRITEFUNC write) {
 	return true;
 }
 
-bool FunctionPrototype::Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjectPtr& ret) {
+bool FunctionPrototype::Load(LVVM *v, LVUserPointer up, LVREADFUNC read, LVObjectPtr& ret) {
 	LVInteger i, nliterals, nparameters;
 	LVInteger noutervalues , nlocalvarinfos ;
 	LVInteger nlineinfos, ninstructions , nfunctions, ndefaultparams ;
-	SQObjectPtr sourcename, name;
-	SQObjectPtr o;
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	LVObjectPtr sourcename, name;
+	LVObjectPtr o;
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 	_CHECK_IO(ReadObject(v, up, read, sourcename));
 	_CHECK_IO(ReadObject(v, up, read, name));
 
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 	_CHECK_IO(SafeRead(v, read, up, &nliterals, sizeof(nliterals)));
 	_CHECK_IO(SafeRead(v, read, up, &nparameters, sizeof(nparameters)));
 	_CHECK_IO(SafeRead(v, read, up, &noutervalues, sizeof(noutervalues)));
@@ -496,52 +500,52 @@ bool FunctionPrototype::Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjec
 
 	FunctionPrototype *f = FunctionPrototype::Create(_opt_ss(v), ninstructions, nliterals, nparameters,
 	                       nfunctions, noutervalues, nlineinfos, nlocalvarinfos, ndefaultparams);
-	SQObjectPtr proto = f; //gets a ref in case of failure
+	LVObjectPtr proto = f; //gets a ref in case of failure
 	f->_sourcename = sourcename;
 	f->_name = name;
 
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 
 	for (i = 0; i < nliterals; i++) {
 		_CHECK_IO(ReadObject(v, up, read, o));
 		f->_literals[i] = o;
 	}
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 
 	for (i = 0; i < nparameters; i++) {
 		_CHECK_IO(ReadObject(v, up, read, o));
 		f->_parameters[i] = o;
 	}
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 
 	for (i = 0; i < noutervalues; i++) {
 		LVUnsignedInteger type;
-		SQObjectPtr name;
+		LVObjectPtr name;
 		_CHECK_IO(SafeRead(v, read, up, &type, sizeof(LVUnsignedInteger)));
 		_CHECK_IO(ReadObject(v, up, read, o));
 		_CHECK_IO(ReadObject(v, up, read, name));
-		f->_outervalues[i] = SQOuterVar(name, o, (SQOuterType)type);
+		f->_outervalues[i] = LVOuterVar(name, o, (LVOuterType)type);
 	}
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 
 	for (i = 0; i < nlocalvarinfos; i++) {
-		SQLocalVarInfo lvi;
+		LVLocalVarInfo lvi;
 		_CHECK_IO(ReadObject(v, up, read, lvi._name));
 		_CHECK_IO(SafeRead(v, read, up, &lvi._pos, sizeof(LVUnsignedInteger)));
 		_CHECK_IO(SafeRead(v, read, up, &lvi._start_op, sizeof(LVUnsignedInteger)));
 		_CHECK_IO(SafeRead(v, read, up, &lvi._end_op, sizeof(LVUnsignedInteger)));
 		f->_localvarinfos[i] = lvi;
 	}
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
-	_CHECK_IO(SafeRead(v, read, up, f->_lineinfos, sizeof(SQLineInfo)*nlineinfos));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
+	_CHECK_IO(SafeRead(v, read, up, f->_lineinfos, sizeof(LVLineInfo)*nlineinfos));
 
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 	_CHECK_IO(SafeRead(v, read, up, f->_defaultparams, sizeof(LVInteger)*ndefaultparams));
 
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
-	_CHECK_IO(SafeRead(v, read, up, f->_instructions, sizeof(SQInstruction)*ninstructions));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
+	_CHECK_IO(SafeRead(v, read, up, f->_instructions, sizeof(LVInstruction)*ninstructions));
 
-	_CHECK_IO(CheckTag(v, read, up, SQ_CLOSURESTREAM_PART));
+	_CHECK_IO(CheckTag(v, read, up, CLOSURESTREAM_PART));
 	for (i = 0; i < nfunctions; i++) {
 		_CHECK_IO(_funcproto(o)->Load(v, up, read, o));
 		f->_functions[i] = o;
@@ -562,117 +566,117 @@ bool FunctionPrototype::Load(SQVM *v, LVUserPointer up, SQREADFUNC read, SQObjec
 #define END_MARK() RemoveFromChain(&_sharedstate->_gc_chain, this); \
 		AddToChain(chain, this); }
 
-void SQVM::Mark(SQCollectable **chain) {
+void LVVM::Mark(LVCollectable **chain) {
 	START_MARK()
-	SQSharedState::MarkObject(_lasterror, chain);
-	SQSharedState::MarkObject(_errorhandler, chain);
-	SQSharedState::MarkObject(_debughook_closure, chain);
-	SQSharedState::MarkObject(_roottable, chain);
-	SQSharedState::MarkObject(temp_reg, chain);
-	for (LVUnsignedInteger i = 0; i < _stack.size(); i++) SQSharedState::MarkObject(_stack[i], chain);
-	for (LVInteger k = 0; k < _callsstacksize; k++) SQSharedState::MarkObject(_callsstack[k]._closure, chain);
+	LVSharedState::MarkObject(_lasterror, chain);
+	LVSharedState::MarkObject(_errorhandler, chain);
+	LVSharedState::MarkObject(_debughook_closure, chain);
+	LVSharedState::MarkObject(_roottable, chain);
+	LVSharedState::MarkObject(temp_reg, chain);
+	for (LVUnsignedInteger i = 0; i < _stack.size(); i++) LVSharedState::MarkObject(_stack[i], chain);
+	for (LVInteger k = 0; k < _callsstacksize; k++) LVSharedState::MarkObject(_callsstack[k]._closure, chain);
 	END_MARK()
 }
 
-void SQArray::Mark(SQCollectable **chain) {
+void LVArray::Mark(LVCollectable **chain) {
 	START_MARK()
 	LVInteger len = _values.size();
-	for (LVInteger i = 0; i < len; i++) SQSharedState::MarkObject(_values[i], chain);
+	for (LVInteger i = 0; i < len; i++) LVSharedState::MarkObject(_values[i], chain);
 	END_MARK()
 }
-void SQTable::Mark(SQCollectable **chain) {
+void LVTable::Mark(LVCollectable **chain) {
 	START_MARK()
 	if (_delegate) _delegate->Mark(chain);
 	LVInteger len = _numofnodes;
 	for (LVInteger i = 0; i < len; i++) {
-		SQSharedState::MarkObject(_nodes[i].key, chain);
-		SQSharedState::MarkObject(_nodes[i].val, chain);
+		LVSharedState::MarkObject(_nodes[i].key, chain);
+		LVSharedState::MarkObject(_nodes[i].val, chain);
 	}
 	END_MARK()
 }
 
-void SQClass::Mark(SQCollectable **chain) {
+void LVClass::Mark(LVCollectable **chain) {
 	START_MARK()
 	_members->Mark(chain);
 	if (_base) _base->Mark(chain);
-	SQSharedState::MarkObject(_attributes, chain);
+	LVSharedState::MarkObject(_attributes, chain);
 	for (LVUnsignedInteger i = 0; i < _defaultvalues.size(); i++) {
-		SQSharedState::MarkObject(_defaultvalues[i].val, chain);
-		SQSharedState::MarkObject(_defaultvalues[i].attrs, chain);
+		LVSharedState::MarkObject(_defaultvalues[i].val, chain);
+		LVSharedState::MarkObject(_defaultvalues[i].attrs, chain);
 	}
 	for (LVUnsignedInteger j = 0; j < _methods.size(); j++) {
-		SQSharedState::MarkObject(_methods[j].val, chain);
-		SQSharedState::MarkObject(_methods[j].attrs, chain);
+		LVSharedState::MarkObject(_methods[j].val, chain);
+		LVSharedState::MarkObject(_methods[j].attrs, chain);
 	}
 	for (LVUnsignedInteger k = 0; k < MT_LAST; k++) {
-		SQSharedState::MarkObject(_metamethods[k], chain);
+		LVSharedState::MarkObject(_metamethods[k], chain);
 	}
 	END_MARK()
 }
 
-void SQInstance::Mark(SQCollectable **chain) {
+void LVInstance::Mark(LVCollectable **chain) {
 	START_MARK()
 	_class->Mark(chain);
 	LVUnsignedInteger nvalues = _class->_defaultvalues.size();
 	for (LVUnsignedInteger i = 0; i < nvalues; i++) {
-		SQSharedState::MarkObject(_values[i], chain);
+		LVSharedState::MarkObject(_values[i], chain);
 	}
 	END_MARK()
 }
 
-void SQGenerator::Mark(SQCollectable **chain) {
+void LVGenerator::Mark(LVCollectable **chain) {
 	START_MARK()
-	for (LVUnsignedInteger i = 0; i < _stack.size(); i++) SQSharedState::MarkObject(_stack[i], chain);
-	SQSharedState::MarkObject(_closure, chain);
+	for (LVUnsignedInteger i = 0; i < _stack.size(); i++) LVSharedState::MarkObject(_stack[i], chain);
+	LVSharedState::MarkObject(_closure, chain);
 	END_MARK()
 }
 
-void FunctionPrototype::Mark(SQCollectable **chain) {
+void FunctionPrototype::Mark(LVCollectable **chain) {
 	START_MARK()
-	for (LVInteger i = 0; i < _nliterals; i++) SQSharedState::MarkObject(_literals[i], chain);
-	for (LVInteger k = 0; k < _nfunctions; k++) SQSharedState::MarkObject(_functions[k], chain);
+	for (LVInteger i = 0; i < _nliterals; i++) LVSharedState::MarkObject(_literals[i], chain);
+	for (LVInteger k = 0; k < _nfunctions; k++) LVSharedState::MarkObject(_functions[k], chain);
 	END_MARK()
 }
 
-void SQClosure::Mark(SQCollectable **chain) {
+void LVClosure::Mark(LVCollectable **chain) {
 	START_MARK()
 	if (_base) _base->Mark(chain);
 	FunctionPrototype *fp = _function;
 	fp->Mark(chain);
-	for (LVInteger i = 0; i < fp->_noutervalues; i++) SQSharedState::MarkObject(_outervalues[i], chain);
-	for (LVInteger k = 0; k < fp->_ndefaultparams; k++) SQSharedState::MarkObject(_defaultparams[k], chain);
+	for (LVInteger i = 0; i < fp->_noutervalues; i++) LVSharedState::MarkObject(_outervalues[i], chain);
+	for (LVInteger k = 0; k < fp->_ndefaultparams; k++) LVSharedState::MarkObject(_defaultparams[k], chain);
 	END_MARK()
 }
 
-void SQNativeClosure::Mark(SQCollectable **chain) {
+void LVNativeClosure::Mark(LVCollectable **chain) {
 	START_MARK()
-	for (LVUnsignedInteger i = 0; i < _noutervalues; i++) SQSharedState::MarkObject(_outervalues[i], chain);
+	for (LVUnsignedInteger i = 0; i < _noutervalues; i++) LVSharedState::MarkObject(_outervalues[i], chain);
 	END_MARK()
 }
 
-void SQOuter::Mark(SQCollectable **chain) {
+void LVOuter::Mark(LVCollectable **chain) {
 	START_MARK()
 	/* If the valptr points to a closed value, that value is alive */
 	if (_valptr == &_value) {
-		SQSharedState::MarkObject(_value, chain);
+		LVSharedState::MarkObject(_value, chain);
 	}
 	END_MARK()
 }
 
-void SQUserData::Mark(SQCollectable **chain) {
+void LVUserData::Mark(LVCollectable **chain) {
 	START_MARK()
 	if (_delegate) _delegate->Mark(chain);
 	END_MARK()
 }
 
-void SQCollectable::UnMark() {
+void LVCollectable::UnMark() {
 	_uiRef &= ~MARK_FLAG;
 }
 
 #endif
 
 #ifdef _DEBUG
-void SQObjectPtr::dump() {
+void LVObjectPtr::dump() {
 	scprintf(_LC("DELEGABLE %s\n"), is_delegable(*this) ? "true" : "false");
 	switch (type(*this)) {
 		case OT_FLOAT:
