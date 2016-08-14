@@ -64,10 +64,10 @@ struct LVOuter;
 
 #include "config.h"
 
-#define LAVRIL_VERSION    _LC("Lavril 1.2-beta")
+#define LAVRIL_VERSION    _LC("Lavril 1.3-beta")
 #define LAVRIL_COPYRIGHT  _LC("Copyright (C) 2015-2016 Mavicona, Quenza Inc.\nAll Rights Reserved")
 #define LAVRIL_AUTHOR     _LC("Quenza Inc.")
-#define LAVRIL_VERSION_NUMBER 120
+#define LAVRIL_VERSION_NUMBER 130
 
 #define LV_VMSTATE_IDLE         0
 #define LV_VMSTATE_RUNNING      1
