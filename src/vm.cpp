@@ -509,10 +509,10 @@ bool SQVM::Init(SQVM *friendvm, LVInteger stacksize) {
 
 bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInteger stackbase, bool tailcall) {
 	FunctionPrototype *func = closure->_function;
-
 	LVInteger paramssize = func->_nparameters;
 	const LVInteger newtop = stackbase + func->_stacksize;
 	LVInteger nargs = args;
+
 	if (func->_varparams) {
 		paramssize--;
 		if (nargs < paramssize) {
@@ -520,7 +520,7 @@ bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInt
 			return false;
 		}
 
-		//dumpstack(stackbase);
+		// dumpstack(stackbase);
 		LVInteger nvargs = nargs - paramssize;
 		SQArray *arr = SQArray::Create(_ss(this), nvargs);
 		LVInteger pbase = stackbase + paramssize;
@@ -549,7 +549,8 @@ bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInt
 		_stack._vals[stackbase] = closure->_env->_obj;
 	}
 
-	if (!EnterFrame(stackbase, newtop, tailcall)) return false;
+	if (!EnterFrame(stackbase, newtop, tailcall))
+		return false;
 
 	ci->_closure  = closure;
 	ci->_literals = func->_literals;
@@ -569,7 +570,6 @@ bool SQVM::StartCall(SQClosure *closure, LVInteger target, LVInteger args, LVInt
 		Return(1, target, temp);
 		STK(target) = gen;
 	}
-
 
 	return true;
 }
@@ -741,7 +741,6 @@ bool SQVM::CLOSURE_OP(SQObjectPtr& target, FunctionPrototype *func) {
 
 }
 
-
 bool SQVM::CLASS_OP(SQObjectPtr& target, LVInteger baseclass, LVInteger attributes) {
 	SQClass *base = NULL;
 	SQObjectPtr attrs;
@@ -798,7 +797,7 @@ bool SQVM::IsFalse(SQObjectPtr& o) {
 	return false;
 }
 
-extern SQInstructionDesc g_InstrDesc[];
+extern SQInstructionDesc instruction_desc[];
 bool SQVM::Execute(SQObjectPtr& closure, LVInteger nargs, LVInteger stackbase, SQObjectPtr& outres, LVBool raiseerror, ExecutionType et) {
 	if ((_nnativecalls + 1) > MAX_NATIVE_CALLS) {
 		Raise_Error(_LC("Native stack overflow"));
@@ -849,8 +848,8 @@ exception_restore:
 	{
 		for (;;) {
 			const SQInstruction& _i_ = *ci->_ip++;
-			// dumpstack(_stackbase);
-			// scprintf("\n[%d] %s %d %d %d %d\n", ci->_ip - _closure(ci->_closure)->_function->_instructions, g_InstrDesc[_i_.op].name, arg0, arg1, arg2, arg3);
+			dumpstack(_stackbase);
+			scprintf("\n[%d] %s %d %d %d %d\n", ci->_ip - _closure(ci->_closure)->_function->_instructions, instruction_desc[_i_.op].name, arg0, arg1, arg2, arg3);
 			switch (_i_.op) {
 				case _OP_LINE:
 					if (_debughook)
@@ -1304,7 +1303,8 @@ exception_trap: {
 		//      LVInteger n = 0;
 		LVInteger last_top = _top;
 
-		if (_ss(this)->_notifyallexceptions || (!traps && raiseerror)) CallErrorHandler(currerror);
+		if (_ss(this)->_notifyallexceptions || (!traps && raiseerror))
+			CallErrorHandler(currerror);
 
 		while ( ci ) {
 			if (ci->_etraps > 0) {
@@ -1325,10 +1325,12 @@ exception_trap: {
 					CallDebugHook(_LC('r'));
 				}
 			}
-			if (ci->_generator) ci->_generator->Kill();
+			if (ci->_generator)
+				ci->_generator->Kill();
 			bool mustbreak = ci && ci->_root;
 			LeaveFrame();
-			if (mustbreak) break;
+			if (mustbreak)
+				break;
 		}
 
 		_lasterror = currerror;

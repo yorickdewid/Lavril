@@ -28,7 +28,7 @@ struct SQVM;
 #define TK_IN   280
 #define TK_NEWSLOT  281
 #define TK_MODULO   282
-#define TK_LOCAL    283
+#define TK_VAR    283
 #define TK_CLONE    284
 #define TK_FUNCTION 285
 #define TK_RETURN   286
@@ -64,8 +64,8 @@ struct SQVM;
 #define TK_MULEQ 317
 #define TK_DIVEQ 318
 #define TK_MODEQ 319
-// #define TK_ATTR_OPEN 320
-// #define TK_ATTR_CLOSE 321
+#define TK_INTERFACE 320 // TODO: Not used
+#define TK_ABSTRACT 321 // TODO: Not used
 #define TK_STATIC 322
 #define TK_ENUM 323
 #define TK_CONST 324

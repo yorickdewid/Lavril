@@ -71,7 +71,6 @@ SQInstructionDesc instruction_desc[] = {
 	{_LC("_OP_GETBASE")},
 	{_LC("_OP_CLOSE")},
 };
-#endif
 
 void DumpLiteral(SQObjectPtr& o) {
 	switch (type(o)) {
@@ -92,6 +91,7 @@ void DumpLiteral(SQObjectPtr& o) {
 			break;
 	}
 }
+#endif
 
 FunctionState::FunctionState(SQSharedState *ss, FunctionState *parent, CompilerErrorFunc efunc, void *ed) {
 	_nliterals = 0;

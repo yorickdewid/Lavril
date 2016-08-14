@@ -18,7 +18,7 @@
 #define LOCAL  4
 #define OUTER  5
 
-struct SQExpState {
+struct ExpState {
 	LVInteger  etype;       /* expr. type; one of EXPR, OBJECT, BASE, OUTER or LOCAL */
 	LVInteger  epos;        /* expr. location on stack; -1 for OBJECT and BASE */
 	bool       donot_get;   /* signal not to deref the next value */
@@ -143,7 +143,6 @@ class LVCompiler {
 		}
 
 		Lex();
-
 		return ret;
 	}
 
@@ -156,9 +155,9 @@ class LVCompiler {
 			Lex();
 			return;
 		}
-		if (!IsEndOfStatement()) {
+
+		if (!IsEndOfStatement())
 			Error(_LC("end of statement expected (; or lf)"));
-		}
 	}
 	void MoveIfCurrentTargetIsLocal() {
 		LVInteger trg = _fs->TopTarget();
@@ -246,7 +245,7 @@ class LVCompiler {
 			case TK_SWITCH:
 				SwitchStatement();
 				break;
-			case TK_LOCAL:
+			case TK_VAR:
 				LocalDeclStatement();
 				break;
 			case TK_INCLUDE:
@@ -401,7 +400,7 @@ class LVCompiler {
 	}
 
 	void Expression() {
-		SQExpState es = _es;
+		ExpState es = _es;
 		_es.etype     = EXPR;
 		_es.epos      = -1;
 		_es.donot_get = false;
@@ -489,7 +488,7 @@ class LVCompiler {
 
 	template<typename T>
 	void INVOKE_EXP(T f) {
-		SQExpState es = _es;
+		ExpState es = _es;
 		_es.etype     = EXPR;
 		_es.epos      = -1;
 		_es.donot_get = false;
@@ -1027,23 +1026,23 @@ class LVCompiler {
 				}
 				UnaryOP(_OP_BWNOT);
 				break;
-			case TK_TYPEOF :
+			case TK_TYPEOF:
 				Lex() ;
 				UnaryOP(_OP_TYPEOF);
 				break;
-			case TK_RESUME :
+			case TK_RESUME:
 				Lex();
 				UnaryOP(_OP_RESUME);
 				break;
-			case TK_CLONE :
+			case TK_CLONE:
 				Lex();
 				UnaryOP(_OP_CLONE);
 				break;
-			case TK_MINUSMINUS :
-			case TK_PLUSPLUS :
+			case TK_MINUSMINUS:
+			case TK_PLUSPLUS:
 				PrefixIncDec(_token);
 				break;
-			case TK_DELETE :
+			case TK_DELETE:
 				DeleteExpr();
 				break;
 			case _LC('('):
@@ -1211,7 +1210,6 @@ class LVCompiler {
 		SQObject varname;
 
 		Lex();
-
 		if ( _token == TK_FUNCTION) {
 			Lex();
 
@@ -1233,7 +1231,8 @@ class LVCompiler {
 				Expression();
 				LVInteger src = _fs->PopTarget();
 				LVInteger dest = _fs->PushTarget();
-				if (dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
+				if (dest != src)
+					_fs->AddInstruction(_OP_MOVE, dest, src);
 			} else {
 				_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
 			}
@@ -1354,7 +1353,8 @@ class LVCompiler {
 		Lex();
 		BEGIN_SCOPE();
 		Expect(_LC('('));
-		if (_token == TK_LOCAL) LocalDeclStatement();
+		if (_token == TK_VAR)
+			LocalDeclStatement();
 		else if (_token != _LC(';')) {
 			CommaExpr();
 			_fs->PopTarget();
@@ -1393,7 +1393,8 @@ class LVCompiler {
 				_fs->AddInstruction(exp[i]);
 		}
 		_fs->AddInstruction(_OP_JMP, 0, jmppos - _fs->GetCurrentPos() - 1, 0);
-		if (jzpos >  0) _fs->SetIntructionParam(jzpos, 1, _fs->GetCurrentPos() - jzpos);
+		if (jzpos >  0)
+			_fs->SetIntructionParam(jzpos, 1, _fs->GetCurrentPos() - jzpos);
 		END_SCOPE();
 
 		END_BREAKBLE_BLOCK(continuetrg);
@@ -1528,7 +1529,7 @@ class LVCompiler {
 	}
 
 	void ClassStatement() {
-		SQExpState es;
+		ExpState es;
 		Lex();
 		es = _es;
 		_es.donot_get = true;
@@ -1681,7 +1682,7 @@ class LVCompiler {
 	}
 
 	void DeleteExpr() {
-		SQExpState es;
+		ExpState es;
 		Lex();
 		es = _es;
 		_es.donot_get = true;
@@ -1697,7 +1698,7 @@ class LVCompiler {
 	}
 
 	void PrefixIncDec(LVInteger token) {
-		SQExpState  es;
+		ExpState  es;
 		LVInteger diff = (token == TK_MINUSMINUS) ? -1 : 1;
 		Lex();
 		es = _es;
@@ -1805,7 +1806,7 @@ class LVCompiler {
 	bool _raiseerror;
 	LVInteger _debugline;
 	LVInteger _debugop;
-	SQExpState _es;
+	ExpState _es;
 	SQScope _scope;
 	LVChar _compilererror[MAX_COMPILER_ERROR_LEN];
 	jmp_buf _errorjmp;

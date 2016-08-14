@@ -722,6 +722,7 @@ LVRESULT lv_getuserpointer(VMHANDLE v, LVInteger idx, LVUserPointer *p) {
 	return LV_OK;
 }
 
+/* Return an instance from a user pointer */
 LVRESULT lv_setinstanceup(VMHANDLE v, LVInteger idx, LVUserPointer p) {
 	SQObjectPtr& o = stack_get(v, idx);
 	if (type(o) != OT_INSTANCE)
