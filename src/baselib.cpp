@@ -440,6 +440,7 @@ static const LVRegFunction base_funcs[] = {
 	{_LC("print"), base_print, 2, NULL},
 	{_LC("printf"), base_printf, -2, ".s"},
 	{_LC("println"), base_println, 2, NULL},
+	{_LC("puts"), base_println, 2, NULL},
 	{_LC("error"), base_error, 2, NULL},
 	{_LC("compilestring"), base_compilestring, -2, _LC(".ss")},
 	{_LC("newthread"), base_newthread, 2, _LC(".c")},

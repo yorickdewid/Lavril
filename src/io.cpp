@@ -139,7 +139,8 @@ static LVInteger _file_constructor(VMHANDLE v) {
 		lv_getstring(v, 2, &filename);
 		lv_getstring(v, 3, &mode);
 		newf = lv_fopen(filename, mode);
-		if (!newf) return lv_throwerror(v, _LC("cannot open file"));
+		if (!newf)
+			return lv_throwerror(v, _LC("cannot open file"));
 	} else if (lv_gettype(v, 2) == OT_USERPOINTER) {
 		owns = !(lv_gettype(v, 3) == OT_NULL);
 		lv_getuserpointer(v, 2, &newf);
@@ -159,14 +160,12 @@ static LVInteger _file_constructor(VMHANDLE v) {
 
 static LVInteger _file_close(VMHANDLE v) {
 	LVFile *self = NULL;
-	if (LV_SUCCEEDED(lv_getinstanceup(v, 1, (LVUserPointer *)&self, (LVUserPointer)FILE_TYPE_TAG))
-	        && self != NULL) {
+	if (LV_SUCCEEDED(lv_getinstanceup(v, 1, (LVUserPointer *)&self, (LVUserPointer)FILE_TYPE_TAG)) && self != NULL) {
 		self->Close();
 	}
 	return 0;
 }
 
-//bindings
 #define _DECL_FILE_FUNC(name,nparams,typecheck) {_LC(#name),_file_##name,nparams,typecheck}
 static const LVRegFunction _file_methods[] = {
 	_DECL_FILE_FUNC(constructor, 3, _LC("x")),
@@ -463,8 +462,10 @@ static const LVRegFunction iolib_funcs[] = {
 
 LVRESULT mod_init_io(VMHANDLE v) {
 	LVInteger top = lv_gettop(v);
-	//create delegate
+
+	/* Create delegate */
 	declare_stream(v, _LC("file"), (LVUserPointer)FILE_TYPE_TAG, _LC("std_file"), _file_methods, iolib_funcs);
+
 	lv_pushstring(v, _LC("stdout"), -1);
 	lv_createfile(v, stdout, LVFalse);
 	lv_newslot(v, -3, LVFalse);
