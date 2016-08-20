@@ -742,7 +742,8 @@ bool LVVM::CLOSURE_OP(LVObjectPtr& target, FunctionPrototype *func) {
 
 }
 
-bool LVVM::CLASS_OP(LVObjectPtr& target, LVInteger baseclass, LVInteger attributes) {
+// bool LVVM::CLASS_OP(LVObjectPtr& target, LVInteger baseclass, LVInteger attributes) {
+bool LVVM::CLASS_OP(LVObjectPtr& target, LVInteger baseclass, LVInteger abstract) {
 	LVClass *base = NULL;
 	LVObjectPtr attrs;
 	if (baseclass != -1) {
@@ -752,9 +753,9 @@ bool LVVM::CLASS_OP(LVObjectPtr& target, LVInteger baseclass, LVInteger attribut
 		}
 		base = _class(_stack._vals[_stackbase + baseclass]);
 	}
-	if (attributes != MAX_FUNC_STACKSIZE) {
-		attrs = _stack._vals[_stackbase + attributes];
-	}
+	// if (attributes != MAX_FUNC_STACKSIZE) {
+	// 	attrs = _stack._vals[_stackbase + attributes];
+	// }
 	target = LVClass::Create(_ss(this), base);
 	if (type(_class(target)->_metamethods[MT_INHERITED]) != OT_NULL) {
 		int nparams = 2;
@@ -766,6 +767,9 @@ bool LVVM::CLASS_OP(LVObjectPtr& target, LVInteger baseclass, LVInteger attribut
 			return false;
 		}
 		Pop(nparams);
+	}
+	if (abstract != MAX_FUNC_STACKSIZE) {
+		_class(target)->_abstract = true;
 	}
 	_class(target)->_attributes = attrs;
 	return true;
@@ -909,7 +913,12 @@ exception_restore:
 						continue;
 						case OT_CLASS: {
 							LVObjectPtr inst;
-							_GUARD(CreateClassInstance(_class(clo), inst, clo));
+							LVClass *_class = _class(clo);
+							if (_class->_abstract) {
+								Raise_Error(_LC("attempt to call abstract object explicit"));
+								THROW();
+							}
+							_GUARD(CreateClassInstance(_class, inst, clo));
 							if (sarg0 != -1) {
 								STK(arg0) = inst;
 							}

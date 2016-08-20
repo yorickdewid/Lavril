@@ -298,6 +298,7 @@ class LVCompiler {
 			case TK_FUNCTION:
 				FunctionStatement();
 				break;
+			case TK_ABSTRACT:
 			case TK_CLASS:
 				ClassStatement();
 				break;
@@ -1502,11 +1503,16 @@ class LVCompiler {
 		Lex();
 		es = _es;
 		_es.donot_get = true;
+		LVInteger isabstract = -1;
+		if (_lex._prevtoken == TK_ABSTRACT) {
+			Lex();
+			isabstract = 1;
+		}
 		PrefixedExpr();
 		if (_es.etype == EXPR) {
 			Error(_LC("invalid class name"));
 		} else if (_es.etype == OBJECT || _es.etype == BASE) {
-			ClassExp();
+			ClassExp(isabstract);
 			EmitDerefOp(_OP_NEWSLOT);
 			_fs->PopTarget();
 		} else {
@@ -1627,8 +1633,9 @@ class LVCompiler {
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION ? 0 : 1);
 	}
 
-	void ClassExp() {
+	void ClassExp(LVInteger abstract = -1) {
 		LVInteger base = -1;
+		// LVInteger abstract = -1;
 		// LVInteger attrs = -1;
 		if (_token == TK_EXTENDS) {
 			Lex();
@@ -1646,7 +1653,7 @@ class LVCompiler {
 		// _fs->PopTarget();
 		if (base != -1)
 			_fs->PopTarget();
-		_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), base, -1, NOT_CLASS);
+		_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), base, abstract, NOT_CLASS);
 		ParseTableOrClass(_LC(';'), _LC('}'));
 	}
 

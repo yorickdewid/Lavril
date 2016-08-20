@@ -93,6 +93,7 @@ struct LVClass : public CHAINABLE_OBJ {
 	LVObjectPtr _attributes;
 	LVUserPointer _typetag;
 	LVRELEASEHOOK _hook;
+	bool _abstract;
 	bool _locked;
 	LVInteger _constructoridx;
 	LVInteger _udsize;

@@ -10,6 +10,7 @@ LVClass::LVClass(LVSharedState *ss, LVClass *base) {
 	_typetag = 0;
 	_hook = NULL;
 	_udsize = 0;
+	_abstract = false;
 	_locked = false;
 	_constructoridx = -1;
 	if (_base) {

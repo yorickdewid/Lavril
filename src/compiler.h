@@ -69,6 +69,7 @@ struct LVVM;
 #define TK_STATIC 322
 #define TK_ENUM 323
 #define TK_CONST 324
+#define TK_IMPLEMENTS 325 // TODO: Not used
 
 typedef void(*CompilerErrorFunc)(void *ud, const LVChar *s);
 bool RunCompiler(LVVM *vm, LVLEXREADFUNC rg, LVUserPointer up, const LVChar *sourcename, LVObjectPtr& out, bool raiseerror, bool lineinfo);

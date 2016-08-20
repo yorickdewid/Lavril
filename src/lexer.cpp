@@ -25,7 +25,7 @@ void LVLexer::Init(LVSharedState *ss, LVLEXREADFUNC rg, LVUserPointer up, Compil
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
-	_keywords = LVTable::Create(ss, 37);
+	_keywords = LVTable::Create(ss, 38);
 
 	ADD_KEYWORD(while, TK_WHILE);
 	ADD_KEYWORD(do, TK_DO);
@@ -62,6 +62,7 @@ void LVLexer::Init(LVSharedState *ss, LVLEXREADFUNC rg, LVUserPointer up, Compil
 	ADD_KEYWORD(static, TK_STATIC);
 	ADD_KEYWORD(enum, TK_ENUM);
 	ADD_KEYWORD(const, TK_CONST);
+	ADD_KEYWORD(abstract, TK_ABSTRACT);
 	ADD_KEYWORD(__LINE__, TK___LINE__);
 	ADD_KEYWORD(__FILE__, TK___FILE__);
 
