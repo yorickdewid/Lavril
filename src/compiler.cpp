@@ -248,9 +248,6 @@ class LVCompiler {
 			case TK_VAR:
 				LocalDeclStatement();
 				break;
-			case TK_INCLUDE:
-				IncludeStatement();
-				break;
 			case TK_RETURN:
 			case TK_YIELD: {
 				Opcode op;
@@ -1137,16 +1134,8 @@ class LVCompiler {
 	void ParseTableOrClass(LVInteger separator, LVInteger terminator) {
 		LVInteger tpos = _fs->GetCurrentPos(), nkeys = 0;
 		while (_token != terminator) {
-			// bool hasattrs = false;
 			bool isstatic = false;
-			//check if is an attribute
 			if (separator == ';') {
-				/*if (_token == TK_ATTR_OPEN) {
-					_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), 0, NOT_TABLE);
-					Lex();
-					ParseTableOrClass(',', TK_ATTR_CLOSE);
-					hasattrs = true;
-				}*/
 				if (_token == TK_STATIC) {
 					isstatic = true;
 					Lex();
@@ -1188,10 +1177,6 @@ class LVCompiler {
 			nkeys++;
 			LVInteger val = _fs->PopTarget();
 			LVInteger key = _fs->PopTarget();
-			// LVInteger attrs = hasattrs ? _fs->PopTarget() : -1;
-			// ((void)attrs);
-			// assert((hasattrs && (attrs == key - 1)) || !hasattrs);
-			// unsigned char flags = (hasattrs ? NEW_SLOT_ATTRIBUTES_FLAG : 0) | (isstatic ? NEW_SLOT_STATIC_FLAG : 0);
 			unsigned char flags = isstatic ? NEW_SLOT_STATIC_FLAG : 0;
 			LVInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
 			if (separator == _LC(',')) { //hack recognizes a table from the separator
@@ -1245,22 +1230,6 @@ class LVCompiler {
 			else
 				break;
 		} while (1);
-	}
-
-	void IncludeStatement() {
-		LVObject unitname;
-
-		Lex();
-		Expect(_LC('('));
-		unitname = Expect(TK_STRING_LITERAL);
-		Expect(_LC(')'));
-
-		if (_ss(_vm)->_unitloaderhandler) {
-			if (LV_FAILED(_ss(_vm)->_unitloaderhandler(_vm, _stringval(unitname), LVTrue)))
-				Error(_LC("cannot load include"));
-		} else {
-			Error(_LC("unexpected 'include'"));
-		}
 	}
 
 	void IfBlock() {

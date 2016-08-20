@@ -450,9 +450,13 @@ CALLBACK LVInteger callback_loadunit(VMHANDLE v, const LVChar *sSource, LVBool p
 }
 
 #define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_LC(#name),_g_io_##name,nparams,typecheck}
+#define _DECL_GLOBALIO_ALIAS(alias,name,nparams,typecheck) {_LC(#alias),_g_io_##name,nparams,typecheck}
 static const LVRegFunction iolib_funcs[] = {
 	_DECL_GLOBALIO_FUNC(loadfile, -2, _LC(".sb")),
 	_DECL_GLOBALIO_FUNC(execfile, -2, _LC(".sb")),
+	_DECL_GLOBALIO_ALIAS(include, execfile, -2, _LC(".sb")),
+	_DECL_GLOBALIO_ALIAS(require, execfile, -2, _LC(".sb")),
+	_DECL_GLOBALIO_ALIAS(import, execfile, -2, _LC(".sb")),
 	_DECL_GLOBALIO_FUNC(writeclosuretofile, 3, _LC(".sc")),
 	{NULL, (LVFUNCTION)0, 0, NULL}
 };
@@ -471,8 +475,6 @@ LVRESULT mod_init_io(VMHANDLE v) {
 	lv_createfile(v, stderr, LVFalse);
 	lv_newslot(v, -3, LVFalse);
 	lv_settop(v, top);
-
-	lv_setunitloader(v, callback_loadunit);
 
 	return LV_OK;
 }

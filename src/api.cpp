@@ -1182,10 +1182,6 @@ void lv_setcompilererrorhandler(VMHANDLE v, LVCOMPILERERROR f) {
 	_ss(v)->_compilererrorhandler = f;
 }
 
-void lv_setunitloader(VMHANDLE v, LVLOADUNIT f) {
-	_ss(v)->_unitloaderhandler = f;
-}
-
 LVRESULT lv_writeclosure(VMHANDLE v, LVWRITEFUNC w, LVUserPointer up) {
 	LVObjectPtr *o = NULL;
 	_GETSAFE_OBJ(v, -1, OT_CLOSURE, o);

@@ -25,7 +25,7 @@ void LVLexer::Init(LVSharedState *ss, LVLEXREADFUNC rg, LVUserPointer up, Compil
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
-	_keywords = LVTable::Create(ss, 38);
+	_keywords = LVTable::Create(ss, 37);
 
 	ADD_KEYWORD(while, TK_WHILE);
 	ADD_KEYWORD(do, TK_DO);
@@ -62,7 +62,6 @@ void LVLexer::Init(LVSharedState *ss, LVLEXREADFUNC rg, LVUserPointer up, Compil
 	ADD_KEYWORD(static, TK_STATIC);
 	ADD_KEYWORD(enum, TK_ENUM);
 	ADD_KEYWORD(const, TK_CONST);
-	ADD_KEYWORD(include, TK_INCLUDE);
 	ADD_KEYWORD(__LINE__, TK___LINE__);
 	ADD_KEYWORD(__FILE__, TK___FILE__);
 
@@ -165,10 +164,6 @@ LVInteger LVLexer::Lex() {
 						NEXT();
 						RETURN_TOKEN(TK_DIVEQ);
 						continue;
-						// case _LC('>'):
-						// NEXT();
-						// RETURN_TOKEN(TK_ATTR_CLOSE);
-						continue;
 					default:
 						RETURN_TOKEN('/');
 				}
@@ -198,10 +193,6 @@ LVInteger LVLexer::Lex() {
 					case _LC('<'):
 						NEXT();
 						RETURN_TOKEN(TK_SHIFTL);
-						break;
-						// case _LC('/'):
-						// NEXT();
-						// RETURN_TOKEN(TK_ATTR_OPEN);
 						break;
 				}
 				RETURN_TOKEN('<');

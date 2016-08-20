@@ -186,7 +186,6 @@ typedef LVInteger (*LVRELEASEHOOK)(LVUserPointer, LVInteger size);
 typedef CALLBACK void (*LVCOMPILERERROR)(VMHANDLE, const LVChar * /*desc*/, const LVChar * /*source*/, LVInteger /*line*/, LVInteger /*column*/);
 typedef CALLBACK void (*LVPRINTFUNCTION)(VMHANDLE, const LVChar *, ...);
 typedef CALLBACK void (*LVDEBUGHOOK)(VMHANDLE /*v*/, LVInteger /*type*/, const LVChar * /*sourcename*/, LVInteger /*line*/, const LVChar * /*funcname*/);
-typedef LVInteger (*LVLOADUNIT)(VMHANDLE /*v*/, const LVChar * /*sourcename*/, LVBool /*printerr*/);
 typedef LVInteger (*LVWRITEFUNC)(LVUserPointer, LVUserPointer, LVInteger);
 typedef LVInteger (*LVREADFUNC)(LVUserPointer, LVUserPointer, LVInteger);
 typedef LVInteger (*LVLEXREADFUNC)(LVUserPointer);
@@ -234,7 +233,6 @@ LAVRIL_API LVRESULT lv_compilebuffer(VMHANDLE v, const LVChar *s, LVInteger size
 LAVRIL_API void lv_enabledebuginfo(VMHANDLE v, LVBool enable);
 LAVRIL_API void lv_notifyallexceptions(VMHANDLE v, LVBool enable);
 LAVRIL_API void lv_setcompilererrorhandler(VMHANDLE v, LVCOMPILERERROR f);
-LAVRIL_API void lv_setunitloader(VMHANDLE v, LVLOADUNIT f);
 
 /* Stack operations */
 LAVRIL_API void lv_push(VMHANDLE v, LVInteger idx);

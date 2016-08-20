@@ -106,7 +106,6 @@ struct LVSharedState {
 	static const LVRegFunction _weakref_default_delegate_funcz[];
 
 	LVCOMPILERERROR _compilererrorhandler;
-	LVLOADUNIT _unitloaderhandler;
 	LVPRINTFUNCTION _printfunc;
 	LVPRINTFUNCTION _errorfunc;
 	bool _debuginfo;

@@ -11,7 +11,6 @@
 
 LVSharedState::LVSharedState() {
 	_compilererrorhandler = NULL;
-	_unitloaderhandler = NULL;
 	_printfunc = NULL;
 	_errorfunc = NULL;
 	_debuginfo = false;
