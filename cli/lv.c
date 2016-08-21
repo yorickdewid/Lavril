@@ -59,9 +59,9 @@ void error_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 }
 
 LVChar *read_func(VMHANDLE LV_UNUSED_ARG(v)) {
-	LVChar *line = lv_malloc(100);
+	LVChar *line = lv_malloc(128);
 	LVChar *linep = line;
-	size_t lenmax = 100, len = lenmax;
+	size_t lenmax = 128, len = lenmax;
 	int c;
 
 	if (!line)

@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #ifdef LVUNICODE
@@ -26,6 +27,34 @@ static LVInteger _system_getenv(VMHANDLE v) {
 		return 1;
 	}
 	return 0;
+}
+
+static LVInteger _system_exec(VMHANDLE v) {
+	const LVChar *s;
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		LVChar *line = (LVChar *)lv_malloc(128);
+		size_t bufsz = 128;
+		line[0] = '\0';
+
+		FILE *fp = popen(s, "r");
+		if (!fp) {
+			return lv_throwerror(v, _LC("cannot run command"));
+		}
+
+		LVChar out[128];
+		while (fgets(out, sizeof(out) - 1, fp) != NULL) {
+			if (strlen(line) + strlen(out) > bufsz) {
+				line = (LVChar *)lv_realloc(line, 0, bufsz *= 2);
+			}
+			strcat(line, out);
+		}
+
+		lv_pushstring(v, line, -1);
+		lv_free(line, 128);
+		pclose(fp);
+		return 1;
+	}
+	return lv_throwerror(v, _LC("wrong param"));
 }
 
 static LVInteger _system_system(VMHANDLE v) {
@@ -127,6 +156,7 @@ static LVInteger _system_date(VMHANDLE v) {
 #define _DECL_FUNC(name,nparams,pmask) {_LC(#name),_system_##name,nparams,pmask}
 static const LVRegFunction systemlib_funcs[] = {
 	_DECL_FUNC(getenv, 2, _LC(".s")),
+	_DECL_FUNC(exec, 2, _LC(".s")),
 	_DECL_FUNC(system, 2, _LC(".s")),
 	_DECL_FUNC(user, 1, _LC(".")),
 	_DECL_FUNC(host, 1, _LC(".")),
