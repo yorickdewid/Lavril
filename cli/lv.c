@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #include <crtdbg.h>
@@ -18,6 +20,7 @@
 #endif
 
 #define CLI_MAXINPUT 1024
+#define OPGEN_MIN 512
 
 void print_version_info();
 
@@ -101,10 +104,25 @@ void print_usage() {
 	          _LC("  -a              Run interactively\n")
 	          _LC("  -r <statement>  Run statement and exit\n")
 	          _LC("  -c <file>       Compile file (default output 'out.lavc')\n")
-	          _LC("  -o <file>       Specifies output file for the -c option\n")
 	          _LC("  -d              Enable debug info\n")
 	          _LC("  -v              Version\n")
 	          _LC("  -h              This help\n"));
+}
+
+time_t get_mtime(const char *path) {
+	struct stat statbuf;
+	if (stat(path, &statbuf) < 0) {
+		return 0;
+	}
+	return statbuf.st_mtime;
+}
+
+off_t get_fsize(const char *path) {
+	struct stat statbuf;
+	if (stat(path, &statbuf) < 0) {
+		return 0;
+	}
+	return statbuf.st_size;;
 }
 
 enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
@@ -114,7 +132,6 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 #ifdef LVUNICODE
 	static LVChar temp[512];
 #endif
-	char *output = NULL;
 	char *statement = NULL;
 	*retval = 0;
 	if (argc > 1) {
@@ -139,12 +156,6 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 						break;
 					case 'a':
 						return INTERACTIVE;
-					case 'o':
-						if (arg < argc) {
-							arg++;
-							output = argv[arg];
-						}
-						break;
 					case 'v':
 						print_version_info();
 						return DONE;
@@ -195,23 +206,40 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 
 			arg++;
 
+			size_t len = (strlen(filename) + 2);
+			lv_getscratchpad(v, len * sizeof(LVChar));
+			LVChar *outfile = lv_getscratchpad(v, -1);
+			strcpy(outfile, filename);
+			strcat(outfile, "c");
+
 			if (compiles_only) {
 				if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
-					const LVChar *outfile = _LC("out.lavc");
-					if (output) {
-#ifdef LVUNICODE
-						int len = (int)(strlen(output) + 1);
-						mbstowcs(lv_getscratchpad(v, len * sizeof(LVChar)), output, len);
-						outfile = lv_getscratchpad(v, -1);
-#else
-						outfile = output;
-#endif
-					}
 					if (LV_SUCCEEDED(lv_writeclosuretofile(v, outfile))) {
 						return DONE;
 					}
 				}
 			} else {
+				time_t tcunit = get_mtime(outfile);
+				time_t tunit = get_mtime(filename);
+
+				if (tcunit) {
+					if (tcunit > tunit) {
+						filename = outfile;
+					} else {
+						if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
+							if (LV_SUCCEEDED(lv_writeclosuretofile(v, outfile))) {
+								filename = outfile;
+							}
+						}
+					}
+				} else if (get_fsize(filename) > OPGEN_MIN) {
+					if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
+						if (LV_SUCCEEDED(lv_writeclosuretofile(v, outfile))) {
+							filename = outfile;
+						}
+					}
+				}
+
 				if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
 					int callargs = 1;
 					lv_pushroottable(v);
