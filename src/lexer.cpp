@@ -306,10 +306,14 @@ LVInteger LVLexer::Lex() {
 				if (CUR_CHAR == _LC('=')) {
 					NEXT();
 					RETURN_TOKEN(TK_MINUSEQ);
-				} else if  (CUR_CHAR == _LC('-')) {
+				} else if (CUR_CHAR == _LC('-')) {
 					NEXT();
 					RETURN_TOKEN(TK_MINUSMINUS);
-				} else RETURN_TOKEN('-');
+				} else if (CUR_CHAR == _LC('>')) {
+					NEXT();
+					RETURN_TOKEN(TK_ARROW_RIGHT);
+				} else
+					RETURN_TOKEN('-');
 			case _LC('+'):
 				NEXT();
 				if (CUR_CHAR == _LC('=')) {

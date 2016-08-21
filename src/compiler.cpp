@@ -758,9 +758,8 @@ class LVCompiler {
 						_es.etype = OBJECT;
 					}
 					break;
-				case _LC('-'):
+				case TK_ARROW_RIGHT:
 					Lex();
-					Expect(_LC('>'));
 					pos = -1;
 					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
 					if (_es.etype == BASE) {
