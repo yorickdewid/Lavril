@@ -326,6 +326,17 @@ static LVInteger get_slice_params(VMHANDLE v, LVInteger& sidx, LVInteger& eidx, 
 	return 1;
 }
 
+static LVInteger base_readline(VMHANDLE v) {
+	LVChar *dest;
+	if (_ss(v)->_readfunc) {
+		dest = _ss(v)->_readfunc(v);
+		lv_pushstring(v, dest, -1);
+		lv_free(dest, 0);
+		return 1;
+	}
+	return 0;
+}
+
 static LVInteger base_print(VMHANDLE v) {
 	const LVChar *str;
 	if (LV_SUCCEEDED(lv_tostring(v, 2))) {
@@ -436,6 +447,7 @@ static const LVRegFunction base_funcs[] = {
 	{_LC("getconsttable"), base_getconsttable, 1, NULL},
 	{_LC("setconsttable"), base_setconsttable, 2, NULL},
 	{_LC("assert"), base_assert, 2, NULL},
+	{_LC("readline"), base_readline, 1, NULL},
 	{_LC("echo"), base_print, 2, NULL},
 	{_LC("print"), base_print, 2, NULL},
 	{_LC("printf"), base_printf, -2, ".s"},

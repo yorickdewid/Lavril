@@ -1528,6 +1528,10 @@ void lv_setprintfunc(VMHANDLE v, LVPRINTFUNCTION printfunc, LVPRINTFUNCTION errf
 	_ss(v)->_errorfunc = errfunc;
 }
 
+void lv_setreadfunc(VMHANDLE v, LVREADFUNCTION readfunc) {
+	_ss(v)->_readfunc = readfunc;
+}
+
 LVPRINTFUNCTION lv_getprintfunc(VMHANDLE v) {
 	return _ss(v)->_printfunc;
 }

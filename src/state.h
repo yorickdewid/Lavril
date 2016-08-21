@@ -107,6 +107,7 @@ struct LVSharedState {
 
 	LVCOMPILERERROR _compilererrorhandler;
 	LVPRINTFUNCTION _printfunc;
+	LVREADFUNCTION _readfunc;
 	LVPRINTFUNCTION _errorfunc;
 	bool _debuginfo;
 	bool _notifyallexceptions;

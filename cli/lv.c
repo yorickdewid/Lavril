@@ -55,6 +55,39 @@ void error_func(VMHANDLE LV_UNUSED_ARG(v), const LVChar *s, ...) {
 	va_end(vl);
 }
 
+LVChar *read_func(VMHANDLE LV_UNUSED_ARG(v)) {
+	LVChar *line = lv_malloc(100);
+	LVChar *linep = line;
+	size_t lenmax = 100, len = lenmax;
+	int c;
+
+	if (!line)
+		return NULL;
+
+	for (;;) {
+		c = fgetc(stdin);
+		if (c == EOF)
+			break;
+
+		if (--len == 0) {
+			len = lenmax;
+			char *linen = lv_realloc(linep, 0, lenmax *= 2);
+
+			if (!linen) {
+				lv_free(linep, 0);
+				return NULL;
+			}
+			line = linen + (line - linep);
+			linep = linen;
+		}
+
+		if ((*line++ = c) == '\n')
+			break;
+	}
+	*(line - 1) = '\0';
+	return linep;
+}
+
 void print_version_info() {
 	scfprintf(stdout, _LC("%s %s (%d bits)\n"), LAVRIL_VERSION, LAVRIL_COPYRIGHT, ((int)(sizeof(LVInteger) * 8)));
 }
@@ -308,7 +341,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 	v = lv_open(1024);
+
 	lv_setprintfunc(v, print_func, error_func);
+	lv_setreadfunc(v, read_func);
 
 	lv_pushroottable(v);
 
