@@ -304,6 +304,14 @@ static LVInteger base_assert(VMHANDLE v) {
 	return 0;
 }
 
+static LVInteger base_sleep(VMHANDLE v) {
+	LVInteger i;
+	if (LV_SUCCEEDED(lv_getinteger(v, -1, &i))) {
+		sleep(i);
+	}
+	return 0;
+}
+
 static LVInteger get_slice_params(VMHANDLE v, LVInteger& sidx, LVInteger& eidx, LVObjectPtr& o) {
 	LVInteger top = lv_gettop(v);
 	sidx = 0;
@@ -447,6 +455,7 @@ static const LVRegFunction base_funcs[] = {
 	{_LC("getconsttable"), base_getconsttable, 1, NULL},
 	{_LC("setconsttable"), base_setconsttable, 2, NULL},
 	{_LC("assert"), base_assert, 2, NULL},
+	{_LC("sleep"), base_sleep, 2, _LC(".n")},
 	{_LC("readline"), base_readline, 1, NULL},
 	{_LC("echo"), base_print, 2, NULL},
 	{_LC("print"), base_print, 2, NULL},
