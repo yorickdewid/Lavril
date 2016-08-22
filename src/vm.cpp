@@ -1316,7 +1316,7 @@ exception_trap: {
 		if (_ss(this)->_notifyallexceptions || (!traps && raiseerror))
 			CallErrorHandler(currerror);
 
-		while ( ci ) {
+		while (ci) {
 			if (ci->_etraps > 0) {
 				LVExceptionTrap& et = _etraps.top();
 				ci->_ip = et._ip;
@@ -1326,7 +1326,8 @@ exception_trap: {
 				_etraps.pop_back();
 				traps--;
 				ci->_etraps--;
-				while (last_top >= _top) _stack._vals[last_top--].Null();
+				while (last_top >= _top)
+					_stack._vals[last_top--].Null();
 				goto exception_restore;
 			} else if (_debughook) {
 				//notify debugger of a "return"

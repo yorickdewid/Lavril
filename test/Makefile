@@ -1,4 +1,4 @@
 CLI = ../bin/lv
 
 all:
-	$(CLI) runner.lav
+	$(CLI) -n runner.lav

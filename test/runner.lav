@@ -1,6 +1,39 @@
 include("testcase.lav");
 
+var verbose = false;
+var only_class = null;
 var cases = [];
+
+class core_case extends testcase {
+	constructor() {
+		base("core");
+	}
+
+	function setup() {
+		register(this.arithmetic);
+		register(this.lambda);
+		register(this.fib);
+	}
+
+	function arithmetic() {
+		expectInteger(((17-23)*2/6)+7, 5);
+		expectFloat(1.0/2.0, 0.5);
+	}
+
+	function lambda() {
+		
+	}
+
+	function _fib(n) {
+    	if (n < 2)
+    		return 1
+    	return _fib(n-2) + _fib(n-1)
+	}
+
+	function fib() {
+		expectInteger(_fib(6), 13)
+	}
+}
 
 class base_case extends testcase {
 	constructor() {
@@ -16,8 +49,10 @@ class base_case extends testcase {
 	}
 
 	function othertest() {
-		println(">> " + type(this));
-		println(">> " + callee());
+		if (verbose) {
+			println(">> " + type(this));
+			println(">> " + callee());
+		}
 
 		/* Dummy function */
 		blub();
@@ -26,10 +61,14 @@ class base_case extends testcase {
 	}
 
 	function outputtest() {
-		print(">> default output\n");
-		echo(">> another output\n");
-		println(">> newline");
-		error(">> some error\n");
+		if (verbose) {
+			print(">> default output\n");
+			echo(">> another output\n");
+			puts(">> yet another output");
+			println(">> newline");
+			error(">> some error\n");
+			printf(">> Hello %s\n", "World!");
+		}
 
 		assertTrue(true);
 	}
@@ -127,17 +166,69 @@ class modules_case extends testcase {
 	}
 }
 
+/* Case append */
+cases.append(core_case);
 cases.append(base_case);
 cases.append(modules_case);
 
+/* Parse compiler options */
+function getopt(name, argv, opt) {
+	if (argv.find("--help") != null || argv.find("-h") != null) {
+		printf("usage: %s [options] [args...]\n\n", name);
+		println(" -h --help\tShow this help");
+		foreach (option in opt) {
+			if (option.rawin("arg"))
+				printf(" -%c <%s>\t%s\n", option.opt, option.arg[0], option.desc);
+			else
+				printf(" -%c\t\t%s\n", option.opt, option.desc);
+		}
+
+		throw null;
+	}
+
+	for (var idx = 0; idx < argv.size(); ++idx) {
+		var match = false;
+		foreach (option in opt) {
+			if (option.opt == argv[idx][1]) {
+				var param = null;
+				if (option.rawin("arg")) {
+					if (idx+1 == argv.size())
+						throw argv[idx] + " requires option";
+					if (argv[idx + 1][0] == '-')
+						throw argv[idx] + " requires option";
+					param = argv[++idx];
+				}
+				option.cb(param);
+				match = true;
+				break;
+			}
+		}
+		if (!match)
+			throw "invalid option " + argv[idx];
+	}
+}
+
 /* Basic info */
 function main() {
-	print("Version " + _version_ + " (build: " + _versionnumber_ + ")\n");
-	print("char size\t" + _charsize_ + "\n");
-	print("int size\t" + _intsize_ + "\n");
-	print("float size\t" + _floatsize_ + "\n");
-	print("debug\t\t" + _debug_ + "\n");
-	print("\n");
+	try {
+		getopt("runner.lav", vargv, [
+			{opt='t', desc="Run only this testcase", arg=["class","string"], cb=function(e) { only_class = e }},
+			{opt='v', desc="Verbose", cb=function(e) { verbose = true }},
+		]);
+	} catch (err) {
+		if (err != null)
+			error("getopt: " + err + ", see --help\n");
+		return;
+	}
+
+	if (verbose) {
+		print("Version " + _version_ + " (build: " + _versionnumber_ + ")\n");
+		print("char size\t" + _charsize_ + "\n");
+		print("int size\t" + _intsize_ + "\n");
+		print("float size\t" + _floatsize_ + "\n");
+		print("debug\t\t" + _debug_ + "\n");
+		print("\n");
+	}
 
 	/* Call each case */
 	foreach(_case in cases) {

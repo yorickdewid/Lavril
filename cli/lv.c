@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -105,6 +106,7 @@ void print_usage() {
 	          _LC("  -r <statement>  Run statement and exit\n")
 	          _LC("  -c <file>       Compile file (default output 'out.lavc')\n")
 	          _LC("  -d              Enable debug info\n")
+	          _LC("  -n              Always run script (omit compile cache)\n")
 	          _LC("  -v              Version\n")
 	          _LC("  -h              This help\n"));
 }
@@ -129,6 +131,7 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 	int i;
 	int compiles_only = 0;
 	int run_statement_only = 0;
+	int omit_compile = 0;
 #ifdef LVUNICODE
 	static LVChar temp[512];
 #endif
@@ -156,10 +159,12 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 						break;
 					case 'a':
 						return INTERACTIVE;
+					case 'n':
+						omit_compile = 1;
+						break;
 					case 'v':
 						print_version_info();
 						return DONE;
-
 					case 'h':
 						print_version_info();
 						print_usage();
@@ -219,23 +224,25 @@ enum result getargs(VMHANDLE v, int argc, char *argv[], LVInteger *retval) {
 					}
 				}
 			} else {
-				time_t tcunit = get_mtime(outfile);
-				time_t tunit = get_mtime(filename);
+				if (!omit_compile) {
+					time_t tcunit = get_mtime(outfile);
+					time_t tunit = get_mtime(filename);
 
-				if (tcunit) {
-					if (tcunit > tunit) {
-						filename = outfile;
-					} else {
+					if (tcunit) {
+						if (tcunit > tunit) {
+							filename = outfile;
+						} else {
+							if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
+								if (LV_SUCCEEDED(lv_writeclosuretofile(v, outfile))) {
+									filename = outfile;
+								}
+							}
+						}
+					} else if (get_fsize(filename) > OPGEN_MIN) {
 						if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
 							if (LV_SUCCEEDED(lv_writeclosuretofile(v, outfile))) {
 								filename = outfile;
 							}
-						}
-					}
-				} else if (get_fsize(filename) > OPGEN_MIN) {
-					if (LV_SUCCEEDED(lv_loadfile(v, filename, LVTrue))) {
-						if (LV_SUCCEEDED(lv_writeclosuretofile(v, outfile))) {
-							filename = outfile;
 						}
 					}
 				}
@@ -382,6 +389,8 @@ int main(int argc, char *argv[]) {
 	init_module(pgsql, v);
 
 	lv_registererrorhandlers(v);
+
+	srand(time(NULL));
 
 	switch (getargs(v, argc, argv, &retval)) {
 		case INTERACTIVE:

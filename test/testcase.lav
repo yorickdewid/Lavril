@@ -43,6 +43,16 @@ function expectInteger(got, expected) {
 	rs_passed++;
 }
 
+function expectFloat(got, expected) {
+	if (type(expected) != "float") {
+		throw "parameter must be float";
+	}
+	if (got != expected)
+		throw "\n=> float expectation failed\n=> got: '" + got + "'\n=> expected: '" + expected + "'";
+
+	rs_passed++;
+}
+
 function expectString(got, expected) {
 	if (type(expected) != "string") {
 		throw "parameter must be string";
