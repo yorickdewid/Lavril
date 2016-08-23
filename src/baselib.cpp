@@ -8,6 +8,7 @@
 #include "class.h"
 
 #include <stdarg.h>
+#include <unistd.h>
 #include <ctype.h>
 
 static bool str2num(const LVChar *s, LVObjectPtr& res, LVInteger base) {

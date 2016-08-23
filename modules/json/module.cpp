@@ -631,7 +631,8 @@ try_again:
 				goto try_again;
 			}
 
-			return lv_throwerror(v, "Failed to parse as JSON");
+			lv_free(tok, tokcount);
+			return lv_throwerror(v, "failed to parse as json");
 		}
 
 		parse_level(v, s, tok, p.toknext);
@@ -642,10 +643,58 @@ try_again:
 	return 0;
 }
 
+static LVInteger json_decode_file(VMHANDLE v) {
+	const LVChar *s;
+	FILE *file;
+	jsmn_parser p;
+	size_t tokcount = 256;
+
+	if (LV_SUCCEEDED(lv_getstring(v, 2, &s))) {
+		file = fopen(s, "r");
+		if (!file) {
+			return lv_throwerror(v, "cannot open json file");
+		}
+
+		fseek(file, 0, SEEK_END);
+		size_t filesz = ftell(file);
+		fseek(file, 0, SEEK_SET);
+
+		LVChar *filebuffer = (LVChar *)lv_malloc(sizeof(LVChar) * (filesz + 1));
+		fread(filebuffer, filesz, 1, file);
+		fclose(file);
+
+		filebuffer[filesz] = '\0';
+
+		jsmn_init(&p);
+		jsmntok_t *tok = (jsmntok_t *)lv_malloc(sizeof(*tok) * tokcount);
+try_again_file:
+		int r = jsmn_parse(&p, filebuffer, filesz, tok, tokcount);
+		if (r < 0) {
+			if (r == JSMN_ERROR_NOMEM) {
+				tokcount *= 2;
+				tok = (jsmntok_t *)lv_realloc(tok, tokcount, sizeof(*tok) * tokcount);
+				goto try_again_file;
+			}
+
+			lv_free(tok, tokcount);
+			lv_free(filebuffer, filesz);
+			return lv_throwerror(v, "failed to parse as json");
+		}
+
+		parse_level(v, filebuffer, tok, p.toknext);
+
+		lv_free(tok, tokcount);
+		lv_free(filebuffer, filesz);
+		return 1;
+	}
+	return 0;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_LC(#name),name,nparams,tycheck}
 static const LVRegFunction jsonlib_funcs[] = {
 	_DECL_FUNC(json_encode, 2, NULL),
 	_DECL_FUNC(json_decode, 2, _LC(".s")),
+	_DECL_FUNC(json_decode_file, 2, _LC(".s")),
 	{NULL, (LVFUNCTION)0, 0, NULL}
 };
 #undef _DECL_FUNC
