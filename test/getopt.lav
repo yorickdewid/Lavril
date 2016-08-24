@@ -1,0 +1,41 @@
+/*
+ * Copyright (C) 2015-2016 Mavicona, Quenza Inc.
+ *
+ * Parse compiler options
+ */
+
+function getopt(name, argv, opt) {
+	if (argv.find("--help") != null || argv.find("-h") != null) {
+		printf("usage: %s [options] [args...]\n\n", name);
+		println(" -h --help\tShow this help");
+		foreach (option in opt) {
+			if (option.rawin("arg"))
+				printf(" -%c <%s>\t%s\n", option.opt, option.arg[0], option.desc);
+			else
+				printf(" -%c\t\t%s\n", option.opt, option.desc);
+		}
+
+		throw null;
+	}
+
+	for (var idx = 0; idx < argv.size(); ++idx) {
+		var match = false;
+		foreach (option in opt) {
+			if (option.opt == argv[idx][1]) {
+				var param = null;
+				if (option.rawin("arg")) {
+					if (idx+1 == argv.size())
+						throw argv[idx] + " requires option";
+					if (argv[idx + 1][0] == '-')
+						throw argv[idx] + " requires option";
+					param = argv[++idx];
+				}
+				option.cb(param);
+				match = true;
+				break;
+			}
+		}
+		if (!match)
+			throw "invalid option " + argv[idx];
+	}
+}
